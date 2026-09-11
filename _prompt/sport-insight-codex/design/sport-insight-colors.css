@@ -1,0 +1,189 @@
+@charset "UTF-8";
+
+/*
+ * SPORT INSIGHT | UI Color Tokens v1.0
+ * 기준: 대화에서 제작한 최종 블루·네이비 시안.
+ * 이 팔레트는 KSPO 공식 CI 색상 규정이 아닌 개발용 제안안입니다.
+ * 그라데이션이 포함된 이미지의 색감을 단색 토큰으로 정리했습니다.
+ * 적용: <link rel="stylesheet" href="./sport-insight-colors.css">
+ * 사용: color: var(--si-text); background: var(--si-surface);
+ * 클래스는 si- 접두사로 범위를 제한하며 전역 레이아웃 초기화는 없습니다.
+ * 상태는 색만이 아닌 문자·아이콘을 함께 표시하세요.
+ * 차트·지도 색은 채움용이며 일반 본문 글자에 사용하지 마세요.
+ * 지도의 진한 색은 큰 값을 의미하며 좋음·나쁨을 자동으로 의미하지 않습니다.
+ *
+ * COLOR CODE TABLE
+ * --si-primary             #0064FF  메인 블루 / 주요 버튼, 선택 메뉴, 링크
+ * --si-primary-hover       #0052CC  호버 블루 / 주요 버튼 마우스 오버
+ * --si-primary-active      #0043A8  클릭 블루 / 주요 버튼 누름 상태
+ * --si-navy                #04386F  사이드바 네이비 / 왼쪽 메뉴 배경
+ * --si-navy-hover          #0B4A87  메뉴 호버 / 사이드바 비선택 항목 호버
+ * --si-heading             #082B63  제목 네이비 / 페이지 제목, 핵심 지표
+ * --si-bg                  #F4F9FF  전체 배경 / 대시보드 기본 배경
+ * --si-surface             #FFFFFF  카드 배경 / 카드, 입력창, 본문 영역
+ * --si-surface-soft        #EAF4FF  연한 블루 / 표 헤더, 안내 박스
+ * --si-surface-hover       #F0F6FF  행 호버 배경 / 표 행, 목록 호버
+ * --si-border              #D8E6F5  기본 구분선 / 카드 테두리, 표 구분선
+ * --si-border-control      #7F96B2  입력창 테두리 / 입력 요소 식별용 테두리
+ * --si-text                #17324D  기본 글자 / 본문, 표, 입력값
+ * --si-text-secondary      #52667E  보조 글자 / 설명, 필드 라벨
+ * --si-text-muted          #5F728A  보조 메타정보 / 기준일, 출처, 플레이스홀더
+ * --si-text-inverse        #FFFFFF  반전 글자 / 블루 버튼, 네이비 메뉴 위 글자
+ * --si-success             #0B7A53  확인·충족 / 확인됨, 조건 충족 라벨
+ * --si-success-bg          #E8F6EF  확인 배경 / 확인·충족 상태 배지 배경
+ * --si-warning             #946000  확인 필요 / 누락, 추가 검토 라벨
+ * --si-warning-bg          #FFF4D6  주의 배경 / 확인 필요 배지 배경
+ * --si-danger              #C92A3A  오류·제외 / 입력 오류, 조건 불충족
+ * --si-danger-bg           #FFF0F2  오류 배경 / 오류·제외 배지 배경
+ * --si-disabled-bg         #E8EEF5  비활성 배경 / 데이터 없음, 비활성 요소
+ * --si-disabled-text       #596B80  비활성 글자 / 비활성 버튼·입력 요소
+ * --si-chart-primary       #2684FF  기본 차트 / 선택 지역 막대·선
+ * --si-chart-comparison    #A6CDFF  비교 차트 / 비교 지역 막대·선
+ * --si-chart-grid          #E4EDF7  차트 격자 / 차트 보조선
+ * --si-map-1               #DBEDFF  지도 1단계 / 순차형 지표 최저 구간
+ * --si-map-2               #B4D8FF  지도 2단계 / 순차형 지표 낮은 구간
+ * --si-map-3               #7DBAFF  지도 3단계 / 순차형 지표 중간 구간
+ * --si-map-4               #3995F5  지도 4단계 / 순차형 지표 높은 구간
+ * --si-map-5               #0866C5  지도 5단계 / 순차형 지표 최고 구간
+ * --si-map-no-data         #E2E8F0  지도 데이터 없음 / 값 누락·미집계; 0과 구분
+ */
+
+:root {
+  color-scheme: light;
+
+  /* 01. 브랜드 색상 */
+  --si-primary: #0064FF; /* 메인 블루 */
+  --si-primary-hover: #0052CC; /* 호버 블루 */
+  --si-primary-active: #0043A8; /* 클릭 블루 */
+  --si-navy: #04386F; /* 사이드바 네이비 */
+  --si-navy-hover: #0B4A87; /* 메뉴 호버 */
+  --si-heading: #082B63; /* 제목 네이비 */
+
+  /* 02. 배경·테두리 */
+  --si-bg: #F4F9FF; /* 전체 배경 */
+  --si-surface: #FFFFFF; /* 카드 배경 */
+  --si-surface-soft: #EAF4FF; /* 연한 블루 */
+  --si-surface-hover: #F0F6FF; /* 행 호버 배경 */
+  --si-border: #D8E6F5; /* 기본 구분선 */
+  --si-border-control: #7F96B2; /* 입력창 테두리 */
+
+  /* 03. 글자 */
+  --si-text: #17324D; /* 기본 글자 */
+  --si-text-secondary: #52667E; /* 보조 글자 */
+  --si-text-muted: #5F728A; /* 보조 메타정보 */
+  --si-text-inverse: #FFFFFF; /* 반전 글자 */
+
+  /* 04. 상태 */
+  --si-success: #0B7A53; /* 확인·충족 */
+  --si-success-bg: #E8F6EF; /* 확인 배경 */
+  --si-warning: #946000; /* 확인 필요 */
+  --si-warning-bg: #FFF4D6; /* 주의 배경 */
+  --si-danger: #C92A3A; /* 오류·제외 */
+  --si-danger-bg: #FFF0F2; /* 오류 배경 */
+  --si-disabled-bg: #E8EEF5; /* 비활성 배경 */
+  --si-disabled-text: #596B80; /* 비활성 글자 */
+
+  /* 05. 차트·지도 */
+  --si-chart-primary: #2684FF; /* 기본 차트 */
+  --si-chart-comparison: #A6CDFF; /* 비교 차트 */
+  --si-chart-grid: #E4EDF7; /* 차트 격자 */
+  --si-map-1: #DBEDFF; /* 지도 1단계 */
+  --si-map-2: #B4D8FF; /* 지도 2단계 */
+  --si-map-3: #7DBAFF; /* 지도 3단계 */
+  --si-map-4: #3995F5; /* 지도 4단계 */
+  --si-map-5: #0866C5; /* 지도 5단계 */
+  --si-map-no-data: #E2E8F0; /* 지도 데이터 없음 */
+
+  /* Semantic aliases */
+  --si-focus: var(--si-primary-hover);
+  --si-info: var(--si-primary-hover);
+  --si-info-bg: var(--si-surface-soft);
+  --si-shadow-color: rgb(4 56 111 / 8%);
+}
+
+/* Optional color-only helpers. Layout and spacing remain application-owned. */
+.si-theme { color: var(--si-text); background-color: var(--si-bg); }
+.si-heading { color: var(--si-heading); }
+.si-text-secondary { color: var(--si-text-secondary); }
+.si-text-muted { color: var(--si-text-muted); }
+.si-surface {
+  color: var(--si-text);
+  background-color: var(--si-surface);
+  border: 1px solid var(--si-border);
+}
+.si-surface-soft { color: var(--si-text); background-color: var(--si-surface-soft); }
+.si-sidebar { color: var(--si-text-inverse); background-color: var(--si-navy); }
+.si-nav-link { color: var(--si-text-inverse); background-color: transparent; }
+.si-nav-link:hover { background-color: var(--si-navy-hover); }
+.si-nav-link[aria-current="page"],
+.si-nav-link.is-active {
+  color: var(--si-text-inverse);
+  background-color: var(--si-primary);
+  box-shadow: inset 3px 0 0 var(--si-text-inverse);
+}
+.si-link { color: var(--si-primary-hover); text-decoration: underline; }
+.si-link:hover { color: var(--si-primary-active); }
+
+.si-btn-primary {
+  color: var(--si-text-inverse);
+  background-color: var(--si-primary);
+  border: 1px solid var(--si-primary);
+}
+.si-btn-primary:hover:not(:disabled) {
+  background-color: var(--si-primary-hover);
+  border-color: var(--si-primary-hover);
+}
+.si-btn-primary:active:not(:disabled) {
+  background-color: var(--si-primary-active);
+  border-color: var(--si-primary-active);
+}
+.si-btn-secondary {
+  color: var(--si-primary-hover);
+  background-color: var(--si-surface);
+  border: 1px solid var(--si-primary-hover);
+}
+.si-btn-secondary:hover:not(:disabled) { background-color: var(--si-surface-soft); }
+.si-btn-primary:disabled,
+.si-btn-secondary:disabled {
+  color: var(--si-disabled-text);
+  background-color: var(--si-disabled-bg);
+  border-color: var(--si-disabled-bg);
+  cursor: not-allowed;
+}
+
+.si-input {
+  color: var(--si-text);
+  background-color: var(--si-surface);
+  border: 1px solid var(--si-border-control);
+  accent-color: var(--si-primary);
+}
+.si-input::placeholder { color: var(--si-text-muted); opacity: 1; }
+.si-input:focus { border-color: var(--si-focus); }
+.si-input[aria-invalid="true"] { border-color: var(--si-danger); }
+.si-input:disabled {
+  color: var(--si-disabled-text);
+  background-color: var(--si-disabled-bg);
+}
+.si-btn-primary:focus-visible,
+.si-btn-secondary:focus-visible,
+.si-input:focus-visible,
+.si-link:focus-visible {
+  outline: 3px solid var(--si-focus);
+  outline-offset: 3px;
+}
+.si-nav-link:focus-visible {
+  outline: 2px solid var(--si-text-inverse);
+  outline-offset: -4px;
+}
+
+/* Pair each badge with a visible label; color alone is not a status. */
+.si-badge--info { color: var(--si-info); background-color: var(--si-info-bg); }
+.si-badge--success { color: var(--si-success); background-color: var(--si-success-bg); }
+.si-badge--warning { color: var(--si-warning); background-color: var(--si-warning-bg); }
+.si-badge--danger { color: var(--si-danger); background-color: var(--si-danger-bg); }
+.si-badge--neutral { color: var(--si-disabled-text); background-color: var(--si-disabled-bg); }
+
+.si-table { color: var(--si-text); background-color: var(--si-surface); }
+.si-table thead { color: var(--si-heading); background-color: var(--si-surface-soft); }
+.si-table :is(th, td) { border-bottom: 1px solid var(--si-border); }
+.si-table tbody tr:hover { background-color: var(--si-surface-hover); }

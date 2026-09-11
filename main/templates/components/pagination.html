@@ -1,0 +1,7 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="{{ label }} 페이지">
+  {% if page_obj.has_previous %}<a href="?{{ page_query }}&amp;page={{ page_obj.previous_page_number }}" aria-label="이전 페이지">‹</a>{% else %}<span aria-disabled="true">‹</span>{% endif %}
+  <span class="page-current" aria-current="page">{{ page_obj.number }}</span><span class="page-total">/ {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?{{ page_query }}&amp;page={{ page_obj.next_page_number }}" aria-label="다음 페이지">›</a>{% else %}<span aria-disabled="true">›</span>{% endif %}
+</nav>
+{% endif %}
