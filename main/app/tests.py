@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 from html.parser import HTMLParser
 from unittest.mock import patch
 
-from .data_service import benefit_rate, calculate_budget, nearest_stop_minutes
+from .services import benefit_rate, calculate_budget, nearest_stop_minutes
 
 
 class ShellParser(HTMLParser):
