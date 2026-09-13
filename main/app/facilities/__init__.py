@@ -1,0 +1,1 @@
+"""SPORT INSIGHT facilities module."""

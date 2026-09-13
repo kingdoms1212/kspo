@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 from html.parser import HTMLParser
 from unittest.mock import patch
 
-from .services import benefit_rate, calculate_budget, nearest_stop_minutes
+from .common.calculations import benefit_rate, calculate_budget, nearest_stop_minutes
 
 
 class ShellParser(HTMLParser):
@@ -27,15 +27,16 @@ class ShellParser(HTMLParser):
 
 class ShellTests(SimpleTestCase):
     def test_root_redirects_without_loading_data(self):
-        with patch('app.views.dashboard_data') as loader:
+        with patch('app.dashboard.views.dashboard_data') as loader:
             response = self.client.get('/')
         self.assertRedirects(response, '/dashboard', fetch_redirect_response=False)
         loader.assert_not_called()
 
     def test_three_pages_navigation_source_status_and_focus_target(self):
-        with patch('app.views.dashboard_data', return_value={}), \
-             patch('app.views.filter_programs', return_value=[]), \
-             patch('app.views.facility_rows', return_value=[]):
+        with patch('app.dashboard.views.dashboard_data', return_value={}), \
+             patch('app.programs.views.filter_programs', return_value=[]), \
+             patch('app.facilities.views.facility_rows', return_value=[]), \
+             patch('app.programs.views.models.programs', return_value=[]):
             for route in ('/dashboard', '/programs', '/facilities'):
                 with self.subTest(route=route):
                     response = self.client.get(route)
@@ -53,7 +54,7 @@ class ShellTests(SimpleTestCase):
                     self.assertNotContains(response, '⚙ 설정')
 
     def test_program_table_can_receive_keyboard_focus(self):
-        with patch('app.views.filter_programs', return_value=[]):
+        with patch('app.programs.views.filter_programs', return_value=[]), patch('app.programs.views.models.programs', return_value=[]):
             response = self.client.get('/programs')
         self.assertContains(response, 'tabindex="0" role="region" aria-label="프로그램 비교표 가로 스크롤"')
 
@@ -63,7 +64,7 @@ class DesignInteractionTests(SimpleTestCase):
         rows = [dict(id=str(i), name=f'테스트 강좌 {i:02}', facility='테스트 시설',
                      region='서울', sport='수영', target='청소년', weekday='월',
                      fee='1000', fee_unit='미확인', period='기간 미제공') for i in range(23)]
-        with patch('app.views.filter_programs', return_value=rows):
+        with patch('app.programs.views.filter_programs', return_value=rows):
             response = self.client.get('/programs', {'region': '서울', 'sport': '수영',
                                                      'target': '청소년', 'sort': 'name', 'page': 2})
         self.assertEqual(response.status_code, 200)
@@ -80,7 +81,7 @@ class DesignInteractionTests(SimpleTestCase):
     def test_facility_page_and_selection_preserve_filter_and_escape_text(self):
         rows = [dict(id=f'facility-{i}', name=f'테스트 시설 {i}', region='서울', district='중구',
                      address='<script>test</script>', phone='', sport='수영', voucher='스포츠 등록') for i in range(23)]
-        with patch('app.views.facility_rows', return_value=rows):
+        with patch('app.facilities.views.facility_rows', return_value=rows):
             response = self.client.get('/facilities', {'region': '서울', 'query': '테스트',
                                                        'facilityId': 'facility-22', 'page': 2})
         self.assertEqual(response.context['selected']['id'], 'facility-22')
@@ -93,7 +94,7 @@ class DesignInteractionTests(SimpleTestCase):
     def test_regional_chart_preserves_zero_missing_and_source_definition(self):
         rows = [dict(region='서울', district='중구', beneficiary=0, definition='테스트 대상', period='2024'),
                 dict(region='서울', district='종로구', beneficiary=None, definition='테스트 대상', period='2024')]
-        with patch('app.views.dashboard_data', return_value={'regions': rows, 'period': ['2024']}):
+        with patch('app.dashboard.views.dashboard_data', return_value={'regions': rows, 'period': ['2024']}):
             response = self.client.get('/dashboard')
         self.assertEqual(response.context['region_chart_max'], 0)
         self.assertContains(response, '테스트 대상 · 2024')
