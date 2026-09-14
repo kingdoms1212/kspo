@@ -1,35 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
 <section class="page-head">
-  <div class="heading-copy"><h1>{% if selected_region %}{{ selected_region }}{% else %}전국{% endif %} 체육복지 현황</h1><p>지역별 체육복지 현황을 확인하고, 정책 검토에 필요한 자료를 살펴봅니다.</p></div>
-  <form class="inline-filters" method="get"><label class="sr-only" for="dashboard-region">조회 지역</label><select id="dashboard-region" name="region"><option value="">전국</option>{% for option in region_options %}<option {% if option == selected_region %}selected{% endif %}>{{ option }}</option>{% endfor %}</select><button class="button primary" type="submit">조회</button></form>
+  <div class="heading-copy" id="dashboard-heading"><h1>{% if selected_region %}{{ selected_region }}{% else %}전국{% endif %} 시설 이용현황</h1><p>스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.</p></div>
+  <form class="inline-filters" method="get" hx-get="{% url 'dashboard' %}" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy">
+    <label class="sr-only" for="dashboard-region">조회 지역</label>
+    <select id="dashboard-region" name="region" hx-trigger="change" hx-get="{% url 'dashboard' %}" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy"><option value="">전국</option>{% for option in region_options %}<option {% if option == selected_region %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
+    <button class="button primary" type="submit">조회</button>
+    {% include 'components/busy.html' with id='dashboard-busy' %}
+  </form>
 </section>
-<div class="metric-grid">
-  <article class="metric-card"><div class="metric-icon">{% include 'components/icon.html' with name='people' %}</div><div><span>지원대상 인원</span><strong>{% if target is not None %}{{ target|floatformat:'0g' }} <em>명</em>{% else %}확인 필요{% endif %}</strong><small>자료상 합계 · 대상 정의 검증 중</small></div></article>
-  <article class="metric-card"><div class="metric-icon aqua">{% include 'components/icon.html' with name='chart' %}</div><div><span>지원 수급인원</span><strong>{% if beneficiary is not None %}{{ beneficiary|floatformat:'0g' }} <em>명</em>{% else %}확인 필요{% endif %}</strong><small>자료상 합계 · 기간 검증 중</small></div></article>
-  <article class="metric-card"><div class="metric-icon aqua">{% include 'components/icon.html' with name='building' %}</div><div><span>등록시설 수</span><strong>{% if facilities is not None %}{{ facilities|floatformat:'0g' }} <em>개</em>{% else %}확인 필요{% endif %}</strong><small>지역별 활용정보 · 중복 검증 중</small></div></article>
-  <article class="metric-card"><div class="metric-icon soft">{% include 'components/icon.html' with name='program' %}</div><div><span>자료 내 등록 강좌</span><strong>{% if programs is not None %}{{ programs|floatformat:'0g' }} <em>건</em>{% else %}확인 필요{% endif %}</strong><small>프로그램 원본 부분 적재 기준</small></div></article>
-</div>
-<div class="dashboard-grid">
-  <section class="panel map-panel">
-    <div class="section-title"><h2>지역별 체육복지 현황</h2><span class="tag muted">지도 미연결</span></div>
-    <div class="map-placeholder"><div class="placeholder-emblem">{% include 'components/icon.html' with name='pin' %}</div><h3>지역을 선택해 확인하세요</h3><p>행정경계 자료가 연결되면<br>이곳에서 지역별 지도를 제공합니다.</p><span class="tag">현재 선택 · {{ selected_region|default:'전국' }}</span></div>
-    <div class="region-picker" aria-label="지역 바로 선택"><a class="{% if not selected_region %}selected{% endif %}" href="/dashboard">전국</a>{% for option in region_options %}<a class="{% if option == selected_region %}selected{% endif %}" href="?region={{ option|urlencode }}">{{ option }}</a>{% endfor %}</div>
-    <a class="text-link panel-link" href="/programs?region={{ selected_region|urlencode }}">선택 지역 프로그램 보기 {% include 'components/icon.html' with name='arrow' %}</a>
-  </section>
-  <section class="panel regional-panel">
-    <div class="section-title"><h2>지역별 지원 현황</h2><span class="unit">단위: 명</span></div>
-    <div class="chart-label">자료상 수급인원 <span>많은 순</span></div>
-    <div class="region-chart" tabindex="0" role="region" aria-label="지역별 수급인원 대응표">
-      <table class="chart-table"><caption class="sr-only">현재 지역 조회 결과의 자료상 수급인원. 기간·대상 정의 검증 중.</caption><thead><tr><th scope="col">지역 · 대상</th><th scope="col">수급인원</th></tr></thead><tbody>{% for item in region_chart_rows %}<tr><th scope="row">{{ item.district|default:item.region }}<small>{{ item.definition|default:'대상 미확인' }} · {{ item.period|default:'기준일 미확인' }}</small></th><td><div class="data-bar"><i aria-hidden="true" style="width:{% widthratio item.beneficiary region_chart_max 100 %}%"></i><span>{% if item.beneficiary is not None %}{{ item.beneficiary|floatformat:'0g' }}{% else %}미제공{% endif %}</span></div></td></tr>{% empty %}<tr><td colspan="2" class="empty">해당 지역 자료가 없습니다.</td></tr>{% endfor %}</tbody></table>
-    </div>
-    <p class="chart-note">지역별 활용정보 · {{ period|join:', ' }}<br>대상군별 원본 행을 표시하며, 고유 이용자 수와 다릅니다.</p>
-  </section>
-  <div class="dashboard-side">
-    <section class="panel sport-panel"><div class="section-title"><h2>주요 종목별 관측 현황</h2></div><div class="chart-label">신청인원 합계 상위 5 <span>중복 가능</span></div>
-      <div class="sport-chart"><table class="chart-table"><caption class="sr-only">전국 이용현황 선두 최대 50,000행의 종목별 신청인원 합계</caption><thead><tr><th scope="col">종목</th><th scope="col">신청인원 합계</th></tr></thead><tbody>{% for sport, count in sports %}<tr><th scope="row">{{ sport }}</th><td><div class="data-bar"><i aria-hidden="true" style="width:{% widthratio count sports.0.1 100 %}%"></i><span>{{ count|floatformat:'0g' }}</span></div></td></tr>{% empty %}<tr><td colspan="2" class="empty">신청인원 자료가 없습니다.</td></tr>{% endfor %}</tbody></table></div><p class="chart-note">전국 · 선두 최대 50,000행 · 기간 혼합 미검증<br>지역 필터와 별도 범위의 참고 자료입니다.</p>
-    </section>
-    <section class="panel reference-panel"><div class="section-title"><h2>정책 참고 지표</h2></div><div class="reference-grid"><div><span>수혜율</span><strong>확인 필요</strong><small>대상·기간 검증</small></div><div><span>대상자당 시설</span><strong>확인 필요</strong><small>중복·분모 검증</small></div><div><span>정류장 도보</span><strong>미연결</strong><small>교통자료 연결 필요</small></div></div></section>
-  </div>
-</div>
+<div id="dashboard-body">{% include 'dashboard/_body.html' %}</div>
 {% endblock %}

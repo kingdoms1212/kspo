@@ -1,0 +1,617 @@
+{
+  "method": "UTF-8-SIG, permissive csv.reader; malformed-width rows excluded; whitespace collapsed and casefold only; no fuzzy joins.",
+  "facility": {
+    "rows": 28892,
+    "identity_keys": 28696,
+    "duplicate_identity_keys": 193,
+    "ambiguous_base_keys": 483,
+    "course_fields_populated": {
+      "COURSE_NM": 0,
+      "COURSE_ITEM_NM": 0,
+      "FCLTY_COURSE_SDIV_NM": 19450,
+      "FCLTY_DECSN_DE": 28887
+    },
+    "distinct_embedded_facility_course_pairs": 0
+  },
+  "sources": {
+    "스포츠강좌이용권 이용현황 정보.csv": {
+      "counts": {
+        "unique_name_full_address_rows_without_region_code": 471721,
+        "exact_identity_rows": 437273,
+        "course_name_present": 517101,
+        "unique_base_but_detail_differs_rows": 1676,
+        "unmatched_rows": 78056,
+        "ambiguous_base_rows": 96
+      },
+      "exact_matched_facility_keys": 20592,
+      "exact_matched_current_list_rows": 20764,
+      "base_candidate_facility_keys": 179,
+      "distinct_exact_facility_course_names": 35300,
+      "populated_fields_in_exact_rows": {
+        "COURSE_NM": 437273,
+        "COURSE_NO": 437273,
+        "COURSE_BEGIN_DE": 437246,
+        "COURSE_END_DE": 437246,
+        "COURSE_PRC": 437273
+      },
+      "periods": [
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025",
+        "2026"
+      ],
+      "examples": [
+        {
+          "facility": "밸리댄스코리아",
+          "course": "벨리댄스 (3개월등록시 50%할인)",
+          "facility_id": "facility-910",
+          "year_or_start": "2022"
+        },
+        {
+          "facility": "더피드",
+          "course": "유아발레",
+          "facility_id": "facility-3340",
+          "year_or_start": "2025"
+        },
+        {
+          "facility": "리복크로스핏마루",
+          "course": "크로스핏",
+          "facility_id": "facility-1190",
+          "year_or_start": "2021"
+        }
+      ],
+      "code_lengths_and_counts": {
+        "(2, 5)": 517101
+      },
+      "unique_name_full_address_facility_keys": 22102,
+      "name_address_examples": [
+        {
+          "facility": "밸리댄스코리아",
+          "course": "벨리댄스 (3개월등록시 50%할인)",
+          "source_region_codes": [
+            "11",
+            "11680"
+          ],
+          "target_region_codes": [
+            "11",
+            "11680"
+          ]
+        },
+        {
+          "facility": "더피드",
+          "course": "유아발레",
+          "source_region_codes": [
+            "11",
+            "11440"
+          ],
+          "target_region_codes": [
+            "11",
+            "11440"
+          ]
+        },
+        {
+          "facility": "리복크로스핏마루",
+          "course": "크로스핏",
+          "source_region_codes": [
+            "11",
+            "11110"
+          ],
+          "target_region_codes": [
+            "11",
+            "11110"
+          ]
+        }
+      ],
+      "latest_year_month_counts": {
+        "2026-03": 18733,
+        "2026-04": 18403,
+        "2026-05": 16588,
+        "2026-06": 15442,
+        "2026-07": 13166,
+        "2026-08": 4228
+      }
+    },
+    "장애인스포츠강좌이용권 이용현황 정보.csv": {
+      "counts": {
+        "unmatched_rows": 98134,
+        "course_name_present": 152303,
+        "unique_base_but_detail_differs_rows": 27141,
+        "unique_name_full_address_rows_without_region_code": 28341,
+        "exact_identity_rows": 26279,
+        "ambiguous_base_rows": 749
+      },
+      "exact_matched_facility_keys": 1577,
+      "exact_matched_current_list_rows": 1606,
+      "base_candidate_facility_keys": 1516,
+      "distinct_exact_facility_course_names": 2586,
+      "populated_fields_in_exact_rows": {
+        "COURSE_NM": 26279,
+        "COURSE_NO": 26279,
+        "COURSE_BEGIN_DE": 26279,
+        "COURSE_END_DE": 26279,
+        "COURSE_PRC": 26279
+      },
+      "periods": [
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025",
+        "2026"
+      ],
+      "examples": [
+        {
+          "facility": "기구필라테스연",
+          "course": "필라테스 개인레슨",
+          "facility_id": "facility-9157",
+          "year_or_start": "2025"
+        },
+        {
+          "facility": "한숲스포츠센터",
+          "course": "자유수영",
+          "facility_id": "facility-14838",
+          "year_or_start": "2021"
+        },
+        {
+          "facility": "주식회사 스포짐",
+          "course": "헬스시설이용권",
+          "facility_id": "facility-2034",
+          "year_or_start": "2025"
+        }
+      ],
+      "code_lengths_and_counts": {
+        "(2, 5)": 152303
+      },
+      "unique_name_full_address_facility_keys": 1698,
+      "name_address_examples": [
+        {
+          "facility": "기구필라테스연",
+          "course": "필라테스 개인레슨",
+          "source_region_codes": [
+            "28",
+            "28185"
+          ],
+          "target_region_codes": [
+            "28",
+            "28185"
+          ]
+        },
+        {
+          "facility": "한숲스포츠센터",
+          "course": "자유수영",
+          "source_region_codes": [
+            "41",
+            "41410"
+          ],
+          "target_region_codes": [
+            "41",
+            "41410"
+          ]
+        },
+        {
+          "facility": "주식회사 스포짐",
+          "course": "헬스시설이용권",
+          "source_region_codes": [
+            "11",
+            "11110"
+          ],
+          "target_region_codes": [
+            "11",
+            "11110"
+          ]
+        }
+      ],
+      "latest_year_month_counts": {
+        "2026-03": 6237,
+        "2026-04": 6095,
+        "2026-05": 5727,
+        "2026-06": 5555,
+        "2026-07": 4914,
+        "2026-08": 1491
+      }
+    },
+    "장애인스포츠강좌이용권시설정보.csv": {
+      "counts": {
+        "unmatched_rows": 6716,
+        "unique_base_but_detail_differs_rows": 2050,
+        "unique_name_full_address_rows_without_region_code": 2255,
+        "exact_identity_rows": 2085,
+        "ambiguous_base_rows": 84
+      },
+      "exact_matched_facility_keys": 2037,
+      "exact_matched_current_list_rows": 2079,
+      "base_candidate_facility_keys": 2029,
+      "distinct_exact_facility_course_names": 0,
+      "populated_fields_in_exact_rows": {},
+      "periods": [],
+      "examples": [],
+      "code_lengths_and_counts": {
+        "(2, 5)": 10935
+      },
+      "unique_name_full_address_facility_keys": 2196,
+      "name_address_examples": [
+        {
+          "facility": "캐치온필라테스",
+          "course": "",
+          "source_region_codes": [
+            "11",
+            "11545"
+          ],
+          "target_region_codes": [
+            "11",
+            "11545"
+          ]
+        },
+        {
+          "facility": "이화태권도",
+          "course": "",
+          "source_region_codes": [
+            "11",
+            "11530"
+          ],
+          "target_region_codes": [
+            "11",
+            "11530"
+          ]
+        },
+        {
+          "facility": "인더비기닝 재활운동센터",
+          "course": "",
+          "source_region_codes": [
+            "11",
+            "11680"
+          ],
+          "target_region_codes": [
+            "11",
+            "11680"
+          ]
+        }
+      ],
+      "latest_year_month_counts": {}
+    },
+    "청소년 유아동 이용가능 체육시설 프로그램 정보.csv": {
+      "counts": {
+        "unmatched_rows": 251058,
+        "course_name_present": 251070,
+        "unique_name_full_address_rows_without_region_code": 9902,
+        "missing_key_rows": 12
+      },
+      "exact_matched_facility_keys": 0,
+      "exact_matched_current_list_rows": 0,
+      "base_candidate_facility_keys": 0,
+      "distinct_exact_facility_course_names": 0,
+      "populated_fields_in_exact_rows": {},
+      "periods": [
+        "20241001",
+        "20241019",
+        "20241101",
+        "20241201",
+        "20250101",
+        "20250106",
+        "20250107",
+        "20250110",
+        "20250114",
+        "20250121",
+        "20250203",
+        "20250204",
+        "20250211",
+        "20250218",
+        "20250301",
+        "20250501",
+        "20250512",
+        "20250601",
+        "20250701",
+        "20250719",
+        "20250726",
+        "20250801",
+        "20250901",
+        "20251001",
+        "20251101",
+        "20251201",
+        "20260101",
+        "20260105",
+        "20260106",
+        "20260113",
+        "20260120",
+        "20260127",
+        "20260201",
+        "20260202",
+        "20260203",
+        "20260210",
+        "20260301",
+        "20260401",
+        "20260501",
+        "20260601",
+        "20260701",
+        "20260801",
+        "20260804",
+        "20260810",
+        "20260811",
+        "20260901"
+      ],
+      "examples": [],
+      "code_lengths_and_counts": {
+        "(10, 10)": 251070
+      },
+      "unique_name_full_address_facility_keys": 3,
+      "name_address_examples": [
+        {
+          "facility": "관악구민종합체육센터",
+          "course": "탁구장이용료(18시)",
+          "source_region_codes": [
+            "1100000000",
+            "1162000000"
+          ],
+          "target_region_codes": [
+            "11",
+            "11620"
+          ]
+        },
+        {
+          "facility": "은평구민체육센터",
+          "course": "어린이수영(화목16시)-5레인_연수(오리발이상)",
+          "source_region_codes": [
+            "1100000000",
+            "1138000000"
+          ],
+          "target_region_codes": [
+            "11",
+            "11380"
+          ]
+        },
+        {
+          "facility": "포항실내수영장",
+          "course": "C1.새벽_기초반(08시00분)",
+          "source_region_codes": [
+            "4700000000",
+            "4711000000"
+          ],
+          "target_region_codes": [
+            "47",
+            "47110"
+          ]
+        }
+      ],
+      "latest_year_month_counts": {}
+    },
+    "스포츠강좌이용권 이용시설 강좌 데이터.csv": {
+      "counts": {
+        "no_embedded_owner": 66805,
+        "no_usage_owner": 10273,
+        "one_usage_owner": 23106,
+        "multiple_usage_owners": 33426
+      },
+      "distinct_item_course_keys": 28415,
+      "keys_with_multiple_distinct_records": 5804,
+      "note": "Even one matching owner does not establish a foreign key: these CSVs contain no facility identifier/address."
+    },
+    "장애인스포츠강좌이용권 강좌 정보.csv": {
+      "counts": {
+        "no_embedded_owner": 22987,
+        "one_usage_owner": 9037,
+        "multiple_usage_owners": 9913,
+        "no_usage_owner": 4037
+      },
+      "distinct_item_course_keys": 11180,
+      "keys_with_multiple_distinct_records": 1954,
+      "note": "Even one matching owner does not establish a foreign key: these CSVs contain no facility identifier/address."
+    }
+  },
+  "embedded_course_ownership": {
+    "distinct_item_course_keys": 0,
+    "keys_shared_by_multiple_facilities": 0,
+    "examples": []
+  },
+  "files": {
+    "스포츠강좌이용권 시설 데이터.csv": {
+      "rows": 28892,
+      "malformed_rows": 0,
+      "headers": [
+        "CTPRVN_CD",
+        "CTPRVN_NM",
+        "SIGNGU_CD",
+        "SIGNGU_NM",
+        "FCLTY_NM",
+        "RPRSNTV_NM",
+        "RPRSNTV_TEL_NO",
+        "ZIP_NO",
+        "FCLTY_ADDR",
+        "DETAIL_ADDR",
+        "ITEM_CD",
+        "ITEM_NM",
+        "FCLTY_X_CRDNT_VALUE",
+        "FCLTY_Y_CRDNT_VALUE",
+        "FCLTY_COURSE_SDIV_NM",
+        "COURSE_ITEM_NM",
+        "COURSE_NM",
+        "FCLTY_DECSN_DE"
+      ]
+    },
+    "스포츠강좌이용권 이용현황 정보.csv": {
+      "rows": 517101,
+      "malformed_rows": 0,
+      "headers": [
+        "BSNS_NO",
+        "FCLTY_NM",
+        "ITEM_CD",
+        "ITEM_NM",
+        "CTPRVN_CD",
+        "CTPRVN_NM",
+        "SIGNGU_CD",
+        "SIGNGU_NM",
+        "FCLTY_ADDR",
+        "FCLTY_DETAIL_ADDR",
+        "ZIP_NO",
+        "TEL_NO",
+        "COURSE_NM",
+        "COURSE_NO",
+        "COURSE_ESTBL_YEAR",
+        "COURSE_ESTBL_MT",
+        "COURSE_BEGIN_DE",
+        "COURSE_END_DE",
+        "COURSE_REQST_NMPR_CO",
+        "COURSE_PRC"
+      ]
+    },
+    "장애인스포츠강좌이용권 이용현황 정보.csv": {
+      "rows": 152303,
+      "malformed_rows": 0,
+      "headers": [
+        "BSNS_NO",
+        "FCLTY_NM",
+        "ITEM_CD",
+        "ITEM_NM",
+        "CTPRVN_CD",
+        "CTPRVN_NM",
+        "SIGNGU_CD",
+        "SIGNGU_NM",
+        "FCLTY_ADDR",
+        "FCLTY_DETAIL_ADDR",
+        "ZIP_NO",
+        "TEL_NO",
+        "COURSE_NM",
+        "TROBL_TY_NM",
+        "COURSE_NO",
+        "COURSE_ESTBL_YEAR",
+        "COURSE_ESTBL_MT",
+        "COURSE_BEGIN_DE",
+        "COURSE_END_DE",
+        "COURSE_REQST_NMPR_CO",
+        "COURSE_PRC"
+      ]
+    },
+    "장애인스포츠강좌이용권시설정보.csv": {
+      "rows": 10935,
+      "malformed_rows": 0,
+      "headers": [
+        "CTPRVN_CD",
+        "CTPRVN_NM",
+        "SIGNGU_CD",
+        "SIGNGU_NM",
+        "FCLTY_NM",
+        "RPRSNTV_TEL_NO",
+        "ZIP_NO",
+        "FCLTY_ADDR",
+        "FCLTY_DETAIL_ADDR",
+        "MAIN_ITEM_CD",
+        "MAIN_ITEM_NM",
+        "FCLTY_CRDNT_LO",
+        "FCLTY_CRDNT_LA",
+        "COURSE_FLAG_CD",
+        "COURSE_ITEM_NM",
+        "COURSE_NM"
+      ]
+    },
+    "청소년 유아동 이용가능 체육시설 프로그램 정보.csv": {
+      "rows": 251336,
+      "malformed_rows": 266,
+      "headers": [
+        "FCLTY_NM",
+        "FCLTY_SDIV_CD",
+        "FCLTY_FLAG_NM",
+        "INDUTY_CD",
+        "INDUTY_NM",
+        "FCLTY_TY_CD",
+        "FCLTY_TY_NM",
+        "CTPRVN_CD",
+        "CTPRVN_NM",
+        "SIGNGU_CD",
+        "SIGNGU_NM",
+        "EMD_CD",
+        "EMD_NM",
+        "FCLTY_ADDR",
+        "FCLTY_TEL_NO",
+        "FCLTY_LA",
+        "FCLTY_LO",
+        "PBTRNSP_FCLTY_SDIV_1R_NM",
+        "STRT_DSTNC_1R_VALUE",
+        "WLKG_DSTNC_1R_VALUE",
+        "WLKG_MVMN_1R_TIME",
+        "BSTP_SUBWAYST_1R_NM",
+        "PBTRNSP_FCLTY_1R_LA",
+        "PBTRNSP_FCLTY_1R_LO",
+        "PBTRNSP_FCLTY_SDIV_2R_NM",
+        "STRT_DSTNC_2R_VALUE",
+        "WLKG_DSTNC_2R_VALUE",
+        "WLKG_MVMN_2R_TIME",
+        "BSTP_SUBWAYST_2R_NM",
+        "PBTRNSP_FCLTY_2R_LA",
+        "PBTRNSP_FCLTY_2R_LO",
+        "PBTRNSP_FCLTY_SDIV_3R_NM",
+        "STRT_DSTNC_3R_VALUE",
+        "WLKG_DSTNC_3R_VALUE",
+        "WLKG_MVMN_3R_TIME",
+        "BSTP_SUBWAYST_3R_NM",
+        "PBTRNSP_FCLTY_3R_LA",
+        "PBTRNSP_FCLTY_3R_LO",
+        "PBTRNSP_FCLTY_SDIV_4R_NM",
+        "STRT_DSTNC_4R_VALUE",
+        "WLKG_DSTNC_4R_VALUE",
+        "WLKG_MVMN_4R_TIME",
+        "BSTP_SUBWAYST_4R_NM",
+        "PBTRNSP_FCLTY_4R_LA",
+        "PBTRNSP_FCLTY_4R_LO",
+        "PBTRNSP_FCLTY_SDIV_5R_NM",
+        "STRT_DSTNC_5R_VALUE",
+        "WLKG_DSTNC_5R_VALUE",
+        "WLKG_MVMN_5R_TIME",
+        "BSTP_SUBWAYST_5R_NM",
+        "PBTRNSP_FCLTY_5R_LA",
+        "PBTRNSP_FCLTY_5R_LO",
+        "PROGRM_TY_NM",
+        "PROGRM_NM",
+        "PROGRM_TRGET_NM",
+        "PROGRM_BEGIN_DE",
+        "PROGRM_END_DE",
+        "PROGRM_ESTBL_WKDAY_NM",
+        "PROGRM_ESTBL_TIZN_VALUE",
+        "PROGRM_RCRIT_NMPR_CO",
+        "PROGRM_PRC",
+        "PROGRM_PRC_TY_NM",
+        "HMPG_URL",
+        "SAFE_MANAGT_CN",
+        "EDC_GOAL_CN",
+        "PRTC_NMPR_PARTCPT_AT",
+        "LDR_QUALF_CN"
+      ]
+    },
+    "스포츠강좌이용권 이용시설 강좌 데이터.csv": {
+      "rows": 66808,
+      "malformed_rows": 3,
+      "headers": [
+        "ITEM_CD",
+        "ITEM_NM",
+        "COURSE_NM",
+        "LCTRR_NM",
+        "BEGIN_TIME",
+        "END_TIME",
+        "WKDAY_NM",
+        "COURSE_DETAIL_CN",
+        "SUPLI_SLE_AT",
+        "SETLE_PRICE_VALUE",
+        "ATNLC_PRC",
+        "TRGET_YEAR"
+      ]
+    },
+    "장애인스포츠강좌이용권 강좌 정보.csv": {
+      "rows": 22987,
+      "malformed_rows": 0,
+      "headers": [
+        "ITEM_CD",
+        "ITEM_NM",
+        "COURSE_NM",
+        "TROBL_TY_NM",
+        "BEGIN_TM",
+        "END_TM",
+        "POSBL_WKDAY_FLAG_CD",
+        "COURSE_DETAIL_CN",
+        "SUPLI_SLE_AT",
+        "SETLE_PRICE"
+      ]
+    }
+  }
+}

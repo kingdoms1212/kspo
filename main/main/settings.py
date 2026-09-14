@@ -116,8 +116,29 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# The image folder sits beside the project rather than inside static/, so it is
+# mounted under a prefix and referenced as {% static 'image/...' %}.
+STATICFILES_DIRS = [BASE_DIR / 'static', ('image', BASE_DIR.parent / 'image')]
 DATA_DIR = BASE_DIR.parent / 'data'
+
+
+# External policy listing
+# The crawler reads nothing but this source, so every part of the address and
+# the markup it depends on lives here rather than in the code.
+
+POLICY_SOURCE = {
+    'name': '문화체육관광부 체육정책',
+    'base_url': 'https://www.mcst.go.kr/site/s_policy/dept/',
+    'list_path': 'deptList.jsp?pType=07',
+    'table_class': 'board',
+    'cell_class': 'tit_wrap',
+    'limit': 10,
+    'timeout': 6,
+    'cache_seconds': 900,
+    'retry_seconds': 60,
+    'max_bytes': 2_000_000,
+    'user_agent': 'SPORT-INSIGHT/1.0 (public policy listing reader)',
+}
 LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = 'Asia/Seoul'
 

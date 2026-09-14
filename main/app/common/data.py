@@ -1,5 +1,7 @@
 """Shared CSV decoding and scalar normalization; no feature rules."""
 import csv
+from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from django.conf import settings
 
@@ -12,8 +14,58 @@ def to_number(value):
     except (TypeError, ValueError):
         return None
 
+@lru_cache(maxsize=4096)
+def course_month(year, month):
+    """Return YYYY-MM only for a fully valid year/month pair, else 'unknown'.
+
+    Memoised: the usage ledger repeats a few hundred year/month pairs across
+    half a million rows.
+    """
+    if year.isascii() and year.isdigit() and len(year) == 4 and month.isascii() and month.isdigit():
+        if 1 <= int(year) <= 9999 and 1 <= int(month) <= 12:
+            return f'{year}-{int(month):02d}'
+    return 'unknown'
+
+@lru_cache(maxsize=16384)
+def iso_date(value):
+    """Normalize a source date to YYYY-MM-DD, preserving unrecognised text as-is.
+
+    Memoised for the same reason as course_month; strptime is the slowest step
+    in reading the ledger.
+    """
+    for fmt in ('%Y%m%d', '%Y-%m-%d'):
+        try:
+            return datetime.strptime(value, fmt).strftime('%Y-%m-%d')
+        except ValueError:
+            pass
+    return value or '미제공'
+
+def normalize(value):
+    """Collapse whitespace and case so two spellings of one code or name match."""
+    return ' '.join((value or '').split()).casefold()
+
+
+def facility_key(ctprvn_cd, signgu_cd, name, address):
+    """Shared facility identity: administrative codes plus name and road address.
+
+    Returns None unless every part is present, so a partial record is reported
+    as unlinked instead of being joined on a facility name alone.
+    """
+    key = (normalize(ctprvn_cd), normalize(signgu_cd), normalize(name), normalize(address))
+    return key if all(key) else None
+
+
+def strip_markup(value):
+    """Source text carries literal <br> tags; keep the words, drop the tag."""
+    text = value.replace('<br/>', ' ').replace('<br />', ' ').replace('<br>', ' ')
+    return ' '.join(text.split())
+
+
+def data_path(filename):
+    return Path(settings.DATA_DIR) / filename
+
 def _read_rows(filename, limit=None):
-    path = Path(settings.DATA_DIR) / filename
+    path = data_path(filename)
     if not path.exists():
         return []
     with path.open('r', encoding='utf-8-sig', newline='') as source:
@@ -24,3 +76,25 @@ def _read_rows(filename, limit=None):
             if limit and len(rows) >= limit:
                 break
         return rows
+
+def read_columns(filename, columns):
+    """Stream only the requested columns, skipping rows whose width is wrong.
+
+    Values are interned so the large usage ledger shares its repeated region,
+    facility and sport strings instead of holding one object per row.
+    """
+    path = data_path(filename)
+    if not path.exists():
+        return
+    pool = {}
+    with path.open('r', encoding='utf-8-sig', newline='') as source:
+        reader = csv.reader(source)
+        headers = next(reader, [])
+        if not set(columns).issubset(headers):
+            return
+        index = [headers.index(column) for column in columns]
+        width = len(headers)
+        for values in reader:
+            if len(values) != width:
+                continue
+            yield tuple(pool.setdefault(v, v) for v in (values[i].strip() for i in index))

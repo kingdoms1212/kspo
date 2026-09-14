@@ -1,7 +1,7 @@
 """Shared Excel workbook response; feature modules own export columns."""
 from io import BytesIO
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from openpyxl import Workbook
 from openpyxl.cell import WriteOnlyCell
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -9,6 +9,19 @@ from openpyxl.utils import get_column_letter
 
 
 XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+# Writing the full programme register takes about two minutes and 25MB, which no
+# request should hold open. Refusing beats silently truncating a policy document.
+EXPORT_ROW_LIMIT = 50000
+
+
+def over_export_limit(count):
+    """Return a refusal when the filtered result is too large to export at once."""
+    if count <= EXPORT_ROW_LIMIT:
+        return None
+    return HttpResponseBadRequest(
+        f'조회 결과 {count:,}건은 한 번에 내보낼 수 있는 {EXPORT_ROW_LIMIT:,}건을 넘습니다. '
+        '검색 조건을 좁혀 주세요.')
 
 
 def excel_response(filename, headers, rows):

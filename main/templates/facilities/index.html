@@ -1,28 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="page-head"><div class="heading-copy"><h1>시설 현황</h1><p>지역별 등록 시설과 제공된 강좌 연결 정보를 확인합니다.</p></div><span class="tag">스포츠 이용권 시설 자료</span></section>
-<form class="panel facility-filters" method="get">
-  <div class="field"><label for="region">지역</label><select id="region" name="region"><option value="">전체 지역</option>{% for item in regions %}<option {% if item == selected_region %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
-  <div class="field wide"><label for="query">시설 검색</label><div class="search-input">{% include 'components/icon.html' with name='search' %}<input id="query" name="query" value="{{ query }}" placeholder="시설명 또는 주소를 입력하세요"></div></div>
-  <button class="button primary" type="submit">검색</button><a class="button ghost" href="/facilities">초기화</a>
-</form>
-<div class="facility-workspace">
-  <section class="panel list-panel"><div class="section-title"><h2>시설 목록 <span class="count">총 {{ rows|length|floatformat:'0g' }}건</span></h2>{% if rows %}<a class="button export" href="{% url 'export_facilities' %}?region={{ selected_region|urlencode }}&amp;query={{ query|urlencode }}">{% include 'components/icon.html' with name='download' %} 엑셀 내보내기</a>{% endif %}</div>
-    <div class="table-scroll facility-table-scroll" tabindex="0" role="region" aria-label="시설 목록 가로 스크롤"><table class="facility-table"><caption class="sr-only">시설명을 선택하면 우측 상세 정보가 표시됩니다.</caption><thead><tr><th scope="col">No.</th><th scope="col">시설명</th><th scope="col">지역</th><th scope="col">주요 종목</th><th scope="col">등록 구분</th></tr></thead><tbody>{% for item in page_obj %}<tr class="{% if item.id == selected_id %}selected-row{% endif %}"><td class="number">{{ page_obj.start_index|add:forloop.counter0 }}</td><td><a class="facility-name" {% if item.id == selected_id %}aria-current="true"{% endif %} href="?facilityId={{ item.id|urlencode }}&amp;region={{ selected_region|urlencode }}&amp;query={{ query|urlencode }}&amp;page={{ page_obj.number }}"><span class="facility-thumb">{% include 'components/icon.html' with name='building' %}</span><span>{{ item.name }}<small>{{ item.address|default:'주소 미제공' }}</small></span></a></td><td>{{ item.region }}<small>{{ item.district|default:'' }}</small></td><td>{{ item.sport }}</td><td><span class="tag registered">스포츠 등록</span></td></tr>{% empty %}<tr><td colspan="5" class="empty"><h3>검색 결과가 없습니다</h3><p>지역이나 검색어를 변경해 주세요.</p></td></tr>{% endfor %}</tbody></table></div>
-    <div class="table-footer"><span>{{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ rows|length|floatformat:'0g' }}건</span>{% include 'components/pagination.html' with label='시설 목록' %}</div><p class="chart-note">원자료 등록 행 기준 · 시설 중복 및 강좌 연결 검증 중</p>
-  </section>
-  <aside class="panel detail-panel" aria-labelledby="facility-detail-heading">
-    <div class="section-title"><h2 id="facility-detail-heading">시설 상세 정보</h2><span class="unit">{% if selected %}선택 시설{% else %}선택 대기{% endif %}</span></div>
-    {% if selected %}
-    <div class="facility-overview"><div class="detail-photo">{% include 'components/icon.html' with name='building' %}<span>시설 사진 미제공</span></div><div><h3>{{ selected.name }}</h3><div class="card-tags"><span class="tag registered">스포츠 이용권 등록</span><span class="tag neutral">장애인 등록 확인 필요</span></div><dl class="detail-list"><dt>주소</dt><dd>{{ selected.address|default:'미제공' }}</dd><dt>전화</dt><dd>{{ selected.phone|default:'미제공' }}</dd><dt>주요 종목</dt><dd>{{ selected.sport }}</dd><dt>운영시간</dt><dd>자료 미제공</dd></dl></div></div>
-    <a class="button ghost detail-action" href="/programs?query={{ selected.name|urlencode }}">시설명으로 강좌 검색 {% include 'components/icon.html' with name='arrow' %}</a>
-    <section class="detail-courses"><div class="section-title"><h2>등록 강좌 정보</h2><span class="tag muted">연결 확인 필요</span></div><div class="mini-table-head"><span>프로그램명</span><span>대상</span><span>요일 · 시간</span><span>수강료</span></div><div class="empty"><div class="empty-icon">{% include 'components/icon.html' with name='program' %}</div><h3>등록 강좌 연결 자료 없음</h3><p>시설과 강좌 간 연결이 확인되면<br>이곳에 등록 강좌 정보를 표시합니다.</p></div></section>
-    <div class="notice">{% include 'components/icon.html' with name='info' %}<p>자료상 이용권 등록 정보입니다. 실제 이용 가능 여부와 장애인 편의시설 제공 여부는 별도 확인이 필요합니다.</p></div>
-    {% elif selected_id %}
-    <div class="detail-empty"><div class="empty-icon">{% include 'components/icon.html' with name='search' %}</div><h3>시설을 찾을 수 없습니다</h3><p>현재 검색 결과에 해당 시설이 없습니다.</p><a class="button ghost" href="/facilities">목록으로 돌아가기</a></div>
-    {% else %}
-    <div class="detail-empty"><div class="empty-icon">{% include 'components/icon.html' with name='building' %}</div><h3>시설을 선택해 주세요</h3><p>목록의 시설명을 선택하면<br>주소·연락처·등록 정보를 확인할 수 있습니다.</p><div class="detail-hints"><span>{% include 'components/icon.html' with name='pin' %} 위치 정보</span><span>{% include 'components/icon.html' with name='program' %} 강좌 연결 상태</span></div></div>
-    {% endif %}
-  </aside>
+<section class="page-head"><div class="heading-copy"><h1>시설 현황</h1><p>전국체육시설현황 자료에서 공공·민간 시설 정보와 인접 대중교통을 확인합니다.</p></div><span class="tag">전국체육시설현황 자료</span></section>
+<div class="facility-shell">
+  <form class="panel search-panel facility-filters" method="get" hx-get="{% url 'facilities' %}" hx-target="#facility-workspace" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#facilities-busy">
+    <div class="section-title"><h2>{% include 'components/icon.html' with name='search' %} 검색 조건</h2></div>
+    <div class="field"><label for="region">지역</label><select id="region" name="region"><option value="">전체 지역</option>{% for item in regions %}<option {% if item == params.region %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="industry">종목·시설 유형</label><select id="industry" name="industry"><option value="">전체</option>{% for item in industries %}<option {% if item == params.industry %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="flag">시설구분</label><select id="flag" name="flag"><option value="">전체 구분</option>{% for item in flags %}<option {% if item == params.flag %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="state">운영상태</label><select id="state" name="state"><option value="">전체 상태</option>{% for item in states %}<option {% if item == params.state %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="owner">보유주체</label><select id="owner" name="owner"><option value="">전체 보유주체</option>{% for item in owners %}<option {% if item == params.owner %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="query">시설명·주소</label><div class="search-input">{% include 'components/icon.html' with name='search' %}<input id="query" name="query" value="{{ params.query }}" placeholder="시설명 또는 주소"></div></div>
+    <div class="filter-actions"><button class="button primary" type="submit">{% include 'components/icon.html' with name='search' %} 시설 조회</button><a class="button ghost" href="{% url 'facilities' %}">초기화</a>{% include 'components/busy.html' with id='facilities-busy' %}</div>
+    <p class="field-help">조건을 선택한 후 조회를 눌러 적용하세요. 폐업 시설은 운영상태 필터로 조절합니다.</p>
+  </form>
+  <div class="facility-workspace" id="facility-workspace">{% include 'facilities/_workspace.html' %}</div>
 </div>
 {% endblock %}

@@ -5,4 +5,5 @@ urlpatterns = [
     path("", include("app.dashboard.urls")),
     path("", include("app.programs.urls")),
     path("", include("app.facilities.urls")),
+    path("", include("app.policies.urls")),
 ]

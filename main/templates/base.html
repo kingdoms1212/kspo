@@ -7,13 +7,18 @@
   <title>SPORT INSIGHT · 공공 체육복지 현황</title>
   <link rel="stylesheet" href="{% static 'sport-insight-colors.css' %}">
   <link rel="stylesheet" href="{% static 'app.css' %}">
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'interactions.js' %}" defer></script>
 </head>
-<body class="page-{{ page }}">
+<body class="page-{{ page }}" hx-history="false">
   {% include 'components/icons.html' %}
   <a class="skip-link" href="#main-content">본문 바로가기</a>
   <header class="global-header">
     <a class="global-brand" href="/dashboard"><span class="brand-mark" aria-hidden="true">{% include 'components/icon.html' with name='chart' %}</span><strong>SPORT INSIGHT</strong><span>체육복지 정책의사결정 지원 플랫폼</span></a>
-    <div class="global-meta"><span>공공데이터 기반 체육복지 현황</span><span class="mode-indicator">실제 자료 모드 · 검증 진행 중</span></div>
+    <div class="global-meta">
+      <a class="button ghost policy-open" href="{% url 'policies' %}" hx-get="{% url 'policies' %}" hx-target="#policy-dialog-body" hx-swap="innerHTML" hx-indicator="#policy-busy">{% include 'components/icon.html' with name='info' %} 체육정책{% include 'components/busy.html' with id='policy-busy' %}</a>
+      <span>공공데이터 기반 체육복지 현황</span><span class="mode-indicator">실제 자료 모드 · 검증 진행 중</span>
+    </div>
   </header>
   <aside class="sidebar">
     <nav aria-label="주 메뉴">
@@ -27,5 +32,8 @@
     {% block content %}{% endblock %}
     <footer class="source-footer">{% include 'components/source_status.html' %}</footer>
   </main>
+  <dialog id="policy-dialog" class="policy-dialog" aria-labelledby="policy-dialog-title">
+    <div id="policy-dialog-body"></div>
+  </dialog>
 </body>
 </html>

@@ -1,0 +1,12 @@
+<div class="policy-head">
+  <div><h2 id="policy-dialog-title">최신 정책 {{ count }}건</h2><p class="chart-note">{{ source }} · {{ fetched_at|date:"Y-m-d H:i" }} 기준으로 읽었습니다.</p></div>
+  {% if htmx_fragment %}<button type="button" class="button ghost" data-close-dialog aria-label="정책 목록 닫기">닫기</button>{% endif %}
+</div>
+{% if error %}
+  <div class="empty" role="status"><h3>정책 목록을 표시할 수 없습니다</h3><p>{{ error }}</p><a class="text-link" href="{{ source_url }}" rel="noreferrer noopener" target="_blank">원문에서 확인하기</a></div>
+{% else %}
+  <ol class="policy-list">
+    {% for item in policies %}<li><a href="{{ item.url }}" rel="noreferrer noopener" target="_blank"><span>{{ item.title }}</span></a></li>{% endfor %}
+  </ol>
+  <p class="chart-note">제목과 링크만 원문에서 읽어 옵니다. 본문은 새 창의 원문에서 확인해 주세요.<br><a class="text-link" href="{{ source_url }}" rel="noreferrer noopener" target="_blank">{{ source }} 목록 전체 보기</a></p>
+{% endif %}
