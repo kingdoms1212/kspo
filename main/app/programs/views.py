@@ -4,27 +4,48 @@ from django.core.paginator import Paginator
 from django.shortcuts import render
 from ..common.exports import excel_response
 from . import models
-from .services import filter_programs, program_regions, program_summary
+from . import services
 
+# Keep the existing controller patch point while importing the service module.
+filter_programs = services.filter_programs
 
 def _search_params(request):
     """Use one query contract for both the page and its export."""
-    return {key: request.GET.get(key, '') for key in ('region', 'district', 'sport', 'target', 'query', 'sort')}
+    fields = (
+        'region', 'district', 'sport', 'target', 'query', 'sort',
+        'budget_min', 'budget_max',
+    )
+    return {key: request.GET.get(key, '') for key in fields}
 
 def programs(request):
     params = _search_params(request)
-    results = filter_programs(params)
+    program_rows = models.programs()
+    region_district_map = services.program_region_district_map(program_rows)
+    districts = region_district_map.get(params['region'], [])
+
+    # 다른 지역으로 변경했는데 이전 시군구가 남아 있는 경우 초기화
+    if params['district'] not in districts:
+        params['district'] = ''
+
+    # 입력이 유효할 때만 프로그램별 예상 총비용 필터를 적용한다.
+    budget_plan = services.program_budget_plan(params)
+    results = filter_programs(params, budget_plan=budget_plan)
     context = {
         'page': 'programs',
         'results': results,
         'top_results': results[:3],
         'result_count': len(results),
-        'regions': program_regions(models.programs()),
+        'regions': services.program_regions(program_rows),
+        'districts': districts,
+        'region_district_map': region_district_map,
+        'seoul_district_distribution': services.program_seoul_district_distribution(results),
+        'budget_plan': budget_plan,
+        'scroll_position': request.GET.get('_scroll', ''),
         'params': params,
         'page_obj': Paginator(results, 20).get_page(request.GET.get('page')),
         'page_query': urlencode(params),
         'export_query': urlencode(params),
-        **program_summary(results),
+        **services.program_summary(results),
     }
     return render(request, 'programs/index.html', context)
 

@@ -2,7 +2,7 @@
 from functools import lru_cache
 from ..common.data import _read_rows
 
-PROGRAM_FILE = '청소년 유아동 이용가능 체육시설 프로그램 정보.csv'
+PROGRAM_FILE = '공공체육시설 프로그램 정보.csv'
 
 @lru_cache(maxsize=1)
 def programs():
@@ -16,7 +16,7 @@ def programs():
             'region': row.get('CTPRVN_NM') or '지역 미제공',
             'district': row.get('SIGNGU_NM'),
             'name': row.get('PROGRM_NM') or '강좌명 미제공',
-            'sport': row.get('PROGRAM_TY_NM') or row.get('INDUTY_NM') or '종목 미제공',
+            'sport': row.get('PROGRM_TY_NM') or row.get('INDUTY_NM') or '종목 미제공',
             'target': row.get('PROGRM_TRGET_NM') or '대상 미제공',
             'weekday': row.get('PROGRM_ESTBL_WKDAY_NM') or '요일 미제공',
             'period': ' ~ '.join(filter(None, [row.get('PROGRM_BEGIN_DE'), row.get('PROGRM_END_DE')])),
