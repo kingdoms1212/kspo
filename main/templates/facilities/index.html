@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="page-head"><div class="heading-copy"><h1>시설 현황</h1><p>전국체육시설현황 자료에서 공공·민간 시설 정보와 인접 대중교통을 확인합니다.</p></div><span class="tag">전국체육시설현황 자료</span></section>
+<section class="page-head"><div class="heading-copy program-heading-copy"><h1>시설 현황</h1>{% include 'components/heading_help.html' with id='facility-heading' label='시설 현황 안내' text='전국체육시설현황 자료에서 공공·민간 시설 정보와 인접 대중교통을 확인합니다.' %}</div></section>
 <div class="facility-shell">
   <form class="panel search-panel facility-filters" method="get" hx-get="{% url 'facilities' %}" hx-target="#facility-workspace" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#facilities-busy">
     <div class="section-title"><h2>{% include 'components/icon.html' with name='search' %} 검색 조건</h2></div>

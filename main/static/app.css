@@ -20,7 +20,7 @@ button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 .global-meta { display:flex; align-items:center; gap:18px; color:var(--si-text-secondary); font-size:11px; }
 .mode-indicator { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--si-text-secondary); white-space:nowrap; }
 .mode-indicator:before { content:""; width:6px; height:6px; border-radius:50%; background:var(--si-warning); }
-.sidebar { position:fixed; top:var(--header-height); left:16px; bottom:16px; width:var(--sidebar-width); border-radius:6px; padding:18px 10px; background:linear-gradient(165deg,var(--si-navy),var(--si-heading)); color:var(--si-text-inverse); display:flex; flex-direction:column; z-index:5; }
+.sidebar { position:fixed; top:var(--header-height); left:16px; bottom:16px; width:var(--sidebar-width); border-radius:6px; padding:18px 10px; background:linear-gradient(165deg,var(--si-navy),var(--si-heading)); color:var(--si-text-inverse); display:flex; flex-direction:column; z-index:5; margin-top: 18px; }
 .sidebar nav { display:grid; gap:8px; }
 .nav-link { min-height:46px; display:flex; gap:12px; align-items:center; padding:10px 13px; border-radius:5px; color:var(--si-text-inverse); text-decoration:none; font-weight:650; font-size:14px; white-space:nowrap; }
 .nav-link:hover { background:var(--si-navy-hover); }
@@ -426,3 +426,13 @@ tbody tr:hover { background:var(--si-surface-hover); }
 .region-map-help { margin-top:8px; }
 .map-panel .region-map { height:265px; }
 @media(max-width:1300px) { .region-map { height:255px; } }
+
+/* Export button with its limit hint. A disabled button is not focusable, so the
+   reason lives on the help control beside it, which is. */
+.export-actions { display:inline-flex; align-items:center; gap:2px; }
+.button.export[disabled] { opacity:.5; cursor:not-allowed; pointer-events:none; }
+.export-actions .heading-tooltip { left:auto; right:0; transform:translate(0,-4px); text-align:left; }
+.export-actions .heading-tooltip:before { left:auto; right:8px; transform:none; }
+.export-actions .heading-help:hover .heading-tooltip,
+.export-actions .heading-help:focus .heading-tooltip,
+.export-actions .heading-help:focus-visible .heading-tooltip { transform:translate(0,0); }

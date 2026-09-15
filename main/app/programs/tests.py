@@ -145,8 +145,20 @@ class ProgramViewTests(SimpleTestCase):
         self.assertEqual(refused.status_code, 400)
         self.assertIn('검색 조건을 좁혀', refused.content.decode())
         self.assertEqual(allowed.status_code, 200)
-        self.assertContains(page, '조건을 좁혀야 내보낼 수 있습니다')
-        self.assertNotContains(page, '엑셀 내보내기')
+        # The button stays visible but disabled, with the reason on a focusable
+        # help control beside it: a disabled button cannot hold a tooltip.
+        self.assertContains(page, 'class="button export" type="button" disabled')
+        self.assertContains(page, 'id="programs-export-limit"')
+        self.assertContains(page, '한 번에 내보낼 수 있는 2건을 넘습니다')
+        self.assertContains(page, 'aria-describedby="programs-export-limit"')
+        self.assertNotContains(page, 'href="/export/programs.xlsx')
+
+    def test_export_button_is_a_plain_link_while_under_the_limit(self):
+        with patch('app.programs.models.programs', return_value=self.rows),              patch('app.programs.models.load_report', return_value=REPORT):
+            page = self.client.get(reverse('programs'))
+        self.assertContains(page, 'href="/export/programs.xlsx')
+        self.assertNotContains(page, 'type="button" disabled')
+        self.assertNotContains(page, 'id="programs-export-limit"')
 
     def test_program_page_exposes_dependent_district_options(self):
         rows = [
