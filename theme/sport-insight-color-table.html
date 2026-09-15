@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPORT INSIGHT | 색상 코드 표</title>
+<link rel="stylesheet" href="./sport-insight-colors.css">
+<style>
+
+/* Embedded tokens allow the preview to open as a single offline file. */
+:root {
+  color-scheme: light;
+
+  /* 01. 브랜드 색상 */
+  --si-primary: #0064FF; /* 메인 블루 */
+  --si-primary-hover: #0052CC; /* 호버 블루 */
+  --si-primary-active: #0043A8; /* 클릭 블루 */
+  --si-navy: #04386F; /* 사이드바 네이비 */
+  --si-navy-hover: #0B4A87; /* 메뉴 호버 */
+  --si-heading: #082B63; /* 제목 네이비 */
+
+  /* 02. 배경·테두리 */
+  --si-bg: #F4F9FF; /* 전체 배경 */
+  --si-surface: #FFFFFF; /* 카드 배경 */
+  --si-surface-soft: #EAF4FF; /* 연한 블루 */
+  --si-surface-hover: #F0F6FF; /* 행 호버 배경 */
+  --si-border: #D8E6F5; /* 기본 구분선 */
+  --si-border-control: #7F96B2; /* 입력창 테두리 */
+
+  /* 03. 글자 */
+  --si-text: #17324D; /* 기본 글자 */
+  --si-text-secondary: #52667E; /* 보조 글자 */
+  --si-text-muted: #5F728A; /* 보조 메타정보 */
+  --si-text-inverse: #FFFFFF; /* 반전 글자 */
+
+  /* 04. 상태 */
+  --si-success: #0B7A53; /* 확인·충족 */
+  --si-success-bg: #E8F6EF; /* 확인 배경 */
+  --si-warning: #946000; /* 확인 필요 */
+  --si-warning-bg: #FFF4D6; /* 주의 배경 */
+  --si-danger: #C92A3A; /* 오류·제외 */
+  --si-danger-bg: #FFF0F2; /* 오류 배경 */
+  --si-disabled-bg: #E8EEF5; /* 비활성 배경 */
+  --si-disabled-text: #596B80; /* 비활성 글자 */
+
+  /* 05. 차트·지도 */
+  --si-chart-primary: #2684FF; /* 기본 차트 */
+  --si-chart-comparison: #A6CDFF; /* 비교 차트 */
+  --si-chart-grid: #E4EDF7; /* 차트 격자 */
+  --si-map-1: #DBEDFF; /* 지도 1단계 */
+  --si-map-2: #B4D8FF; /* 지도 2단계 */
+  --si-map-3: #7DBAFF; /* 지도 3단계 */
+  --si-map-4: #3995F5; /* 지도 4단계 */
+  --si-map-5: #0866C5; /* 지도 5단계 */
+  --si-map-no-data: #E2E8F0; /* 지도 데이터 없음 */
+
+  /* Semantic aliases */
+  --si-focus: var(--si-primary-hover);
+  --si-info: var(--si-primary-hover);
+  --si-info-bg: var(--si-surface-soft);
+  --si-shadow-color: rgb(4 56 111 / 8%);
+}
+
+/* Optional color-only helpers. Layout and spacing remain application-owned. */
+.si-theme { color: var(--si-text); background-color: var(--si-bg); }
+.si-heading { color: var(--si-heading); }
+.si-text-secondary { color: var(--si-text-secondary); }
+.si-text-muted { color: var(--si-text-muted); }
+.si-surface {
+  color: var(--si-text);
+  background-color: var(--si-surface);
+  border: 1px solid var(--si-border);
+}
+.si-surface-soft { color: var(--si-text); background-color: var(--si-surface-soft); }
+.si-sidebar { color: var(--si-text-inverse); background-color: var(--si-navy); }
+.si-nav-link { color: var(--si-text-inverse); background-color: transparent; }
+.si-nav-link:hover { background-color: var(--si-navy-hover); }
+.si-nav-link[aria-current="page"],
+.si-nav-link.is-active {
+  color: var(--si-text-inverse);
+  background-color: var(--si-primary);
+  box-shadow: inset 3px 0 0 var(--si-text-inverse);
+}
+.si-link { color: var(--si-primary-hover); text-decoration: underline; }
+.si-link:hover { color: var(--si-primary-active); }
+
+.si-btn-primary {
+  color: var(--si-text-inverse);
+  background-color: var(--si-primary);
+  border: 1px solid var(--si-primary);
+}
+.si-btn-primary:hover:not(:disabled) {
+  background-color: var(--si-primary-hover);
+  border-color: var(--si-primary-hover);
+}
+.si-btn-primary:active:not(:disabled) {
+  background-color: var(--si-primary-active);
+  border-color: var(--si-primary-active);
+}
+.si-btn-secondary {
+  color: var(--si-primary-hover);
+  background-color: var(--si-surface);
+  border: 1px solid var(--si-primary-hover);
+}
+.si-btn-secondary:hover:not(:disabled) { background-color: var(--si-surface-soft); }
+.si-btn-primary:disabled,
+.si-btn-secondary:disabled {
+  color: var(--si-disabled-text);
+  background-color: var(--si-disabled-bg);
+  border-color: var(--si-disabled-bg);
+  cursor: not-allowed;
+}
+
+.si-input {
+  color: var(--si-text);
+  background-color: var(--si-surface);
+  border: 1px solid var(--si-border-control);
+  accent-color: var(--si-primary);
+}
+.si-input::placeholder { color: var(--si-text-muted); opacity: 1; }
+.si-input:focus { border-color: var(--si-focus); }
+.si-input[aria-invalid="true"] { border-color: var(--si-danger); }
+.si-input:disabled {
+  color: var(--si-disabled-text);
+  background-color: var(--si-disabled-bg);
+}
+.si-btn-primary:focus-visible,
+.si-btn-secondary:focus-visible,
+.si-input:focus-visible,
+.si-link:focus-visible {
+  outline: 3px solid var(--si-focus);
+  outline-offset: 3px;
+}
+.si-nav-link:focus-visible {
+  outline: 2px solid var(--si-text-inverse);
+  outline-offset: -4px;
+}
+
+/* Pair each badge with a visible label; color alone is not a status. */
+.si-badge--info { color: var(--si-info); background-color: var(--si-info-bg); }
+.si-badge--success { color: var(--si-success); background-color: var(--si-success-bg); }
+.si-badge--warning { color: var(--si-warning); background-color: var(--si-warning-bg); }
+.si-badge--danger { color: var(--si-danger); background-color: var(--si-danger-bg); }
+.si-badge--neutral { color: var(--si-disabled-text); background-color: var(--si-disabled-bg); }
+
+.si-table { color: var(--si-text); background-color: var(--si-surface); }
+.si-table thead { color: var(--si-heading); background-color: var(--si-surface-soft); }
+.si-table :is(th, td) { border-bottom: 1px solid var(--si-border); }
+.si-table tbody tr:hover { background-color: var(--si-surface-hover); }
+
+* { box-sizing: border-box; }
+body { margin:0; font-family:"Noto Sans CJK KR","Malgun Gothic",system-ui,sans-serif; line-height:1.6; }
+header { padding:44px max(24px,calc((100vw - 1080px)/2)); background:var(--si-navy); color:#fff; }
+.kicker { letter-spacing:.13em; font-size:13px; font-weight:700; margin:0 0 8px; }
+h1 { font-size:34px; margin:0 0 10px; letter-spacing:-.04em; }
+header p { max-width:800px; margin:0; font-size:15px; }
+main { max-width:1128px; margin:0 auto; padding:30px 24px 56px; }
+.hero { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:30px; }
+.hero-swatch { overflow:hidden; padding:12px; border:1px solid var(--si-border); border-radius:12px; background:#fff; }
+.sample { height:70px; border-radius:6px; border:1px solid rgb(4 56 111 / 12%); margin-bottom:10px; }
+.hero-swatch strong,.hero-swatch code { display:block; }
+h2 { font-size:21px; color:var(--si-heading); margin:0 0 12px; }
+section { margin:0 0 26px; }
+.table-wrap { overflow-x:auto; border:1px solid var(--si-border); border-radius:10px; }
+table { width:100%; border-collapse:collapse; text-align:left; font-size:14px; }
+th,td { padding:13px 16px; vertical-align:middle; }
+th:nth-child(1) { width:24%; } th:nth-child(2) { width:14%; } th:nth-child(3) { width:28%; }
+code { font-family:Consolas,"Liberation Mono",monospace; font-size:13px; }
+.swatch { display:inline-block; width:25px; height:25px; border-radius:6px; border:1px solid rgb(4 56 111 / 16%); vertical-align:middle; margin-right:10px; }
+.demo { padding:22px; border-radius:12px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+button,input { font:inherit; min-height:44px; border-radius:8px; padding:10px 16px; }
+button:not(:disabled) { cursor:pointer; }
+.badge { padding:7px 12px; border-radius:99px; font-size:14px; font-weight:700; }
+.note { color:var(--si-text-secondary); font-size:14px; margin:14px 0 0; }
+pre { overflow:auto; padding:20px; border-radius:10px; background:var(--si-navy); color:#fff; font-size:14px; }
+footer { color:var(--si-text-secondary); font-size:13px; border-top:1px solid var(--si-border); padding-top:18px; }
+@media(max-width:650px) { .hero { grid-template-columns:repeat(2,minmax(0,1fr)); } h1 { font-size:28px; } table { min-width:740px; } }
+</style>
+</head>
+<body class="si-theme">
+<header><p class="kicker">SPORT INSIGHT / DESIGN TOKENS</p><h1>색상 코드 표</h1><p>최종 시안의 색감을 바탕으로 정리한 개발용 팔레트입니다. KSPO 공식 CI 색상 규정이 아닙니다.</p></header>
+<main>
+<div class="hero"><div class="hero-swatch"><div class="sample" style="background:#0064FF"></div><strong>메인 블루</strong><code>#0064FF</code></div><div class="hero-swatch"><div class="sample" style="background:#04386F"></div><strong>사이드바 네이비</strong><code>#04386F</code></div><div class="hero-swatch"><div class="sample" style="background:#F4F9FF"></div><strong>전체 배경</strong><code>#F4F9FF</code></div><div class="hero-swatch"><div class="sample" style="background:#FFFFFF"></div><strong>카드 배경</strong><code>#FFFFFF</code></div></div>
+<section><h2>01. 브랜드 색상</h2><div class="table-wrap"><table class="si-table"><thead><tr><th scope="col">색상</th><th scope="col">HEX</th><th scope="col">CSS 변수</th><th scope="col">사용 위치</th></tr></thead><tbody><tr><td><span class="swatch" style="background:#0064FF" aria-hidden="true"></span>메인 블루</td><td><code>#0064FF</code></td><td><code>--si-primary</code></td><td>주요 버튼, 선택 메뉴, 링크</td></tr><tr><td><span class="swatch" style="background:#0052CC" aria-hidden="true"></span>호버 블루</td><td><code>#0052CC</code></td><td><code>--si-primary-hover</code></td><td>주요 버튼 마우스 오버</td></tr><tr><td><span class="swatch" style="background:#0043A8" aria-hidden="true"></span>클릭 블루</td><td><code>#0043A8</code></td><td><code>--si-primary-active</code></td><td>주요 버튼 누름 상태</td></tr><tr><td><span class="swatch" style="background:#04386F" aria-hidden="true"></span>사이드바 네이비</td><td><code>#04386F</code></td><td><code>--si-navy</code></td><td>왼쪽 메뉴 배경</td></tr><tr><td><span class="swatch" style="background:#0B4A87" aria-hidden="true"></span>메뉴 호버</td><td><code>#0B4A87</code></td><td><code>--si-navy-hover</code></td><td>사이드바 비선택 항목 호버</td></tr><tr><td><span class="swatch" style="background:#082B63" aria-hidden="true"></span>제목 네이비</td><td><code>#082B63</code></td><td><code>--si-heading</code></td><td>페이지 제목, 핵심 지표</td></tr></tbody></table></div></section><section><h2>02. 배경·테두리</h2><div class="table-wrap"><table class="si-table"><thead><tr><th scope="col">색상</th><th scope="col">HEX</th><th scope="col">CSS 변수</th><th scope="col">사용 위치</th></tr></thead><tbody><tr><td><span class="swatch" style="background:#F4F9FF" aria-hidden="true"></span>전체 배경</td><td><code>#F4F9FF</code></td><td><code>--si-bg</code></td><td>대시보드 기본 배경</td></tr><tr><td><span class="swatch" style="background:#FFFFFF" aria-hidden="true"></span>카드 배경</td><td><code>#FFFFFF</code></td><td><code>--si-surface</code></td><td>카드, 입력창, 본문 영역</td></tr><tr><td><span class="swatch" style="background:#EAF4FF" aria-hidden="true"></span>연한 블루</td><td><code>#EAF4FF</code></td><td><code>--si-surface-soft</code></td><td>표 헤더, 안내 박스</td></tr><tr><td><span class="swatch" style="background:#F0F6FF" aria-hidden="true"></span>행 호버 배경</td><td><code>#F0F6FF</code></td><td><code>--si-surface-hover</code></td><td>표 행, 목록 호버</td></tr><tr><td><span class="swatch" style="background:#D8E6F5" aria-hidden="true"></span>기본 구분선</td><td><code>#D8E6F5</code></td><td><code>--si-border</code></td><td>카드 테두리, 표 구분선</td></tr><tr><td><span class="swatch" style="background:#7F96B2" aria-hidden="true"></span>입력창 테두리</td><td><code>#7F96B2</code></td><td><code>--si-border-control</code></td><td>입력 요소 식별용 테두리</td></tr></tbody></table></div></section><section><h2>03. 글자</h2><div class="table-wrap"><table class="si-table"><thead><tr><th scope="col">색상</th><th scope="col">HEX</th><th scope="col">CSS 변수</th><th scope="col">사용 위치</th></tr></thead><tbody><tr><td><span class="swatch" style="background:#17324D" aria-hidden="true"></span>기본 글자</td><td><code>#17324D</code></td><td><code>--si-text</code></td><td>본문, 표, 입력값</td></tr><tr><td><span class="swatch" style="background:#52667E" aria-hidden="true"></span>보조 글자</td><td><code>#52667E</code></td><td><code>--si-text-secondary</code></td><td>설명, 필드 라벨</td></tr><tr><td><span class="swatch" style="background:#5F728A" aria-hidden="true"></span>보조 메타정보</td><td><code>#5F728A</code></td><td><code>--si-text-muted</code></td><td>기준일, 출처, 플레이스홀더</td></tr><tr><td><span class="swatch" style="background:#FFFFFF" aria-hidden="true"></span>반전 글자</td><td><code>#FFFFFF</code></td><td><code>--si-text-inverse</code></td><td>블루 버튼, 네이비 메뉴 위 글자</td></tr></tbody></table></div></section><section><h2>04. 상태</h2><div class="table-wrap"><table class="si-table"><thead><tr><th scope="col">색상</th><th scope="col">HEX</th><th scope="col">CSS 변수</th><th scope="col">사용 위치</th></tr></thead><tbody><tr><td><span class="swatch" style="background:#0B7A53" aria-hidden="true"></span>확인·충족</td><td><code>#0B7A53</code></td><td><code>--si-success</code></td><td>확인됨, 조건 충족 라벨</td></tr><tr><td><span class="swatch" style="background:#E8F6EF" aria-hidden="true"></span>확인 배경</td><td><code>#E8F6EF</code></td><td><code>--si-success-bg</code></td><td>확인·충족 상태 배지 배경</td></tr><tr><td><span class="swatch" style="background:#946000" aria-hidden="true"></span>확인 필요</td><td><code>#946000</code></td><td><code>--si-warning</code></td><td>누락, 추가 검토 라벨</td></tr><tr><td><span class="swatch" style="background:#FFF4D6" aria-hidden="true"></span>주의 배경</td><td><code>#FFF4D6</code></td><td><code>--si-warning-bg</code></td><td>확인 필요 배지 배경</td></tr><tr><td><span class="swatch" style="background:#C92A3A" aria-hidden="true"></span>오류·제외</td><td><code>#C92A3A</code></td><td><code>--si-danger</code></td><td>입력 오류, 조건 불충족</td></tr><tr><td><span class="swatch" style="background:#FFF0F2" aria-hidden="true"></span>오류 배경</td><td><code>#FFF0F2</code></td><td><code>--si-danger-bg</code></td><td>오류·제외 배지 배경</td></tr><tr><td><span class="swatch" style="background:#E8EEF5" aria-hidden="true"></span>비활성 배경</td><td><code>#E8EEF5</code></td><td><code>--si-disabled-bg</code></td><td>데이터 없음, 비활성 요소</td></tr><tr><td><span class="swatch" style="background:#596B80" aria-hidden="true"></span>비활성 글자</td><td><code>#596B80</code></td><td><code>--si-disabled-text</code></td><td>비활성 버튼·입력 요소</td></tr></tbody></table></div></section><section><h2>05. 차트·지도</h2><div class="table-wrap"><table class="si-table"><thead><tr><th scope="col">색상</th><th scope="col">HEX</th><th scope="col">CSS 변수</th><th scope="col">사용 위치</th></tr></thead><tbody><tr><td><span class="swatch" style="background:#2684FF" aria-hidden="true"></span>기본 차트</td><td><code>#2684FF</code></td><td><code>--si-chart-primary</code></td><td>선택 지역 막대·선</td></tr><tr><td><span class="swatch" style="background:#A6CDFF" aria-hidden="true"></span>비교 차트</td><td><code>#A6CDFF</code></td><td><code>--si-chart-comparison</code></td><td>비교 지역 막대·선</td></tr><tr><td><span class="swatch" style="background:#E4EDF7" aria-hidden="true"></span>차트 격자</td><td><code>#E4EDF7</code></td><td><code>--si-chart-grid</code></td><td>차트 보조선</td></tr><tr><td><span class="swatch" style="background:#DBEDFF" aria-hidden="true"></span>지도 1단계</td><td><code>#DBEDFF</code></td><td><code>--si-map-1</code></td><td>순차형 지표 최저 구간</td></tr><tr><td><span class="swatch" style="background:#B4D8FF" aria-hidden="true"></span>지도 2단계</td><td><code>#B4D8FF</code></td><td><code>--si-map-2</code></td><td>순차형 지표 낮은 구간</td></tr><tr><td><span class="swatch" style="background:#7DBAFF" aria-hidden="true"></span>지도 3단계</td><td><code>#7DBAFF</code></td><td><code>--si-map-3</code></td><td>순차형 지표 중간 구간</td></tr><tr><td><span class="swatch" style="background:#3995F5" aria-hidden="true"></span>지도 4단계</td><td><code>#3995F5</code></td><td><code>--si-map-4</code></td><td>순차형 지표 높은 구간</td></tr><tr><td><span class="swatch" style="background:#0866C5" aria-hidden="true"></span>지도 5단계</td><td><code>#0866C5</code></td><td><code>--si-map-5</code></td><td>순차형 지표 최고 구간</td></tr><tr><td><span class="swatch" style="background:#E2E8F0" aria-hidden="true"></span>지도 데이터 없음</td><td><code>#E2E8F0</code></td><td><code>--si-map-no-data</code></td><td>값 누락·미집계; 0과 구분</td></tr></tbody></table></div></section>
+<section><h2>06. 적용 예시</h2>
+<div class="si-surface demo">
+<button type="button" class="si-btn-primary">추천 프로그램 조회</button>
+<button type="button" class="si-btn-secondary">초기화</button>
+<button type="button" class="si-btn-primary" disabled>데이터 없음</button>
+<span class="badge si-badge--success">조건 충족</span>
+<span class="badge si-badge--warning">확인 필요</span>
+<span class="badge si-badge--danger">조건 불충족</span>
+</div><p class="note">위 버튼은 색상과 호버·포커스 상태를 확인하는 예시이며, 조회 기능은 연결되어 있지 않습니다.</p></section>
+<section><h2>07. CSS 사용법</h2><pre><code>&lt;link rel="stylesheet" href="./sport-insight-colors.css"&gt;
+
+.dashboard {
+  background: var(--si-bg);
+  color: var(--si-text);
+}
+
+.card {
+  background: var(--si-surface);
+  border: 1px solid var(--si-border);
+}</code></pre></section>
+<footer>상태는 색상과 함께 텍스트로 표시하세요. 지도 데이터 없음은 0과 구분하며, 구간별 범례를 함께 제공하세요.</footer>
+</main></body></html>

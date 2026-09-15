@@ -104,14 +104,21 @@
   }
 
   function mapOption(settings) {
+    var style = getComputedStyle(document.documentElement);
+    var token = function (name) { return style.getPropertyValue(name).trim(); };
+    var fontFamily = getComputedStyle(document.body).fontFamily;
     var maximum = Math.max(1, ...settings.data.map(function (item) {
       return Number(item.value) || 0;
     }));
     return {
-      backgroundColor: '#e6edf5',
+      backgroundColor: token('--si-bg'),
+      textStyle: { fontFamily: fontFamily },
       aria: { enabled: true, description: settings.description },
       tooltip: {
         trigger: 'item',
+        backgroundColor: token('--si-surface'),
+        borderColor: token('--si-border'),
+        textStyle: { fontFamily: fontFamily, color: token('--si-text') },
         formatter: function (params) {
           var value = Number.isFinite(params.value) ? params.value : 0;
           return params.name + '<br>' + settings.valueLabel + ' ' +
@@ -126,8 +133,8 @@
         orient: 'horizontal',
         calculable: false,
         text: ['많음', '적음'],
-        inRange: { color: ['#dceeff', '#2684ff', '#0758b8'] },
-        textStyle: { color: '#60758a', fontSize: 10 }
+        inRange: { color: ['--si-map-1', '--si-map-2', '--si-map-3', '--si-map-4', '--si-map-5'].map(token) },
+        textStyle: { color: token('--si-text-muted'), fontFamily: fontFamily, fontSize: 10 }
       },
       series: [{
         name: settings.valueLabel,
@@ -140,9 +147,9 @@
         layoutCenter: ['50%', '43%'],
         layoutSize: '85%',
         selectedMode: false,
-        label: { show: Boolean(settings.labels), color: '#334e68', fontSize: 9 },
-        itemStyle: { areaColor: '#f7fbff', borderColor: '#ffffff', borderWidth: 1 },
-        emphasis: { label: { show: true, color: '#12395f' }, itemStyle: { areaColor: '#65afff' } },
+        label: { show: Boolean(settings.labels), color: token('--si-text'), fontFamily: fontFamily, fontSize: 9 },
+        itemStyle: { areaColor: token('--si-map-no-data'), borderColor: token('--si-surface'), borderWidth: 1 },
+        emphasis: { label: { show: true, color: token('--si-heading') }, itemStyle: { areaColor: token('--si-map-3') } },
         data: settings.data
       }]
     };
@@ -166,7 +173,8 @@
     var chart;
     var countryGeoJson;
 
-    function fail() {
+    function fail(error) {
+      console.error('Region map failed:', error);
       element.innerHTML = '<p class="region-map-status">지도 데이터를 불러오지 못했습니다. 아래 목록을 확인해 주세요.</p>';
     }
 
@@ -235,7 +243,13 @@
     }
 
     return loadECharts().then(function () {
-      return loadGeoJson(COUNTRY_GEOJSON);
+      // Canvas labels must be drawn after the local font has loaded.
+      return Promise.all([
+        loadGeoJson(COUNTRY_GEOJSON),
+        document.fonts ? document.fonts.load('400 12px "Noto Sans KR"').catch(function () {
+          // A font failure must not prevent the map from rendering in the fallback font.
+        }) : Promise.resolve()
+      ]).then(function (results) { return results[0]; });
     }).then(function (geoJson) {
       countryGeoJson = geoJson;
       countryGeoJson.features.forEach(function (feature) {

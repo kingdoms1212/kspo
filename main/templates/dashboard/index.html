@@ -11,7 +11,7 @@
   </form>
 </section>
 <div id="dashboard-body">{% include 'dashboard/_body.html' %}</div>
-<script src="{% static 'region-map.js' %}" defer></script>
+<script src="{% static 'region-map.js' %}?v=20260915-map-fix" defer></script>
 <script>
   // A province on the map narrows the dashboard the same way the picker does.
   document.addEventListener('regionmap:select', (event) => {

@@ -116,9 +116,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_FINDERS = [
+    'app.common.staticfiles.PortableFileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 # The image folder sits beside the project rather than inside static/, so it is
 # mounted under a prefix and referenced as {% static 'image/...' %}.
-STATICFILES_DIRS = [BASE_DIR / 'static', ('image', BASE_DIR.parent / 'image')]
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+    ('image', BASE_DIR.parent / 'image'),
+    ('fonts', BASE_DIR.parent / 'fonts'),
+    ('theme', BASE_DIR.parent / 'theme'),
+]
 DATA_DIR = BASE_DIR.parent / 'data'
 
 
