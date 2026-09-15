@@ -10,6 +10,7 @@
 - focus_region: 처음 표시할 지역
 - region_click: 시도 선택 처리 방식
 - country_help / district_help: 지도 단계별 안내 문구
+- help_hidden: 안내 문구를 화면에서 숨기고 보조기기용으로만 유지할지 여부
 
 이 템플릿은 지도 구조와 데이터를 선언하는 역할만 한다. 실제 렌더링은
 region-map.js가 담당하고, 선택 이후 동작은 각 화면 전용 JS가 담당한다.
@@ -41,7 +42,7 @@ region-map.js가 담당하고, 선택 이후 동작은 각 화면 전용 JS가 �
      data-district-help="{{ district_help }}">
   <p class="region-map-status">지도를 불러오는 중입니다.</p>
 </div>
-{% if country_help or district_help %}<p id="{{ id }}-help" class="chart-note region-map-help">{{ country_help }}</p>{% endif %}
+{% if country_help or district_help %}<p id="{{ id }}-help" class="region-map-help{% if help_hidden %} sr-only{% else %} chart-note{% endif %}">{{ country_help }}</p>{% endif %}
 {{ region_data|json_script:region_data_id }}
 {{ district_data|json_script:district_data_id }}
 {% endwith %}

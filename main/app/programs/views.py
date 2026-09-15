@@ -4,14 +4,15 @@ from django.core.paginator import Paginator
 from ..common.partials import render_screen
 from ..common.exports import EXPORT_ROW_LIMIT, excel_response, over_export_limit
 from . import models
-from .services import (SORT_LABELS, filter_programs, program_budget_plan,
+from .services import (SORT_LABELS, WEEKDAYS, filter_programs, program_budget_plan,
                        program_district_distribution, program_districts,
                        program_facility_types, program_regions,
                        program_region_district_map,
-                       program_summary)
+                       program_summary, selected_weekdays)
 
 SEARCH_KEYS = ('region', 'district', 'facility_type', 'sport', 'target', 'weekday',
-               'query', 'sort', 'budget_min', 'budget_max')
+               'program_query', 'facility_query', 'query', 'sort',
+               'sort_direction', 'budget_min', 'budget_max')
 
 # Keep the existing controller patch point while importing the service module.
 
@@ -30,12 +31,15 @@ def programs(request):
     budget_plan = program_budget_plan(params)
     results = filter_programs(params, budget_plan)
     catalogue = models.programs()
+    weekday_selection = selected_weekdays(params['weekday'])
+    page_obj = Paginator(results, 20).get_page(request.GET.get('page'))
+    jump_previous_page = max(1, page_obj.number - 10) if page_obj.has_previous() else None
+    jump_next_page = min(page_obj.paginator.num_pages, page_obj.number + 10) if page_obj.has_next() else None
     # One pass over the catalogue feeds both the cascading select and its JSON copy.
     region_district_map = program_region_district_map(catalogue)
     context = {
         'page': 'programs',
         'results': results,
-        'top_results': results[:3],
         'result_count': len(results),
         'regions': program_regions(catalogue),
         'facility_types': program_facility_types(catalogue),
@@ -46,8 +50,13 @@ def programs(request):
         'budget_plan': budget_plan,
         'scroll_position': _scroll_position(request),
         'sort_labels': SORT_LABELS,
+        'weekdays': WEEKDAYS,
+        'selected_weekdays': weekday_selection,
+        'weekday_label': ', '.join(weekday_selection),
         'params': params,
-        'page_obj': Paginator(results, 20).get_page(request.GET.get('page')),
+        'page_obj': page_obj,
+        'jump_previous_page': jump_previous_page,
+        'jump_next_page': jump_next_page,
         'page_query': urlencode(params),
         'export_query': urlencode(params),
         'load_report': models.load_report(),

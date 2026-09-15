@@ -3,8 +3,14 @@ from collections import Counter
 
 from . import models
 
-SORT_LABELS = {'name': '강좌명순', 'fee': '수강료순 · 단위 미확인',
-               'walk': '정류장 도보 가까운 순', 'capacity': '모집인원순'}
+SORT_LABELS = {
+    'name': '강좌명순',
+    'facility': '시설명순',
+    'region': '지역명순',
+    'sport': '종목순',
+    'fee': '수강료순',
+}
+WEEKDAYS = ('월', '화', '수', '목', '금', '토', '일')
 
 
 BUDGET_UNIT_WON = 1_000
@@ -73,6 +79,29 @@ def _filter_by_budget(rows, plan):
     return filtered
 
 
+def deduplicate_programs(rows):
+    """화면에 표시되는 여섯 항목이 모두 같은 강좌는 첫 행만 유지한다.
+
+    원본 CSV와 저장소 스냅샷은 건드리지 않는다. 검색 정렬 뒤 이 함수를
+    적용하므로 같은 그룹에서는 현재 정렬 결과상 첫 번째 강좌가 남는다.
+    """
+    seen = set()
+    unique_rows = []
+    for item in rows:
+        key = (item.name, item.facility, item.region, item.sport, item.weekday, item.fee)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rows.append(item)
+    return unique_rows
+
+
+def selected_weekdays(value):
+    """요일 선택값을 월요일부터 일요일 순서의 고유 목록으로 정규화한다."""
+    text = str(value or '').strip()
+    return tuple(day for day in WEEKDAYS if day in text)
+
+
 def filter_programs(params, budget_plan=None):
     """검색 조건과 유효한 예산 조건을 적용하고 요청한 기준으로 정렬한다."""
     result = list(models.programs())
@@ -88,24 +117,59 @@ def filter_programs(params, budget_plan=None):
     if params.get('target'):
         target = params['target'].lower()
         result = [item for item in result if target in item.target.lower()]
-    if params.get('weekday'):
-        result = [item for item in result if params['weekday'] in item.weekday]
-    if params.get('query'):
-        query = params['query'].lower()
+    weekday_value = str(params.get('weekday') or '').strip()
+    weekdays = selected_weekdays(weekday_value)
+    if weekdays:
+        # 선택한 요일과 강좌의 운영 요일 구성이 정확히 같은 강좌만 표시한다.
+        result = [item for item in result if selected_weekdays(item.weekday) == weekdays]
+    elif weekday_value:
+        # 기존 북마크나 직접 입력한 비표준 값은 이전의 부분 일치 방식을 유지한다.
+        result = [item for item in result if weekday_value in item.weekday]
+    program_query = str(params.get('program_query') or '').strip().lower()
+    facility_query = str(params.get('facility_query') or '').strip().lower()
+    if program_query:
+        result = [item for item in result if program_query in item.name.lower()]
+    if facility_query:
+        result = [item for item in result if facility_query in item.facility.lower()]
+    if params.get('query') and not program_query and not facility_query:
+        # 기존 주소의 통합 검색어는 예전 북마크 호환을 위해 유지한다.
+        query = str(params['query']).strip().lower()
         result = [item for item in result if query in item.name.lower() or query in item.facility.lower()]
     plan = budget_plan if budget_plan is not None else program_budget_plan(params)
     if plan['active'] and plan['valid']:
         result = _filter_by_budget(result, plan)
-    sort_key = params.get('sort', 'name')
+    sort_value = params.get('sort') or 'name_asc'
+    if sort_value.endswith('_desc'):
+        sort_key, descending = sort_value[:-5], True
+    elif sort_value.endswith('_asc'):
+        sort_key, descending = sort_value[:-4], False
+    else:
+        # 기존 정렬 주소의 sort와 sort_direction 조합도 계속 지원한다.
+        sort_key = sort_value
+        descending = params.get('sort_direction') == 'desc'
     if sort_key == 'fee':
-        result.sort(key=lambda item: (item.fee is None, item.fee or 0, item.name, item.id))
+        # 수강료 미제공 강좌는 정렬 방향과 관계없이 마지막에 배치한다.
+        priced = [item for item in result if item.fee is not None]
+        unpriced = [item for item in result if item.fee is None]
+        priced.sort(key=lambda item: (item.fee, item.name, item.id), reverse=descending)
+        unpriced.sort(key=lambda item: (item.name, item.id), reverse=descending)
+        result = priced + unpriced
+    elif sort_key == 'facility':
+        result.sort(key=lambda item: (item.facility, item.name, item.id), reverse=descending)
+    elif sort_key == 'region':
+        result.sort(
+            key=lambda item: (item.region, item.district, item.facility, item.name, item.id),
+            reverse=descending,
+        )
+    elif sort_key == 'sport':
+        result.sort(key=lambda item: (item.sport, item.name, item.facility, item.id), reverse=descending)
     elif sort_key == 'walk':
         result.sort(key=lambda item: (item.walk_minutes is None, item.walk_minutes or 0, item.name, item.id))
     elif sort_key == 'capacity':
         result.sort(key=lambda item: (item.capacity is None, -(item.capacity or 0), item.name, item.id))
     else:
-        result.sort(key=lambda item: (item.name, item.id))
-    return result
+        result.sort(key=lambda item: (item.name, item.id), reverse=descending)
+    return deduplicate_programs(result)
 
 
 def program_regions(programs_rows):
