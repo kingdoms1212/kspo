@@ -1,5 +1,44 @@
 # SPORT INSIGHT 작업 상태
 
+## 최신 작업 — 지역 지도 공용 컴포넌트 (2026-09-15, 2차)
+
+프로그램 화면에만 있던 지도를 공용화하고 대시보드에 붙였다. [결정 기록](DECISIONS.md) 참조.
+
+| 파일 | 역할 |
+|---|---|
+| `static/region-map.js` (신규) | 그리기 전담. 화면별 분기 없음. ECharts·GeoJSON 로딩, 별칭 정규화, 자동 확대, 서울 드릴다운, 재그리기 |
+| `templates/components/region_map.html` (신규) | 선언 전담. `data-*` 설정과 `json_script` 데이터 블록 |
+| `static/app.css` | `.region-map*` 공용 스타일 (프로그램 인라인 `<style>`에서 이동) |
+
+- 화면별 설정: 프로그램 `region_click="drilldown"` / 대시보드 `region_click="emit"`.
+- 클릭은 `regionmap:select` 이벤트로 나가고, 프로그램은 검색 폼 제출·대시보드는 지역 필터로 받는다.
+- 대시보드 집계 추가: `region_distribution`(시도 18개), `seoul_district_distribution`(자치구 25개). 신청인원 기준.
+- 라이브러리 태그는 껍데기에, 지도는 조각에. 대시보드 htmx 스왑 시 ECharts를 재다운로드하지 않고 새 숫자로만 다시 그린다.
+- 검증: 테스트 **100개 통과**(기존 96 + 공용 컴포넌트 4), Django check·`node --check` 정상, 서버 예외 0건. 프로그램 시도 11·자치구 23건, 대시보드 시도 18·자치구 25건이 모두 유효 JSON으로 출력되고 `region-map.js`는 화면당 1회만 로드. 시설 화면에는 스크립트가 실리지 않는다.
+
+## 최신 작업 — 머지 후 프로그램 지도 복구 (2026-09-15)
+
+병합 뒤 `/programs`의 ECharts 지도가 표시되지 않던 문제를 고쳤다. [결정 기록](DECISIONS.md) 참조.
+
+| 증상 | 원인 | 수정 |
+|---|---|---|
+| 지도가 "불러오는 중"에서 멈춤 | `seoul_district_distribution` 미전달 → `JSON.parse('""').map()` TypeError | 뷰 컨텍스트 복구 |
+| 시군구 select 비활성 | `region_district_map` 미전달 | 뷰 컨텍스트 복구 |
+| 검색어 입력 시 500 | namedtuple에 dict 접근(`item['name']`) | 속성 접근으로 통일 |
+| 예산 조건 무시 | `SEARCH_KEYS`에 예산 키 없음 | 키 추가 + 페이지·엑셀 공통 적용 |
+
+- 변경 파일: `app/programs/{services,views,tests}.py`, `app/common/tests.py`, `templates/programs/index.html`.
+- 복구한 템플릿 요소: 엑셀 5만 행 초과 안내(서버 거절 로직은 살아 있었음), 적재 출처·중복 제거 문구. "선두 최대 15,000행 기준" → "중복 제거 후 강좌 단위".
+- 검증: 테스트 **96개 통과**, Django check 정상, 서버 예외 0건. 지도 데이터 3종이 모두 유효한 JSON(시도 11 / 서울 자치구 23 / 지역-시군구 맵 11)으로 출력되고, ECharts·GeoJSON CDN 3개 모두 200. 대시보드·시설·정책 화면 회귀 없음.
+
+### 머지로 되돌아갔으나 복구하지 않은 것
+
+프로그램 화면에 한해 팀원 버전이 채택된 부분이다. 필요하면 별도로 결정해야 한다.
+
+- htmx 부분 렌더링 → 전체 새로고침 + `_scroll` 스크롤 복원(대시보드·시설은 htmx 유지).
+- TOP 3 카드의 `center.jpg` 대표 이미지 → 건물 아이콘 자리표시자.
+- 검색 패널의 시설유형·대상 필드, 정렬의 도보/모집인원 선택지, 요약의 정류장 도보 중앙값 타일. `sort=walk`·`capacity`와 `facility_type`·`target`은 URL로는 여전히 동작한다.
+
 ## 최신 작업 — 대표 이미지 연결 (2026-09-14, 13차)
 
 사진 자리표시자 두 곳에 `image/center.jpg`(660×320, 57KB)를 연결했다. [결정 기록](DECISIONS.md) 참조.
