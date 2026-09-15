@@ -1,5 +1,52 @@
 # SPORT INSIGHT 작업 상태
 
+## 최신 작업 — 정책 아이콘 통일 + 시설 사진 10종 (2026-09-15, 8차)
+
+- 상단 `주요 정책 보기` 아이콘 `info` → `program`. 다이얼로그 제목 아이콘과 일치.
+- 사진을 `image/center/center0~9.jpg`로 분배. 식별자의 **마지막 숫자**로 고르므로 같은 시설·강좌는 항상 같은 사진을 쓴다. 신규 `{% centre_photo %}` 태그(`app/templatetags/assets.py`).
+- 적용 위치: 시설 상세 `.detail-photo`, 프로그램 TOP 3 카드 `.facility-art`. 이전 `image/center.jpg`는 삭제돼 둘 다 404 상태였다.
+- 검증: 이미지 10종 모두 200, `facility-0→center0`·`facility-3→center3`·`facility-7→center7`·`facility-125→center5`, 프로그램 카드 3장이 각각 center9·center0·center4, 헤더와 다이얼로그 아이콘 `#i-program` 일치.
+- 참고: 머지 이후 `templates/programs/_results.html`은 화면에 렌더링되지 않는다(`programs/index.html`이 포함하지 않음). `render_screen`의 htmx 분기로만 남아 있다.
+
+## 최신 작업 — 시설 목록 스크롤 유지 (2026-09-15, 7차)
+
+시설을 클릭하면 목록의 내부 스크롤이 맨 위로 돌아가던 문제를 고쳤다. [결정 기록](DECISIONS.md) 참조.
+
+- 워크스페이스 스왑으로 표가 새로 그려지면서 자체 스크롤(`max-height:610px`)이 초기화되던 것.
+- `htmx:beforeRequest`에서 `scrollTop`을 기록하고 `htmx:afterSettle`에서 복원. 옵트인 방식(`data-keep-scroll` + `data-scroll-region`).
+- 페이지 이동은 제외했다. 행이 전부 바뀌므로 맨 위가 맞다.
+- 변경 파일: `static/interactions.js`, `templates/facilities/_workspace.html`. 회귀 테스트 1개 추가.
+- 검증: 목록 20행 전부 opt-in, 스크롤 영역 표식 1개, 페이지 링크는 미적용, 스왑 조각에도 표식과 선택 강조가 함께 실려옴.
+
+## 최신 작업 — 메뉴 이동 스플래시 (2026-09-15, 6차)
+
+메뉴 전환이 느린 동안 `image/splash.png`를 덮어 보여준다. [결정 기록](DECISIONS.md) 참조.
+
+- 대상: 좌측 메뉴 3개와 상단 브랜드 링크. 현재 열린 메뉴와 새 탭 클릭은 제외.
+- 150ms 지연 후 표시(워밍 상태의 깜빡임 방지), `pageshow`에서 해제(뒤로 가기 bfcache 포함), 60초 안전 타임아웃.
+- 접근성: `body[aria-busy]` 토글, 안내 문구를 표시 시점에 주입해 `role="status"`가 낭독되게 함, `prefers-reduced-motion`에서 진행 바 애니메이션 정지.
+- 그림은 `image/logo/logo.svg`(헤더에서 이미 캐시됨). 표시 폭 `min(420px,72vw)`.
+- 신규 `app/templatetags/assets.py`의 `{% asset %}` — 정적 URL에 파일 수정시각을 붙인다. 수동 토큰(`?v=20260915-...`)을 안 바꿔 옛 CSS가 캐시되는 바람에 스플래시가 처음에 뜨지 않았다. `app.css`·`fonts.css`·테마·`interactions.js`·`region-map.js`에 적용.
+- 변경 파일: `templates/base.html`, `templates/{dashboard,programs}/index.html`, `static/app.css`, `static/interactions.js`, `app/templatetags/assets.py`. 회귀 테스트 3개 추가.
+- 검증: 이미지 200·3,109b·원본 동일, 네 화면 모두 오버레이가 `hidden`으로 실려오고, JS 조건 7종·CSS 3종 확인.
+- 냉시동 실측: 대시보드 5.2초 / 프로그램 9.9초 / 시설 3.2초. 스플래시는 이 시간을 줄이지 않는다 — 없애려면 기동 시 워밍업이 필요하다.
+
+## 최신 작업 — 정책 다이얼로그 고정 프레임 (2026-09-15, 5차)
+
+다이얼로그 헤더·푸터를 고정하고 `.policy-content`만 스크롤하도록 바꿨다. [결정 기록](DECISIONS.md) 참조.
+
+```
+┌─ policy-head   고정 (제목·닫기)
+│  policy-content  ← 여기만 스크롤
+└─ policy-footer 고정 (원문 링크)
+```
+
+- `.policy-dialog` `overflow:auto` → `hidden`, `[open]`일 때만 `display:flex` 세로 배치.
+- 스왑 대상 `#policy-dialog-body`도 flex 체인에 포함(높이 전달이 끊기면 스크롤이 안 생김).
+- 헤더의 `position:sticky` 제거. 본문에 `overscroll-behavior:contain` 추가.
+- 모든 규칙을 `.policy-dialog` 아래로 한정해 `/policies` 전체 페이지는 영향 없음.
+- 검증: 조각 구조 head→content→footer 순서·항목 10건·닫기 버튼 정상, CSS 규칙 7종 확인, `/policies` 200.
+
 ## 최신 작업 — 제목 안내 툴팁 통일 (2026-09-15, 4차)
 
 대시보드·시설 화면의 제목 옆 설명을 프로그램 화면과 같은 느낌표 툴팁으로 맞췄다. [결정 기록](DECISIONS.md) 참조.

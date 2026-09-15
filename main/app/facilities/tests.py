@@ -203,13 +203,34 @@ class FacilityOwnerFilterTests(SimpleTestCase):
         self.assertNotIn('<td>대한체육회', body)
         self.assertIn('<option >대한체육회</option>', body)
 
+    def test_selecting_a_facility_opts_into_keeping_the_list_scroll(self):
+        """The workspace swap rebuilds the list, so its own scrollbar resets."""
+        with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None):
+            page = self.client.get('/facilities')
+        body = page.content.decode()
+        self.assertIn('data-scroll-region="facility-list"', body)
+        self.assertIn('data-keep-scroll="facility-list"', body)
+        # Paging does not opt in: different rows belong at the top.
+        pagination = body[body.index('class="pagination"'):] if 'class="pagination"' in body else ''
+        self.assertNotIn('data-keep-scroll', pagination)
+
     def test_detail_uses_the_shared_photo_with_a_caption_that_says_so(self):
         """One stand-in image serves every facility, so it must not read as this one's."""
         with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None):
             page = self.client.get('/facilities', {'facilityId': 'facility-0'})
-        self.assertContains(page, 'src="/static/image/center.jpg"')
+        # Ten interchangeable photos stand in; the id's last digit picks one,
+        # so a facility keeps the same image between visits.
+        self.assertContains(page, 'src="/static/image/center/center0.jpg"')
         self.assertContains(page, '대표 이미지')
         self.assertContains(page, 'alt=""')
+
+    def test_each_facility_keeps_its_own_stand_in_photo(self):
+        rows = [facility(id='facility-3', name='삼'), facility(id='facility-47', name='사칠')]
+        with patch('app.facilities.views.models.facilities', return_value=rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None):
+            first = self.client.get('/facilities', {'facilityId': 'facility-3'})
+            second = self.client.get('/facilities', {'facilityId': 'facility-47'})
+        self.assertContains(first, 'image/center/center3.jpg')
+        self.assertContains(second, 'image/center/center7.jpg')
 
     def test_facility_link_sets_facility_id_exactly_once(self):
         rows = [facility(id='facility-0'), facility(id='facility-1')]
