@@ -77,6 +77,25 @@ def _read_rows(filename, limit=None):
                 break
         return rows
 
+def columns_present(filename, columns):
+    """[SG001] - 시설 현황 데이터 예외처리 보완
+    자료 파일에 기대한 열이 모두 있는지 확인한다.
+
+    `read_columns`는 열이 없으면 아무 행도 내보내지 않고 조용히 끝난다. 그
+    상태는 '이 시설에 자료가 없다'와 구분되지 않아, 원본 열 이름이 바뀌면 모든
+    시설이 '정보 없음'으로 보인다. 읽기 전에 따로 확인해 두 경우를 가른다.
+    """
+    path = data_path(filename)
+    if not path.exists():
+        return False
+    try:
+        with path.open('r', encoding='utf-8-sig', newline='') as source:
+            headers = next(csv.reader(source), [])
+    except (OSError, UnicodeError, csv.Error):
+        return False
+    return set(columns).issubset(headers)
+
+
 def read_columns(filename, columns):
     """Stream only the requested columns, skipping rows whose width is wrong.
 

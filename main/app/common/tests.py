@@ -136,6 +136,59 @@ class FragmentRenderingTests(SimpleTestCase):
         self.assertEqual(full.content.decode().count('id="dashboard-heading"'), 1)
 
 
+class AssetTagTests(SimpleTestCase):
+    def test_stand_in_photo_comes_from_the_trailing_digit(self):
+        from app.templatetags.assets import centre_photo
+        self.assertTrue(centre_photo('facility-0').endswith('center/center0.jpg'))
+        self.assertTrue(centre_photo('facility-125').endswith('center/center5.jpg'))
+        self.assertTrue(centre_photo('program-9').endswith('center/center9.jpg'))
+        # An id with no digits still resolves rather than raising.
+        self.assertTrue(centre_photo('').endswith('center/center0.jpg'))
+
+    def test_asset_urls_carry_a_stamp_from_the_file(self):
+        from app.templatetags.assets import asset
+        self.assertRegex(asset('app.css'), r'/static/app\.css\?v=\d+$')
+        # A path the finders cannot resolve still returns a usable URL.
+        self.assertEqual(asset('missing/nope.css'), '/static/missing/nope.css')
+
+
+class NavigationSplashTests(SimpleTestCase):
+    """Menu navigation is a full page load that can take seconds on a cold cache."""
+
+    def _patches(self):
+        return (
+            patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD),
+            patch('app.programs.models.programs', return_value=[program()]),
+            patch('app.programs.models.load_report', return_value=PROGRAM_REPORT),
+            patch('app.facilities.views.models.facilities', return_value=[facility()]),
+            patch('app.facilities.views.models.load_report', return_value=FACILITY_REPORT),
+            patch('app.facilities.views.facility_transit', return_value=None),
+        )
+
+    def test_every_screen_carries_the_splash_overlay_hidden(self):
+        for route in ('/dashboard', '/programs', '/facilities'):
+            with self.subTest(route=route):
+                for patcher in self._patches():
+                    self.enterContext(patcher)
+                body = self.client.get(route).content.decode()
+                self.assertIn('id="app-splash"', body)
+                self.assertIn('class="app-splash" hidden', body)
+                self.assertIn('image/logo/logo.svg', body)
+                self.assertIn('id="app-splash-text"', body)
+                self.assertIn('interactions.js', body)
+
+    def test_the_overlay_starts_empty_so_the_live_region_announces_on_show(self):
+        with patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD):
+            body = self.client.get('/dashboard').content.decode()
+        self.assertIn('<p id="app-splash-text" class="app-splash-text" role="status"></p>', body)
+
+    def test_the_current_menu_item_is_marked_so_it_can_be_skipped(self):
+        """A click on the screen already open must not raise a splash."""
+        with patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD):
+            body = self.client.get('/dashboard').content.decode()
+        self.assertIn('aria-current="page"', body)
+
+
 class HeadingHelpTests(SimpleTestCase):
     """Every screen states what it is through the same tooltip control."""
 
