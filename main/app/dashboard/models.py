@@ -29,7 +29,7 @@ def usage_key(row):
 
 def _area():
     return {'facilities': set(), 'courses': set(), 'requests': None,
-            'months': set(), 'sports': Counter()}
+            'months': set(), 'sports': Counter(), 'sport_details': {}}
 
 
 @lru_cache(maxsize=1)
@@ -53,7 +53,13 @@ def usage_snapshot():
         if area is None:
             areas[(row[CTPRVN_NM], row[SIGNGU_NM])] = area = _area()
         area['facilities'].add(key)
-        area['courses'].add((*key, row[COURSE_NO]))
+        course_key = (*key, row[COURSE_NO])
+        area['courses'].add(course_key)
+        sport_name = row[ITEM_NM] or '종목 미제공'
+        sport = area['sport_details'].setdefault(
+            sport_name, {'facilities': set(), 'courses': set(), 'requests': None})
+        sport['facilities'].add(key)
+        sport['courses'].add(course_key)
         month = course_month(row[ESTBL_YEAR], row[ESTBL_MT])
         if month != 'unknown':
             area['months'].add(month)
@@ -61,7 +67,8 @@ def usage_snapshot():
         requested = to_number(row[REQST_CO])
         if requested is not None:
             area['requests'] = (area['requests'] or 0) + requested
-            area['sports'][row[ITEM_NM] or '종목 미제공'] += requested
+            area['sports'][sport_name] += requested
+            sport['requests'] = (sport['requests'] or 0) + requested
     return {
         'areas': [_finish(region, district, area)
                   for (region, district), area in sorted(areas.items())],
@@ -81,6 +88,13 @@ def _finish(region, district, area):
         'courses': len(area['courses']),
         'requests': area['requests'],
         'sports': area['sports'],
+        # Keep missing application counts distinct from zero, including sports
+        # that have facilities/courses but no reported application count.
+        'sport_details': [
+            {'name': name, 'facilities': len(sport['facilities']),
+             'courses': len(sport['courses']), 'requests': sport['requests']}
+            for name, sport in sorted(area['sport_details'].items())
+        ],
         'first_month': observed[0] if observed else '',
         'last_month': observed[-1] if observed else '',
     }

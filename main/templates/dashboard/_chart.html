@@ -1,0 +1,10 @@
+<div class="db-chart-scroll" tabindex="0" role="region" aria-label="{{ label }}">
+<table class="db-chart-table">
+<caption class="sr-only">{{ label }}. 막대는 최소·최대값 기준 상대 위치이며 숫자는 실제 신청인원입니다.</caption>
+<thead class="sr-only"><tr><th scope="col">{{ name_label }} · 시설/강좌</th><th scope="col">상대 위치</th><th scope="col">신청인원</th></tr></thead>
+<tbody>{% for item in rows %}
+<tr><th scope="row">{% if item.name %}{{ item.name }}{% else %}{{ item.district }}{% endif %}{% if item.region %}<span class="db-province">{{ item.region }}</span>{% endif %}<small>시설 {{ item.facilities|floatformat:'0g' }}개 · 강좌 {{ item.courses|floatformat:'0g' }}건</small></th>
+<td class="db-bar-cell"><div class="db-bar-track" aria-hidden="true">{% if item.bar_percent is not None %}<i class="db-bar{% if item.bar_percent == 0 %} db-bar-min{% endif %}" style="width:{{ item.bar_percent|floatformat:'6u' }}%"></i>{% endif %}</div></td>
+<td class="db-chart-value"><span>{% if item.requests is not None %}{{ item.requests|floatformat:'0g' }}명{% else %}미제공{% endif %}</span></td></tr>
+{% empty %}<tr><td colspan="3" class="empty">해당 지역 자료가 없습니다.</td></tr>{% endfor %}</tbody>
+</table></div>
