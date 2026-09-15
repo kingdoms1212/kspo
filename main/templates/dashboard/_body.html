@@ -1,18 +1,28 @@
-{% if htmx_fragment %}<div class="heading-copy program-heading-copy" id="dashboard-heading" hx-swap-oob="true"><h1>{% if selected_region %}{{ selected_region }}{% else %}전국{% endif %} 시설 이용현황</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>{% endif %}
-<p class="sr-only" role="status">{% if selected_region %}{{ selected_region }}{% else %}전국{% endif %} 조회 완료. 시설 {{ facilities|default:0 }}개, 강좌 {{ courses|default:0 }}건.</p>
-<div class="metric-grid">
-  <article class="metric-card"><div class="metric-icon">{% include 'components/icon.html' with name='building' %}</div><div><span>이용 시설</span><strong>{% if facilities is not None %}{{ facilities|floatformat:'0g' }} <em>개</em>{% else %}확인 필요{% endif %}</strong><small>자료에 기록된 시설 · 중복 검증 중</small></div></article>
-  <article class="metric-card"><div class="metric-icon aqua">{% include 'components/icon.html' with name='program' %}</div><div><span>개설 강좌</span><strong>{% if courses is not None %}{{ courses|floatformat:'0g' }} <em>건</em>{% else %}확인 필요{% endif %}</strong><small>시설·강좌번호 기준 고유 건수</small></div></article>
-  <article class="metric-card"><div class="metric-icon aqua">{% include 'components/icon.html' with name='people' %}</div><div><span>신청인원 합계</span><strong>{% if requests is not None %}{{ requests|floatformat:'0g' }} <em>명</em>{% else %}확인 필요{% endif %}</strong><small>개설월 합계 · 고유 이용자 아님</small></div></article>
-  <article class="metric-card"><div class="metric-icon soft">{% include 'components/icon.html' with name='info' %}</div><div><span>관측 개설연월</span><strong>{{ period|join:', ' }}</strong><small>자료에 기록된 범위</small></div></article>
-</div>
-<div class="dashboard-grid">
+{% if htmx_fragment %}<div class="heading-copy program-heading-copy" id="dashboard-heading" hx-swap-oob="true"><h1>시설 이용 현황</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>{% endif %}
+<p class="sr-only" role="status">{{ selected_region|default:'전국' }} 조회 완료. 시설 {{ facilities|default_if_none:'미제공' }}개, 강좌 {{ courses|default_if_none:'미제공' }}건. 시군구 {% if region_sort == 'asc' %}적은{% else %}많은{% endif %} 순, 종목 {% if sport_sort == 'asc' %}적은{% else %}많은{% endif %} 순.</p>
+<form id="dashboard-filters" class="db-layout" method="get" action="{% url 'dashboard' %}" hx-get="{% url 'dashboard' %}" hx-trigger="submit" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy">
+<input type="hidden" name="region_sort" value="{{ region_sort }}">
+<input type="hidden" name="sport_sort" value="{{ sport_sort }}">
+<input type="hidden" name="chart_type" value="{{ chart_type }}">
   <section class="panel map-panel" tabindex="-1" data-focus-fallback>
-    <div class="section-title"><h2>지역별 이용현황</h2><span class="unit">단위: 명</span></div>
+    <div class="section-title"><h2>지역별 이용현황</h2><span class="unit">단위: 명</span><div class="db-helper">{% include 'dashboard/_info.html' with label='지역별 이용현황 안내' text='지도 색상은 개설월 합계 신청인원이며 고유 이용자 수가 아닙니다. 전남광주처럼 자료에만 있는 통합 명칭은 행정경계와 대응하지 않아 칠해지지 않습니다.이용현황 자료의 지역명은 서울처럼 짧은 형태이고 시설·프로그램 자료는 서울특별시처럼 전체 명칭이라 화면 간 대응표가 없습니다.' %}</div></div>
+    <div class="db-map-selectors">
+      <label for="dashboard-region">시·도<select id="dashboard-region" name="region" data-focus-key="dashboard-region"><option value="" {% if not selected_region %}selected{% endif %}>전체</option>{% for option in region_options %}<option value="{{ option }}" {% if option == selected_region %}selected{% endif %}>{{ option }}</option>{% endfor %}</select></label>
+      <label for="dashboard-district">시·군·구<select id="dashboard-district" name="district" data-focus-key="dashboard-district" {% if not selected_region %}disabled{% endif %}><option value="" {% if not selected_district %}selected{% endif %}>전체</option>{% for option in district_options %}<option value="{{ option }}" {% if option == selected_district %}selected{% endif %}>{{ option }}</option>{% endfor %}</select></label>
+      <button class="button primary" type="submit">조회</button>
+    </div>
+    {{ region_district_options|json_script:"dashboard-district-options" }}
     {% include 'components/region_map.html' with id='dashboard-region-map' region_data=region_distribution district_data=district_distribution value_label='신청인원' unit='명' region_click='emit' focus_region=selected_region country_description='시도별 신청인원 분포 지도' country_help='시도를 선택하면 해당 지역의 시군구별 신청인원을 확인할 수 있습니다.' district_help='선택한 지역의 시군구별 신청인원이 표시됩니다.' %}
     <div class="region-picker" aria-label="지역 바로 선택" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy"><a class="{% if not selected_region %}selected{% endif %}" data-focus-key="region-all" href="{% url 'dashboard' %}" hx-get="{% url 'dashboard' %}">전국</a>{% for option in region_options %}<a class="{% if option == selected_region %}selected{% endif %}" data-focus-key="region-{{ option }}" href="?region={{ option|urlencode }}" hx-get="?region={{ option|urlencode }}">{{ option }}</a>{% endfor %}</div>
   </section>
 <div class="db-right">
+<section class="db-metrics" aria-label="상단 통계">
+<article class="db-metric"><div class="metric-icon">{% include 'components/icon.html' with name='building' %}</div><div class="db-metric-label">이용 시설 {% include 'dashboard/_info.html' with label='이용 시설 집계 기준' text='시도·시군구 코드, 시설명, 주소, 상세주소를 조합한 고유 시설 수입니다. 같은 시설의 여러 개설월 기록은 한 번 집계합니다. 시설 식별 정보가 부족한 행은 제외합니다.' %}</div><strong>{% if facilities is not None %}{{ facilities|floatformat:'0g' }} <em>개</em>{% else %}미제공{% endif %}</strong></article>
+<article class="db-metric"><div class="metric-icon">{% include 'components/icon.html' with name='program' %}</div><div class="db-metric-label">개설 강좌 {% include 'dashboard/_info.html' with label='개설 강좌 집계 기준' text='시설 식별 정보와 강좌번호를 조합한 고유 강좌 수입니다. 동일 강좌의 개설월별 기록은 중복 집계하지 않습니다.' %}</div><strong>{% if courses is not None %}{{ courses|floatformat:'0g' }} <em>건</em>{% else %}미제공{% endif %}</strong></article>
+<article class="db-metric"><div class="metric-icon">{% include 'components/icon.html' with name='people' %}</div><div class="db-metric-label">신청 인원 {% include 'dashboard/_info.html' with label='신청 인원 집계 기준' text='개설월별 신청인원 합계입니다. 같은 사람이 여러 달 신청하면 반복 포함될 수 있으므로 고유 이용자 수가 아닙니다. 누락값은 0으로 대체하지 않고 알려진 값만 합산합니다.' %}</div><strong>{% if requests is not None %}{{ requests|floatformat:'0g' }} <em>명</em>{% else %}미제공{% endif %}</strong></article>
+<article class="db-metric"><div class="metric-icon">{% include 'components/icon.html' with name='chart' %}</div><div class="db-metric-label">종목 수 {% include 'dashboard/_info.html' with label='종목 수 집계 기준' text='선택한 지역에 기록된 서로 다른 종목의 수입니다. 같은 종목은 한 번만 집계하고 종목명이 없는 기록은 제외합니다.' %}</div><strong>{{ sport_count|default:0 }} <em>개</em></strong></article>
+</section>
+{% if selected_district %}<p role="status">조회 지역: {{ selected_region }} {{ selected_district }}</p>{% endif %}
 {% include 'components/busy.html' with id='dashboard-busy' %}
 <nav class="db-chart-modes" aria-label="통계 그래프 모양">{% for mode in chart_modes %}<a href="{{ mode.url }}" hx-get="{{ mode.url }}" hx-params="none" data-focus-key="chart-mode-{{ mode.type }}" {% if mode.type == chart_type %}aria-current="true"{% endif %}>{{ mode.label }}</a>{% endfor %}</nav>
 <div class="db-charts">

@@ -24,6 +24,16 @@ def area(**overrides):
 
 
 class DashboardServiceTests(SimpleTestCase):
+    def test_district_choices_are_sorted_and_independent_of_selected_district(self):
+        snapshot = dict(areas=[area(district='중구'), area(district='강남구', requests=None),
+                              area(district='종로구'), area(region='부산', district='중구')],
+                        months=[], ledger_rows=4, unidentified=0, source='x.csv')
+        with patch('app.dashboard.models.usage_snapshot', return_value=snapshot):
+            data = dashboard_data('서울', '중구')
+        self.assertEqual(data['region_district_options']['서울'], ['강남구', '종로구', '중구'])
+        self.assertEqual(data['region_district_options']['부산'], ['중구'])
+        self.assertEqual(len(data['areas']), 1)
+
     def setUp(self):
         self.areas = [area(), area(district='종로구', facilities=1, courses=2, requests=0,
                                    sports=Counter({'축구': 0})),
@@ -189,6 +199,34 @@ class DashboardRepositoryTests(SimpleTestCase):
 
 
 class DashboardViewTests(SimpleTestCase):
+    def test_visible_region_controls_and_metrics_follow_map_in_same_layout(self):
+        context = dict(region_options=['서울'], region_district_options={'서울': ['강남구', '중구']})
+        with patch('app.dashboard.views.dashboard_data', return_value=context):
+            response = self.client.get('/dashboard', {'region': '서울', 'district': '강남구'})
+        self.assertEqual(response.context['district_options'], ['강남구', '중구'])
+        self.assertContains(response, '<option value="강남구" selected>강남구</option>', html=True)
+        self.assertContains(response, '시·도')
+        self.assertContains(response, '시·군·구')
+        self.assertNotContains(response, '<select hidden')
+        html = response.content.decode()
+        self.assertLess(html.index('class="panel map-panel"'), html.index('class="db-metrics"'))
+
+    def test_district_selection_filters_counts_and_preserves_map_scope(self):
+        from urllib.parse import parse_qs, urlsplit
+
+        snapshot = dict(areas=[area(), area(district='종로구', requests=40),
+                              area(region='부산', requests=200)],
+                        months=[], ledger_rows=3, unidentified=0, source='x.csv')
+        with patch('app.dashboard.models.usage_snapshot', return_value=snapshot):
+            response = self.client.get('/dashboard', {'region': '서울', 'district': '중구', 'chart_type': 'pie'})
+            no_region = self.client.get('/dashboard', {'district': '중구'})
+        self.assertEqual(response.context['requests'], 100)
+        self.assertEqual(len(response.context['areas']), 1)
+        self.assertEqual(len(response.context['district_distribution']), 2)
+        self.assertEqual(parse_qs(urlsplit(response.context['sport_sort_url']).query)['district'], ['중구'])
+        self.assertEqual(no_region.context['selected_district'], '')
+        self.assertEqual(no_region.context['requests'], 340)
+
     def test_new_layout_renders_all_sports_with_counts_and_normalized_bars(self):
         sports = [dict(name=f'종목{i}', facilities=1, courses=2, requests=i * 10)
                   for i in range(7)]
@@ -243,8 +281,8 @@ class DashboardViewTests(SimpleTestCase):
             restored = self.client.get(query, HTTP_HX_REQUEST='true', HTTP_HX_HISTORY_RESTORE_REQUEST='true')
         parser = SelectedOptions()
         parser.feed(partial.content.decode())
-        self.assertEqual(parser.selected, dict(region='서울', region_sort='asc', sport_sort='desc', chart_type='bar'))
-        self.assertContains(partial, 'hx-trigger="submit, change"')
+        self.assertEqual(parser.selected, dict(region='서울', district='', region_sort='asc', sport_sort='desc', chart_type='bar'))
+        self.assertContains(partial, 'hx-trigger="submit"')
         self.assertNotContains(partial, 'id="dashboard-body"')
         self.assertNotContains(partial, 'region-map.js')
         self.assertEqual(full.content, restored.content)

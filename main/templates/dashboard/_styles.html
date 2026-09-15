@@ -45,7 +45,7 @@
   .dashboard-screen .db-policy-label{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .dashboard-screen .db-policy-label .icon{width:20px;height:20px;color:var(--si-primary);flex-shrink:0}
   @media(max-width:650px){.dashboard-screen .db-sort-toggle{min-width:44px;min-height:44px}}
-  .dashboard-screen .db-metrics{margin-bottom:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .dashboard-screen .db-metrics{margin-bottom:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .dashboard-screen #dashboard-region-map{height:380px}
   .dashboard-screen .map-panel>.section-title{position:relative;justify-content:flex-start;gap:8px}
   .dashboard-screen .db-helper{margin-left:auto;display:flex}
@@ -64,4 +64,12 @@
   .dashboard-screen .db-pie-legend small{display:block;font-size:11px;color:var(--si-text-muted);font-weight:400}
   .dashboard-screen .db-pie-value{text-align:right;font-variant-numeric:tabular-nums}
   .dashboard-screen .db-pie-legend .db-province{margin-left:5px;font-size:11px;color:var(--si-text-muted)}
+  .dashboard-screen .db-right{align-content:start}
+  .dashboard-screen .db-map-selectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px;align-items:end}
+  .dashboard-screen .db-map-selectors label{display:grid;gap:6px;font-size:12px;min-width:0}
+  .dashboard-screen .db-map-selectors select{width:100%;min-width:0}
+  .dashboard-screen .db-map-selectors button{grid-column:1 / -1;justify-self:end}
+  .dashboard-screen .db-metric{padding:13px 10px;grid-template-columns:40px minmax(0,1fr);column-gap:8px}
+  .dashboard-screen .db-metric>.metric-icon{width:40px;height:40px}
+  .dashboard-screen .db-metric>strong{font-size:clamp(18px,1.6vw,25px)}
 </style>

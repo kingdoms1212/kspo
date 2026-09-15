@@ -1,18 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load assets %}
 {% block content %}
-<section class="page-head">
-  <div class="heading-copy program-heading-copy" id="dashboard-heading"><h1>{% if selected_region %}{{ selected_region }}{% else %}전국{% endif %} 시설 이용현황</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>
-  <form class="inline-filters" method="get" hx-get="{% url 'dashboard' %}" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy">
-    <label class="sr-only" for="dashboard-region">조회 지역</label>
-    <select id="dashboard-region" name="region" hx-trigger="change" hx-get="{% url 'dashboard' %}" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy"><option value="">전국</option>{% for option in region_options %}<option {% if option == selected_region %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
-    <button class="button primary" type="submit">조회</button>
-    {% include 'components/busy.html' with id='dashboard-busy' %}
-  </form>
-</section>
+{% include 'dashboard/_styles.html' %}
+<div class="dashboard-screen">
+<header class="page-head db-heading">
+<div class="heading-copy program-heading-copy" id="dashboard-heading"><h1>시설 이용 현황</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>
+</header>
 <div id="dashboard-body">{% include 'dashboard/_body.html' %}</div>
-{# 공통 지도 엔진을 먼저 불러온 후 대시보드 전용 동작을 연결한다. #}
+</div>
 <script src="{% static 'region-map.js' %}?v=20260915-nationwide-districts-2" defer></script>
-<script src="{% static 'dashboard-region-map.js' %}?v=20260915-nationwide-districts-2" defer></script>
+<script src="{% static 'dashboard-region-map.js' %}?v=20260915-dashboard-connect" defer></script>
 {% endblock %}

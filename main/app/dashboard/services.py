@@ -4,13 +4,19 @@ from collections import Counter
 from . import models
 
 
-def dashboard_data(region=''):
+def dashboard_data(region='', district=''):
     snapshot = models.usage_snapshot()
-    areas = [area for area in snapshot['areas'] if not region or area['region'] == region]
+    areas = [area for area in snapshot['areas']
+             if (not region or area['region'] == region)
+             and (not district or area['district'] == district)]
     sports = Counter()
     for area in areas:
         sports.update(area['sports'])
     sport_rows = sport_totals(areas)
+    region_districts = {}
+    for area in snapshot['areas']:
+        if area['region'] != '지역 미제공' and area['district'] != '시군구 미제공':
+            region_districts.setdefault(area['region'], set()).add(area['district'])
     months = sorted({month for area in areas for month in (area['first_month'], area['last_month']) if month})
     return {
         'areas': areas,
@@ -19,6 +25,7 @@ def dashboard_data(region=''):
         'requests': _sum_known(area['requests'] for area in areas),
         'sports': sports.most_common(),
         'sport_rows': sport_rows,
+        'region_district_options': {name: sorted(names) for name, names in region_districts.items()},
         'sport_count': sum(row['name'] != '종목 미제공' for row in sport_rows),
         'region_options': sorted({area['region'] for area in snapshot['areas']
                                   if area['region'] != '지역 미제공'}),

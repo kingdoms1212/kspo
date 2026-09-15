@@ -9,12 +9,15 @@ from .services import (
 
 def dashboard(request):
     region = request.GET.get('region', '')
+    district = request.GET.get('district', '') if region else ''
     region_sort = chart_sort(request.GET.get('region_sort', 'desc'))
     sport_sort = chart_sort(request.GET.get('sport_sort', 'desc'))
     chart_type = request.GET.get('chart_type', 'bar')
     if chart_type not in ('bar', 'pie'):
         chart_type = 'bar'
-    context = dashboard_data(region)
+    context = dashboard_data(region, district) if district else dashboard_data(region)
+    context.setdefault('region_district_options', {})
+    context['district_options'] = context.get('region_district_options', {}).get(region, [])
     chart_rows = region_chart_rows(context.get('areas', []), region_sort)
     context['region_chart_rows'] = chart_rows
     context['region_chart_max'] = max((item.get('requests') or 0 for item in chart_rows), default=0)
@@ -27,14 +30,18 @@ def dashboard(request):
         context['region_pie'] = pie_chart_data(chart_rows)
         context['sport_pie'] = pie_chart_data(context['sport_chart_rows'])
     filters = {'region': region, 'region_sort': region_sort, 'sport_sort': sport_sort}
+    if district:
+        filters['district'] = district
     # Keep old default URLs concise; preserve the chosen non-default chart mode.
     shape_filter = {'chart_type': chart_type} if chart_type != 'bar' else {}
+    if district:
+        shape_filter['district'] = district
     context['chart_modes'] = [
         {'type': mode, 'label': label, 'url': '?' + urlencode({**filters, 'chart_type': mode})}
         for mode, label in (('bar', '막대'), ('pie', '원형'))
     ]
     context.update({
-        'page': 'dashboard', 'selected_region': region,
+        'page': 'dashboard', 'selected_region': region, 'selected_district': district,
         'region_sort': region_sort, 'sport_sort': sport_sort,
         'region_sort_url': '?' + urlencode({
             'region': region, 'region_sort': 'desc' if region_sort == 'asc' else 'asc',
