@@ -15,12 +15,12 @@ button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 .global-brand { display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--si-heading); white-space:nowrap; }
 .global-brand strong { font-size:23px; font-weight:850; letter-spacing:-1px; }
 .brand-mark { color:var(--si-primary); display:flex; align-items:center; }
-.brand-mark .icon { width:29px; height:29px; stroke-width:2.6; }
+.brand-mark .icon { display:block; width:180px; height:auto; object-fit:contain; }
 .global-brand > span:last-child { border-left:1px solid var(--si-border-control); padding-left:12px; margin-left:3px; font-size:13px; font-weight:600; }
 .global-meta { display:flex; align-items:center; gap:18px; color:var(--si-text-secondary); font-size:11px; }
 .mode-indicator { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--si-text-secondary); white-space:nowrap; }
 .mode-indicator:before { content:""; width:6px; height:6px; border-radius:50%; background:var(--si-warning); }
-.sidebar { position:fixed; top:var(--header-height); left:16px; bottom:16px; width:var(--sidebar-width); border-radius:6px; padding:18px 10px; background:linear-gradient(165deg,var(--si-navy),var(--si-heading)); color:var(--si-text-inverse); display:flex; flex-direction:column; z-index:5; }
+.sidebar { position:fixed; top:var(--header-height); left:16px; bottom:16px; width:var(--sidebar-width); border-radius:6px; padding:18px 10px; background:linear-gradient(165deg,var(--si-navy),var(--si-heading)); color:var(--si-text-inverse); display:flex; flex-direction:column; z-index:5; margin-top: 18px; }
 .sidebar nav { display:grid; gap:8px; }
 .nav-link { min-height:46px; display:flex; gap:12px; align-items:center; padding:10px 13px; border-radius:5px; color:var(--si-text-inverse); text-decoration:none; font-weight:650; font-size:14px; white-space:nowrap; }
 .nav-link:hover { background:var(--si-navy-hover); }
@@ -330,7 +330,7 @@ tbody tr:hover { background:var(--si-surface-hover); }
   .global-header { padding:0 12px; gap:8px; }
   .global-brand { gap:6px; }
   .global-brand strong { font-size:18px; }
-  .brand-mark .icon { width:25px; height:25px; }
+  .brand-mark .icon { width:140px; height:auto; }
   .mode-indicator { max-width:92px; font-size:8px; }
   .metric-card { display:block; }
   .metric-card .metric-icon { float:right; width:25px; height:25px; margin-left:4px; }
@@ -373,22 +373,55 @@ tbody tr:hover { background:var(--si-surface-hover); }
   #dashboard-body, #program-results, #facility-workspace { transition: none; }
 }
 
-/* Policy dialog: loaded on demand from an external listing. */
-.policy-open { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; font-size:11px; white-space:nowrap; }
-.policy-open .icon { width:15px; height:15px; }
-.policy-dialog { width:min(560px,calc(100vw - 32px)); max-height:min(640px,calc(100vh - 64px)); overflow:auto; padding:20px 22px; border:1px solid var(--si-border); border-radius:6px; background:var(--si-surface); color:var(--si-text); }
-.policy-dialog::backdrop { background:color-mix(in srgb, var(--si-heading) 55%, transparent); }
-.policy-head { display:flex; align-items:start; justify-content:space-between; gap:12px; margin-bottom:14px; }
-.policy-head h2 { margin:0 0 4px; font-size:16px; color:var(--si-heading); }
-.policy-head .chart-note { margin:0; }
-.policy-list { list-style:none; margin:0 0 12px; padding:0; display:grid; gap:2px; }
-.policy-list a { display:flex; align-items:center; gap:9px; padding:9px 8px; border-radius:4px; text-decoration:none; color:var(--si-text); font-size:12px; line-height:1.45; }
-.policy-list a:hover { background:var(--si-surface-soft); }
-.policy-list .rank { flex-shrink:0; width:20px; height:20px; display:grid; place-items:center; border-radius:3px; background:var(--si-surface-soft); color:var(--si-primary-hover); font-size:10px; font-weight:700; }
-.policy-list a > span:nth-child(2) { flex:1; }
-.policy-list .icon { flex-shrink:0; width:15px; height:15px; color:var(--si-text-muted); }
-.policy-panel .policy-head { margin-bottom:10px; }
-@media(max-width:720px) { .policy-open span { display:none; } }
+/* Policy resources share the dashboard's blue palette and panel treatment. */
+.button.policy-open { gap:7px; min-height:36px; padding:8px 12px; border:1px solid var(--si-border); border-radius:6px; background:var(--si-surface-soft); color:var(--si-primary-hover); font-size:12px; font-weight:700; white-space:nowrap; }
+.button.policy-open:hover { background:var(--si-primary); border-color:var(--si-primary); color:var(--si-text-inverse); }
+.policy-open .icon { width:16px; height:16px; }
+.policy-dialog { width:min(660px,calc(100vw - 32px)); max-height:calc(100dvh - 48px); padding:0; overflow:hidden; border:1px solid var(--si-border); border-radius:12px; background:var(--si-surface); color:var(--si-text); box-shadow:0 24px 80px var(--si-shadow-color); }
+.policy-dialog::backdrop { background:color-mix(in srgb,var(--si-heading) 48%,transparent); backdrop-filter:blur(3px); }
+.policy-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:24px; border-bottom:1px solid var(--si-border); background:linear-gradient(120deg,var(--si-surface-soft),var(--si-surface)); }
+.policy-heading { display:flex; align-items:center; gap:12px; }
+/* Header and footer are fixed and only the list between them scrolls. The
+   flex chain is scoped to the dialog so the standalone /policies page keeps
+   flowing with the document, and to [open] so a closed dialog stays hidden. */
+.policy-dialog[open] { display:flex; flex-direction:column; }
+.policy-dialog > #policy-dialog-body { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
+.policy-dialog .policy-head { flex:0 0 auto; }
+.policy-dialog .policy-content { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.policy-dialog .policy-footer { flex:0 0 auto; }
+.policy-heading-icon { display:grid; place-items:center; width:44px; height:44px; border-radius:10px; background:var(--si-primary); color:var(--si-text-inverse); }
+.policy-heading-icon .icon { width:23px; height:23px; }
+.policy-eyebrow { margin-bottom:3px; font-size:11px; font-weight:700; color:var(--si-primary-hover); }
+.policy-head h2 { margin:0; font-size:21px; color:var(--si-heading); }
+.policy-close { display:grid; place-items:center; flex-shrink:0; width:36px; height:36px; border:1px solid var(--si-border); border-radius:8px; background:var(--si-surface); color:var(--si-text-secondary); font-size:25px; line-height:1; cursor:pointer; }
+.policy-close:hover { background:var(--si-surface-soft); color:var(--si-primary-hover); }
+.policy-content { padding:0 24px; }
+.policy-source { display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; padding:16px 0; color:var(--si-text-muted); font-size:11px; }
+.policy-source > span:first-child { font-weight:700; color:var(--si-text-secondary); }
+.policy-list { list-style:none; padding:0; margin:0 0 20px; border:1px solid var(--si-border); border-radius:8px; overflow:hidden; }
+.policy-list li + li { border-top:1px solid var(--si-border); }
+.policy-list a { display:flex; align-items:center; gap:12px; min-height:64px; padding:14px; text-decoration:none; color:var(--si-text); font-size:13px; line-height:1.6; }
+.policy-list a:hover { background:var(--si-surface-hover); color:var(--si-primary-hover); }
+.policy-list a:focus-visible { outline-offset:-3px; }
+.policy-number { flex-shrink:0; font-size:12px; font-weight:800; color:var(--si-primary-hover); font-variant-numeric:tabular-nums; }
+.policy-title { flex:1; overflow-wrap:anywhere; font-weight:600; }
+.policy-list .icon { width:16px; height:16px; color:var(--si-text-muted); }
+.policy-footer { display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding:16px 24px; border-top:1px solid var(--si-border); background:var(--si-bg); font-size:11px; }
+.policy-footer p { display:flex; align-items:center; gap:6px; color:var(--si-text-secondary); }
+.policy-footer .icon { width:14px; height:14px; }
+.policy-footer a { display:inline-flex; align-items:center; gap:6px; }
+.policy-empty { padding:32px 16px; text-align:center; color:var(--si-text-secondary); }
+.policy-empty > .icon { width:32px; height:32px; margin-bottom:12px; color:var(--si-primary); }
+.policy-empty h3 { margin-bottom:8px; }
+.policy-panel { padding:0; overflow:hidden; }
+@media(max-width:520px) {
+  .policy-dialog { width:calc(100vw - 24px); max-height:calc(100dvh - 24px); border-radius:10px; }
+  .policy-head { padding:18px 16px; }
+  .policy-head h2 { font-size:19px; }
+  .policy-content { padding:0 16px; }
+  .policy-footer { padding:16px; }
+  .policy-list a { padding:12px; gap:10px; }
+}
 
 /* Shared region choropleth (components/region_map.html + static/region-map.js). */
 .region-map-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
@@ -400,3 +433,26 @@ tbody tr:hover { background:var(--si-surface-hover); }
 .region-map-help { margin-top:8px; }
 .map-panel .region-map { height:265px; }
 @media(max-width:1300px) { .region-map { height:255px; } }
+
+/* Export button with its limit hint. A disabled button is not focusable, so the
+   reason lives on the help control beside it, which is. */
+.export-actions { display:inline-flex; align-items:center; gap:2px; }
+.button.export[disabled] { opacity:.5; cursor:not-allowed; pointer-events:none; }
+.export-actions .heading-tooltip { left:auto; right:0; transform:translate(0,-4px); text-align:left; }
+.export-actions .heading-tooltip:before { left:auto; right:8px; transform:none; }
+.export-actions .heading-help:hover .heading-tooltip,
+.export-actions .heading-help:focus .heading-tooltip,
+.export-actions .heading-help:focus-visible .heading-tooltip { transform:translate(0,0); }
+
+/* Splash while a menu link loads. Each screen reads its own CSV on the first
+   visit, so navigation can take several seconds; this covers the old page
+   instead of leaving it looking frozen. */
+.app-splash { position:fixed; inset:0; z-index:200; display:grid; place-items:center; background:color-mix(in srgb,var(--si-bg) 94%,transparent); backdrop-filter:blur(2px); }
+.app-splash[hidden] { display:none; }
+.app-splash-inner { display:grid; justify-items:center; gap:16px; padding:24px; text-align:center; }
+.app-splash img { width:min(420px,72vw); height:auto; }
+.app-splash-text { color:var(--si-text-secondary); font-size:12px; line-height:1.7; }
+.app-splash-bar { display:block; width:min(220px,50vw); height:3px; border-radius:2px; background:var(--si-border); overflow:hidden; }
+.app-splash-bar i { display:block; width:40%; height:100%; border-radius:2px; background:var(--si-primary); animation:app-splash-slide 1.1s ease-in-out infinite; }
+@keyframes app-splash-slide { 0% { transform:translateX(-100%); } 100% { transform:translateX(250%); } }
+@media(prefers-reduced-motion:reduce) { .app-splash-bar i { animation:none; width:100%; } }

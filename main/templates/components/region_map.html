@@ -1,14 +1,20 @@
 {% comment %}
-Shared choropleth of Korea. static/region-map.js finds this container and draws it.
+전국 시도 및 시군구 지도 공통 컴포넌트.
 
-Required:  id, region_data, value_label
-Optional:  district_data  Seoul figures, which turn on the 서울 drill-down
-           unit           appended to the tooltip number
-           region_click   "drilldown" (default) or "emit" to let the page handle it
-           country_help / district_help   note under the map at each level
-           focus_region   current region filter; 서울 opens on the district map
+입력값:
+- id: 화면 내 지도 고유 ID
+- region_data: 시도별 수치 목록
+- district_data: 지역별 시군구 수치 딕셔너리
+- value_label: 지도에 표시할 수치 이름
+- unit: 수치 단위
+- focus_region: 처음 표시할 지역
+- region_click: 시도 선택 처리 방식
+- country_help / district_help: 지도 단계별 안내 문구
 
-Every id is derived from `id`, so a page can host more than one map.
+이 템플릿은 지도 구조와 데이터를 선언하는 역할만 한다. 실제 렌더링은
+region-map.js가 담당하고, 선택 이후 동작은 각 화면 전용 JS가 담당한다.
+모든 하위 요소 ID는 id 입력값에서 생성하므로 한 화면에 여러 지도를
+배치할 수 있다.
 {% endcomment %}
 {% with region_data_id=id|add:"-region-data" district_data_id=id|add:"-district-data" %}
 <div class="region-map-head">
@@ -28,9 +34,9 @@ Every id is derived from `id`, so a page can host more than one map.
      data-region-click="{{ region_click|default:'drilldown' }}"
      data-focus-region="{{ focus_region }}"
      data-country-level="{{ country_level|default:'전국 시·도' }}"
-     data-district-level="{{ district_level|default:'서울 25개 자치구' }}"
+     data-district-level="{{ district_level|default:'시군구' }}"
      data-country-description="{{ country_description|default:'시도별 분포 지도' }}"
-     data-district-description="{{ district_description|default:'서울특별시 자치구별 분포 지도' }}"
+     data-district-description="{{ district_description|default:'선택한 지역의 시군구별 분포 지도' }}"
      data-country-help="{{ country_help }}"
      data-district-help="{{ district_help }}">
   <p class="region-map-status">지도를 불러오는 중입니다.</p>

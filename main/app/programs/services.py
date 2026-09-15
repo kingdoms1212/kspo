@@ -138,14 +138,22 @@ def program_districts(region_district_map, region):
     """District options for one selected region, from an already built map."""
     return region_district_map.get(region, []) if region else []
 
-def program_seoul_district_distribution(results):
-    """Count filtered program rows for each Seoul district used by the drill-down map."""
-    seoul_names = {'서울', '서울특별시'}
-    return Counter(
-        item.district
-        for item in results
-        if item.region in seoul_names and item.district != '시군구 미제공'
-    ).most_common()
+def program_district_distribution(results):
+    """검색된 프로그램을 지역별 시군구 분포로 집계한다.
+
+    공통 지도 모듈이 사용하는 ``{지역: [(시군구, 프로그램 수), ...]}``
+    구조를 반환한다. 대시보드 집계와 독립적으로 현재 프로그램 검색
+    결과만 계산 대상으로 삼는다.
+    """
+    totals = {}
+    for item in results:
+        if item.region == '지역 미제공' or item.district == '시군구 미제공':
+            continue
+        totals.setdefault(item.region, Counter())[item.district] += 1
+    return {
+        region: counts.most_common()
+        for region, counts in sorted(totals.items())
+    }
 
 def program_summary(results):
     """Aggregate counts shown on the programs page summary strip."""

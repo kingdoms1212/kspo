@@ -203,13 +203,34 @@ class FacilityOwnerFilterTests(SimpleTestCase):
         self.assertNotIn('<td>대한체육회', body)
         self.assertIn('<option >대한체육회</option>', body)
 
+    def test_selecting_a_facility_opts_into_keeping_the_list_scroll(self):
+        """The workspace swap rebuilds the list, so its own scrollbar resets."""
+        with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None):
+            page = self.client.get('/facilities')
+        body = page.content.decode()
+        self.assertIn('data-scroll-region="facility-list"', body)
+        self.assertIn('data-keep-scroll="facility-list"', body)
+        # Paging does not opt in: different rows belong at the top.
+        pagination = body[body.index('class="pagination"'):] if 'class="pagination"' in body else ''
+        self.assertNotIn('data-keep-scroll', pagination)
+
     def test_detail_uses_the_shared_photo_with_a_caption_that_says_so(self):
         """One stand-in image serves every facility, so it must not read as this one's."""
         with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None):
             page = self.client.get('/facilities', {'facilityId': 'facility-0'})
-        self.assertContains(page, 'src="/static/image/center.jpg"')
+        # Ten interchangeable photos stand in; the id's last digit picks one,
+        # so a facility keeps the same image between visits.
+        self.assertContains(page, 'src="/static/image/center/center0.jpg"')
         self.assertContains(page, '대표 이미지')
         self.assertContains(page, 'alt=""')
+
+    def test_each_facility_keeps_its_own_stand_in_photo(self):
+        rows = [facility(id='facility-3', name='삼'), facility(id='facility-47', name='사칠')]
+        with patch('app.facilities.views.models.facilities', return_value=rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None):
+            first = self.client.get('/facilities', {'facilityId': 'facility-3'})
+            second = self.client.get('/facilities', {'facilityId': 'facility-47'})
+        self.assertContains(first, 'image/center/center3.jpg')
+        self.assertContains(second, 'image/center/center7.jpg')
 
     def test_facility_link_sets_facility_id_exactly_once(self):
         rows = [facility(id='facility-0'), facility(id='facility-1')]
@@ -283,6 +304,33 @@ class FacilityTransitTests(SimpleTestCase):
         self.assertFalse(result['has_records'])
         self.assertEqual(result['stops'], ())
 
+    def test_reason_separates_scope_from_a_real_gap(self):
+        """[SG001] - 시설 현황 데이터 예외처리 보완"""
+        with patch('app.facilities.services.models.facilities', return_value=[]):
+            public = services.facility_transit(facility(flag='공공'))
+            private = services.facility_transit(facility(flag='신고'))
+        self.assertEqual(public['reason'], transit.REASON_NOT_LISTED)
+        self.assertEqual(private['reason'], transit.REASON_NOT_PUBLIC)
+        self.assertEqual(public['error'], '')
+        self.assertEqual(private['error'], '')
+
+    def test_changed_columns_report_a_source_problem_not_an_empty_facility(self):
+        """[SG001] - 열 이름이 바뀌면 전 시설이 '기록 없음'으로 보이던 오진을 막는다."""
+        with tempfile.TemporaryDirectory() as directory:
+            with (Path(directory) / transit.TRANSIT_FILE).open('w', encoding='utf-8-sig', newline='') as handle:
+                csv.writer(handle).writerow(['다른', '열', '이름'])
+            with override_settings(DATA_DIR=directory),                  patch('app.facilities.services.models.facilities', return_value=[]):
+                result = services.facility_transit(facility())
+        self.assertEqual(result['reason'], transit.REASON_SOURCE)
+        self.assertEqual(result['error'], transit.MISSING_SOURCE)
+
+    def test_a_read_failure_reports_instead_of_raising(self):
+        """[SG001] - 1.6M행을 흘려 읽는 중 실패해도 상세 화면이 500으로 끊기지 않는다."""
+        with patch('app.facilities.transit.columns_present', return_value=True),              patch('app.facilities.transit.read_columns', side_effect=OSError('locked')),              patch('app.facilities.services.models.facilities', return_value=[]):
+            result = services.facility_transit(facility())
+        self.assertEqual(result['reason'], transit.REASON_SOURCE)
+        self.assertEqual(result['error'], transit.MISSING_SOURCE)
+
     def test_a_facility_without_a_position_reports_without_reading_the_file(self):
         with patch('app.facilities.transit._index') as index,              patch('app.facilities.services.models.facilities', return_value=[]):
             result = services.facility_transit(facility(geo_key=None))
@@ -342,6 +390,14 @@ class FacilityViewTests(SimpleTestCase):
         self.assertEqual(workbook.active.auto_filter.ref, 'A1:T2')
         self.assertIn('SPORT_INSIGHT_facilities.xlsx', export['Content-Disposition'])
         self.assertEqual(len(list(load_workbook(BytesIO(empty.content)).active.values)), 1)
+
+    def test_export_button_is_disabled_with_a_reason_over_the_limit(self):
+        with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None),              patch('app.common.exports.EXPORT_ROW_LIMIT', 1),              patch('app.facilities.views.EXPORT_ROW_LIMIT', 1):
+            page = self.client.get('/facilities')
+        self.assertContains(page, 'class="button export" type="button" disabled')
+        self.assertContains(page, 'id="facilities-export-limit"')
+        self.assertContains(page, '한 번에 내보낼 수 있는 1건을 넘습니다')
+        self.assertNotContains(page, 'href="/export/facilities.xlsx')
 
     def test_industry_filter_scopes_page_and_export_alike(self):
         with patch('app.facilities.views.models.facilities', return_value=self.rows), \

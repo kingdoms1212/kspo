@@ -14,10 +14,11 @@ plus the facility name identify one physical site and match 30,806 facilities,
 The file holds 1.6 million rows, so the index is built on first use rather than
 at start-up: only a reader who opens a facility detail pays for it, once.
 """
+import csv
 import heapq
 from functools import lru_cache
 
-from ..common.data import data_path, normalize, read_columns
+from ..common.data import columns_present, normalize, read_columns
 
 TRANSIT_FILE = '체육시설 인접 대중교통 정보.csv'
 
@@ -36,6 +37,16 @@ FAR = float('inf')
 
 MISSING_SOURCE = '대중교통 자료를 읽을 수 없습니다. 자료 파일을 확인해 주세요.'
 NO_POSITION = '시설 좌표가 없어 인접 대중교통을 확인할 수 없습니다.'
+
+# [SG001] - 시설 현황 데이터 예외처리 보완
+# 정류장이 보이지 않는 이유는 넷이고 성격이 서로 다르다. 앞의 둘은 자료나 설비의
+# 문제이고, 뒤의 둘은 이 자료의 수록 범위다. 화면이 같은 문구로 뭉뚱그리면 담당자가
+# 범위 밖인 시설을 자료 누락으로 오해한다.
+REASON_SOURCE = 'source'          # 파일이 없거나 읽히지 않거나 열 구조가 바뀜
+REASON_NO_POSITION = 'no_position'  # 시설 등록부에 좌표가 없음
+REASON_NOT_PUBLIC = 'not_public'    # 민간 신고·등록 시설 — 이 자료의 대상이 아님
+REASON_NOT_LISTED = 'not_listed'    # 공공시설인데 이 자료에 수록되지 않음
+PUBLIC_FLAG = '공공'
 
 
 def geo_key(name, latitude, longitude):
@@ -75,9 +86,23 @@ def _index(wanted):
     `wanted` is the set of facility keys the register actually holds, passed in
     so the index skips rows for sites the screen can never show.
     """
-    if not data_path(TRANSIT_FILE).exists():
+    # [SG001] - 시설 현황 데이터 예외처리 보완
+    # 열 구조가 바뀌면 read_columns는 조용히 빈 결과를 낸다. 미리 확인해 두면
+    # '자료를 읽을 수 없음'과 '이 시설에 기록이 없음'이 섞이지 않는다.
+    if not columns_present(TRANSIT_FILE, COLUMNS):
         return None
     index = {}
+    try:
+        _fill(index, wanted)
+    except (OSError, UnicodeError, csv.Error):
+        # [SG001] - 읽다 만 색인은 쓸 수 없다. 반쯤 채워진 결과를 정상처럼
+        # 돌려주면 수록된 시설조차 '기록 없음'으로 보인다.
+        return None
+    return index
+
+
+def _fill(index, wanted):
+    """[SG001] - 시설 현황 데이터 예외처리 보완 : 실제 적재. 실패는 호출부가 잡는다."""
     for row in read_columns(TRANSIT_FILE, COLUMNS):
         key = geo_key(row[NM], row[LA], row[LO])
         if key is None or key not in wanted:
@@ -97,19 +122,28 @@ def _index(wanted):
             heapq.heappush(stops, entry)
         elif entry[0] > stops[0][0]:
             heapq.heapreplace(stops, entry)
-    return index
 
 
 def stops_for(facility, wanted):
-    """Nearest stops for one facility, or the reason none can be shown."""
+    """Nearest stops for one facility, or the reason none can be shown.
+
+    [SG001] - 시설 현황 데이터 예외처리 보완
+    비어 있는 결과에도 사유 코드를 담는다. 화면이 '문구가 있는가'로 갈리면
+    범위 밖인 시설과 실제 결손을 구분할 수 없다.
+    """
+    # [SG001] 좌표가 없으면 색인이 필요 없다. 먼저 걸러 1.6M행 적재를 건너뛴다.
     if facility.geo_key is None:
-        return _result(error=NO_POSITION)
+        return _result(error=NO_POSITION, reason=REASON_NO_POSITION)
     index = _index(wanted)
     if index is None:
-        return _result(error=MISSING_SOURCE)
+        return _result(error=MISSING_SOURCE, reason=REASON_SOURCE)
+    listed = len(index)
     record = index.get(facility.geo_key)
     if record is None:
-        return _result()
+        # 민간 신고·등록 시설은 이 자료의 대상이 아니다. 같은 '기록 없음'이라도
+        # 공공시설이 빠진 것과는 뜻이 다르므로 갈라서 알린다.
+        reason = REASON_NOT_LISTED if facility.flag == PUBLIC_FLAG else REASON_NOT_PUBLIC
+        return _result(reason=reason, listed=listed)
     bus, subway, heap = record
     stops = [{'mode': mode or '미제공',
               'name': stop or '정류장명 미제공',
@@ -119,18 +153,23 @@ def stops_for(facility, wanted):
               'straight_distance': straight,
               'metres': None if -far == FAR else round(-far)}
              for far, mode, stop, walk, straight, seconds in sorted(heap, reverse=True)]
-    return _result(stops=stops, bus=bus, subway=subway)
+    return _result(stops=stops, bus=bus, subway=subway, listed=listed)
 
 
-def _result(stops=(), bus=0, subway=0, error=''):
-    """Stops are ordered by straight-line distance; walk time is shown where recorded."""
+def _result(stops=(), bus=0, subway=0, error='', reason='', listed=0):
+    """Stops are ordered by straight-line distance; walk time is shown where recorded.
+
+    [SG001] - 시설 현황 데이터 예외처리 보완
+    `reason`은 비어 있는 이유, `listed`는 이 자료가 담고 있는 시설 수다. 화면이
+    '왜 없는지'와 '자료가 원래 얼마나 담고 있는지'를 함께 말할 수 있게 한다.
+    """
     walks = [stop['minutes'] for stop in stops if stop['minutes'] is not None]
     metres = [stop['metres'] for stop in stops if stop['metres'] is not None]
     return {'stops': stops, 'bus': bus, 'subway': subway, 'total': bus + subway,
             'shown': len(stops), 'keep': KEEP,
             'nearest_metres': min(metres) if metres else None,
             'nearest_minutes': min(walks) if walks else None,
-            'walk_known': len(walks),
+            'walk_known': len(walks), 'reason': reason, 'listed': listed,
             'error': error, 'has_records': bool(stops), 'source': TRANSIT_FILE}
 
 

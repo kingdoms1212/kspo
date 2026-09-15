@@ -1,0 +1,17 @@
+{% comment %}
+Excel export button, disabled with a reason when the result is too large.
+
+The cap is a response-time guard, not a format limit: a sheet holds 1,048,576
+rows and openpyxl streams them, but writing runs at roughly 2,600 rows a second,
+so a whole register would hold the request open for minutes.
+
+Params: id, url, count, limit, label (optional)
+{% endcomment %}
+<span class="export-actions">
+  {% if count > limit %}
+    <button class="button export" type="button" disabled aria-describedby="{{ id }}-limit">{% include 'components/icon.html' with name='download' %} {{ label|default:'엑셀 내보내기' }}</button>
+    <button class="heading-help" type="button" aria-label="엑셀 내보내기 제한 안내" aria-describedby="{{ id }}-limit">{% include 'components/icon.html' with name='alert' %}<span id="{{ id }}-limit" class="heading-tooltip" role="tooltip">조회 결과 {{ count|floatformat:'0g' }}건은 한 번에 내보낼 수 있는 {{ limit|floatformat:'0g' }}건을 넘습니다. 검색 조건을 좁혀 주세요.</span></button>
+  {% elif count %}
+    <a class="button export" href="{{ url }}">{% include 'components/icon.html' with name='download' %} {{ label|default:'엑셀 내보내기' }}</a>
+  {% endif %}
+</span>

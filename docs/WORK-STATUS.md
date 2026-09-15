@@ -1,5 +1,98 @@
 # SPORT INSIGHT 작업 상태
 
+## 최신 작업 — [SG001] 시설 현황 데이터 예외처리 보완 (2026-09-15, 10차)
+
+인접 대중교통이 비어 보이는 네 가지 사유를 구분하고, 파이썬 쪽 구멍 둘을 막았다. [결정 기록](DECISIONS.md) 참조.
+
+- 구멍 ①: 1.6M행 적재 중 `OSError`·`UnicodeError`가 그대로 올라가 시설 상세가 500이 될 수 있었다 → 색인이 `None`을 돌려주고 화면이 문구로 알린다.
+- 구멍 ②: 원본 열 이름이 바뀌면 전 시설이 '연결된 정보 없음'으로 보이던 오진 → `columns_present()`로 읽기 전 확인.
+- 사유 코드 `source` / `no_position` / `not_public` / `not_listed`를 결과에 담아 화면이 원인별로 다르게 안내한다.
+- 좌표가 없으면 색인을 만들지 않고 즉시 반환(11,568건이 불필요한 1.6M행 적재를 유발하던 문제).
+- 변경 파일: `app/common/data.py`, `app/facilities/transit.py`, `templates/facilities/_workspace.html`, `app/facilities/tests.py`. 모두 `[SG001]` 주석 표기.
+- 검증: 테스트 **121개**(신규 3개) 중 내 변경분 전부 통과. 실제 화면에서 네 경우 모두 의도한 문구 확인.
+
+## 최신 작업 — 정책 아이콘 통일 + 시설 사진 10종 (2026-09-15, 8차)
+
+- 상단 `주요 정책 보기` 아이콘 `info` → `program`. 다이얼로그 제목 아이콘과 일치.
+- 사진을 `image/center/center0~9.jpg`로 분배. 식별자의 **마지막 숫자**로 고르므로 같은 시설·강좌는 항상 같은 사진을 쓴다. 신규 `{% centre_photo %}` 태그(`app/templatetags/assets.py`).
+- 적용 위치: 시설 상세 `.detail-photo`, 프로그램 TOP 3 카드 `.facility-art`. 이전 `image/center.jpg`는 삭제돼 둘 다 404 상태였다.
+- 검증: 이미지 10종 모두 200, `facility-0→center0`·`facility-3→center3`·`facility-7→center7`·`facility-125→center5`, 프로그램 카드 3장이 각각 center9·center0·center4, 헤더와 다이얼로그 아이콘 `#i-program` 일치.
+- 참고: 머지 이후 `templates/programs/_results.html`은 화면에 렌더링되지 않는다(`programs/index.html`이 포함하지 않음). `render_screen`의 htmx 분기로만 남아 있다.
+
+## 최신 작업 — 시설 목록 스크롤 유지 (2026-09-15, 7차)
+
+시설을 클릭하면 목록의 내부 스크롤이 맨 위로 돌아가던 문제를 고쳤다. [결정 기록](DECISIONS.md) 참조.
+
+- 워크스페이스 스왑으로 표가 새로 그려지면서 자체 스크롤(`max-height:610px`)이 초기화되던 것.
+- `htmx:beforeRequest`에서 `scrollTop`을 기록하고 `htmx:afterSettle`에서 복원. 옵트인 방식(`data-keep-scroll` + `data-scroll-region`).
+- 페이지 이동은 제외했다. 행이 전부 바뀌므로 맨 위가 맞다.
+- 변경 파일: `static/interactions.js`, `templates/facilities/_workspace.html`. 회귀 테스트 1개 추가.
+- 검증: 목록 20행 전부 opt-in, 스크롤 영역 표식 1개, 페이지 링크는 미적용, 스왑 조각에도 표식과 선택 강조가 함께 실려옴.
+
+## 최신 작업 — 메뉴 이동 스플래시 (2026-09-15, 6차)
+
+메뉴 전환이 느린 동안 `image/splash.png`를 덮어 보여준다. [결정 기록](DECISIONS.md) 참조.
+
+- 대상: 좌측 메뉴 3개와 상단 브랜드 링크. 현재 열린 메뉴와 새 탭 클릭은 제외.
+- 150ms 지연 후 표시(워밍 상태의 깜빡임 방지), `pageshow`에서 해제(뒤로 가기 bfcache 포함), 60초 안전 타임아웃.
+- 접근성: `body[aria-busy]` 토글, 안내 문구를 표시 시점에 주입해 `role="status"`가 낭독되게 함, `prefers-reduced-motion`에서 진행 바 애니메이션 정지.
+- 그림은 `image/logo/logo.svg`(헤더에서 이미 캐시됨). 표시 폭 `min(420px,72vw)`.
+- 신규 `app/templatetags/assets.py`의 `{% asset %}` — 정적 URL에 파일 수정시각을 붙인다. 수동 토큰(`?v=20260915-...`)을 안 바꿔 옛 CSS가 캐시되는 바람에 스플래시가 처음에 뜨지 않았다. `app.css`·`fonts.css`·테마·`interactions.js`·`region-map.js`에 적용.
+- 변경 파일: `templates/base.html`, `templates/{dashboard,programs}/index.html`, `static/app.css`, `static/interactions.js`, `app/templatetags/assets.py`. 회귀 테스트 3개 추가.
+- 검증: 이미지 200·3,109b·원본 동일, 네 화면 모두 오버레이가 `hidden`으로 실려오고, JS 조건 7종·CSS 3종 확인.
+- 냉시동 실측: 대시보드 5.2초 / 프로그램 9.9초 / 시설 3.2초. 스플래시는 이 시간을 줄이지 않는다 — 없애려면 기동 시 워밍업이 필요하다.
+
+## 최신 작업 — 정책 다이얼로그 고정 프레임 (2026-09-15, 5차)
+
+다이얼로그 헤더·푸터를 고정하고 `.policy-content`만 스크롤하도록 바꿨다. [결정 기록](DECISIONS.md) 참조.
+
+```
+┌─ policy-head   고정 (제목·닫기)
+│  policy-content  ← 여기만 스크롤
+└─ policy-footer 고정 (원문 링크)
+```
+
+- `.policy-dialog` `overflow:auto` → `hidden`, `[open]`일 때만 `display:flex` 세로 배치.
+- 스왑 대상 `#policy-dialog-body`도 flex 체인에 포함(높이 전달이 끊기면 스크롤이 안 생김).
+- 헤더의 `position:sticky` 제거. 본문에 `overscroll-behavior:contain` 추가.
+- 모든 규칙을 `.policy-dialog` 아래로 한정해 `/policies` 전체 페이지는 영향 없음.
+- 검증: 조각 구조 head→content→footer 순서·항목 10건·닫기 버튼 정상, CSS 규칙 7종 확인, `/policies` 200.
+
+## 최신 작업 — 제목 안내 툴팁 통일 (2026-09-15, 4차)
+
+대시보드·시설 화면의 제목 옆 설명을 프로그램 화면과 같은 느낌표 툴팁으로 맞췄다. [결정 기록](DECISIONS.md) 참조.
+
+| 화면 | 제목 | 툴팁 |
+|---|---|---|
+| 대시보드 | 전국/○○ 시설 이용현황 | 스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다. |
+| 프로그램 | 프로그램 분석 | 지역과 종목별로 등록 강좌를 조회하고 비교합니다. |
+| 시설 | 시설 현황 | 전국체육시설현황 자료에서 공공·민간 시설 정보와 인접 대중교통을 확인합니다. |
+
+- 신규 `templates/components/heading_help.html`. 프로그램 화면의 기존 인라인 마크업도 이 컴포넌트로 통일.
+- 대시보드 제목은 htmx OOB로 갱신되므로 껍데기와 조각 양쪽에 적용. 지역을 바꿔도 느낌표와 툴팁이 유지되는 것을 확인했다.
+- 검증: 실제 화면 4종에서 `heading-help` 버튼 1개·`#i-alert` 1회·`aria-label`·툴팁 문구가 모두 정상이고 기존 `<p>` 설명은 사라졌다. 헤딩 회귀 테스트 3개 추가.
+
+## 최신 작업 — 엑셀 내보내기 한도 안내 (2026-09-15, 3차)
+
+한도 초과 시 버튼이 사라지던 것을 **비활성 버튼 + 느낌표 힌트**로 바꿨다. [결정 기록](DECISIONS.md) 참조.
+
+- 신규 `templates/components/export_button.html` — 프로그램·시설 공용.
+- 한도 이하: 기존과 같은 링크 버튼. 한도 초과: `disabled` 버튼 + 옆의 도움 버튼에 사유 툴팁(비활성 버튼은 포커스를 못 받아 툴팁을 달 수 없음).
+- 실측 확인: 프로그램 295,033건·시설 104,136건에서 비활성+힌트, 강남구 8,326건·수영장 504건에서 정상 링크, URL 직접 호출은 여전히 400.
+
+### 5만 행 한도의 성격
+
+라이브러리 제약이 아니라 응답시간 가드다. XLSX 한계는 1,048,576행이고 openpyxl 메모리는 선형이다.
+
+| 행수 | 소요 | 파일 | 메모리 |
+|---|---|---|---|
+| 50,000 | 19s | 4.3MB | +5MB |
+| 100,000 | 39s | 8.6MB | +9MB |
+| 200,000 | 78s | 17.1MB | +17MB |
+| 295,033 | 115s | 25.4MB | +23MB |
+
+한도를 올리려면 WSGI 타임아웃을 그만큼 올려야 한다. `EXPORT_ROW_LIMIT` 한 줄로 조정된다.
+
 ## 최신 작업 — 지역 지도 공용 컴포넌트 (2026-09-15, 2차)
 
 프로그램 화면에만 있던 지도를 공용화하고 대시보드에 붙였다. [결정 기록](DECISIONS.md) 참조.

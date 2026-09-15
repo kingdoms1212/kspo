@@ -102,7 +102,7 @@ class DesignInteractionTests(SimpleTestCase):
         self.assertContains(response, 'selected-row')
         self.assertContains(response, '&lt;script&gt;test&lt;/script&gt;')
         self.assertNotContains(response, '<script>test</script>')
-        self.assertContains(response, 'image/center.jpg')
+        self.assertContains(response, 'image/center/center')
 
 
 class CalculationTests(SimpleTestCase):

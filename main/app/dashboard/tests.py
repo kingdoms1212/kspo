@@ -12,7 +12,7 @@ from django.urls import resolve
 from . import models, views
 from .services import (
     courses_per_facility, dashboard_data, normalized_chart_rows,
-    requests_per_course, requests_per_facility, pie_chart_data,
+    district_distribution, requests_per_course, requests_per_facility, pie_chart_data,
 )
 
 
@@ -45,6 +45,12 @@ class DashboardServiceTests(SimpleTestCase):
         with patch('app.dashboard.models.usage_snapshot', return_value=self.snapshot):
             self.assertEqual(dashboard_data()['sports'], [('수영', 150), ('축구', 0)])
             self.assertEqual(dashboard_data('부산')['sports'], [('수영', 50)])
+
+    def test_district_distribution_groups_every_region(self):
+        self.assertEqual(district_distribution(self.areas), {
+            '부산': [('중구', 50)],
+            '서울': [('중구', 100), ('종로구', 0)],
+        })
 
     def test_ratios_require_a_known_positive_denominator(self):
         self.assertEqual(courses_per_facility(2, 5), 2.5)

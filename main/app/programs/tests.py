@@ -11,7 +11,7 @@ from django.test import SimpleTestCase, override_settings
 from django.urls import resolve, reverse
 
 from . import models, views
-from .services import filter_programs, program_facility_types
+from .services import filter_programs, program_district_distribution, program_facility_types
 
 
 def program(**overrides):
@@ -53,6 +53,19 @@ class ProgramServiceTests(SimpleTestCase):
             self.assertEqual([r.id for r in filter_programs({'weekday': '금'})], ['a'])
             self.assertEqual([r.id for r in filter_programs({'facility_type': '체육관'})], ['b'])
         self.assertEqual(program_facility_types(self.rows), ['수영장', '체육관'])
+
+    def test_district_distribution_groups_every_region(self):
+        rows = [
+            program(region='서울특별시', district='강남구'),
+            program(region='부산광역시', district='해운대구'),
+            program(region='부산광역시', district='해운대구'),
+            program(region='경기도', district='수원시 영통구'),
+        ]
+        self.assertEqual(program_district_distribution(rows), {
+            '경기도': [('수원시 영통구', 1)],
+            '부산광역시': [('해운대구', 2)],
+            '서울특별시': [('강남구', 1)],
+        })
 
 
 class ProgramRepositoryTests(SimpleTestCase):
@@ -145,8 +158,20 @@ class ProgramViewTests(SimpleTestCase):
         self.assertEqual(refused.status_code, 400)
         self.assertIn('검색 조건을 좁혀', refused.content.decode())
         self.assertEqual(allowed.status_code, 200)
-        self.assertContains(page, '조건을 좁혀야 내보낼 수 있습니다')
-        self.assertNotContains(page, '엑셀 내보내기')
+        # The button stays visible but disabled, with the reason on a focusable
+        # help control beside it: a disabled button cannot hold a tooltip.
+        self.assertContains(page, 'class="button export" type="button" disabled')
+        self.assertContains(page, 'id="programs-export-limit"')
+        self.assertContains(page, '한 번에 내보낼 수 있는 2건을 넘습니다')
+        self.assertContains(page, 'aria-describedby="programs-export-limit"')
+        self.assertNotContains(page, 'href="/export/programs.xlsx')
+
+    def test_export_button_is_a_plain_link_while_under_the_limit(self):
+        with patch('app.programs.models.programs', return_value=self.rows),              patch('app.programs.models.load_report', return_value=REPORT):
+            page = self.client.get(reverse('programs'))
+        self.assertContains(page, 'href="/export/programs.xlsx')
+        self.assertNotContains(page, 'type="button" disabled')
+        self.assertNotContains(page, 'id="programs-export-limit"')
 
     def test_program_page_exposes_dependent_district_options(self):
         rows = [
@@ -196,6 +221,7 @@ class ProgramViewTests(SimpleTestCase):
         self.assertContains(response, 'id="program-region-map-back"')
         self.assertContains(response, 'data-region-click="drilldown"')
         self.assertContains(response, 'region-map.js')
+        self.assertContains(response, 'programs-region-map.js')
         self.assertContains(response, 'id="program-scroll-position"')
         # The drawing details moved out of the page with the library.
         self.assertNotContains(response, 'echarts@5.6.0')

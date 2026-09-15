@@ -136,12 +136,112 @@ class FragmentRenderingTests(SimpleTestCase):
         self.assertEqual(full.content.decode().count('id="dashboard-heading"'), 1)
 
 
+class AssetTagTests(SimpleTestCase):
+    def test_stand_in_photo_comes_from_the_trailing_digit(self):
+        from app.templatetags.assets import centre_photo
+        self.assertTrue(centre_photo('facility-0').endswith('center/center0.jpg'))
+        self.assertTrue(centre_photo('facility-125').endswith('center/center5.jpg'))
+        self.assertTrue(centre_photo('program-9').endswith('center/center9.jpg'))
+        # An id with no digits still resolves rather than raising.
+        self.assertTrue(centre_photo('').endswith('center/center0.jpg'))
+
+    def test_asset_urls_carry_a_stamp_from_the_file(self):
+        from app.templatetags.assets import asset
+        self.assertRegex(asset('app.css'), r'/static/app\.css\?v=\d+$')
+        # A path the finders cannot resolve still returns a usable URL.
+        self.assertEqual(asset('missing/nope.css'), '/static/missing/nope.css')
+
+
+class NavigationSplashTests(SimpleTestCase):
+    """Menu navigation is a full page load that can take seconds on a cold cache."""
+
+    def _patches(self):
+        return (
+            patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD),
+            patch('app.programs.models.programs', return_value=[program()]),
+            patch('app.programs.models.load_report', return_value=PROGRAM_REPORT),
+            patch('app.facilities.views.models.facilities', return_value=[facility()]),
+            patch('app.facilities.views.models.load_report', return_value=FACILITY_REPORT),
+            patch('app.facilities.views.facility_transit', return_value=None),
+        )
+
+    def test_every_screen_carries_the_splash_overlay_hidden(self):
+        for route in ('/dashboard', '/programs', '/facilities'):
+            with self.subTest(route=route):
+                for patcher in self._patches():
+                    self.enterContext(patcher)
+                body = self.client.get(route).content.decode()
+                self.assertIn('id="app-splash"', body)
+                self.assertIn('class="app-splash" hidden', body)
+                self.assertIn('image/logo/logo.svg', body)
+                self.assertIn('id="app-splash-text"', body)
+                self.assertIn('interactions.js', body)
+
+    def test_the_overlay_starts_empty_so_the_live_region_announces_on_show(self):
+        with patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD):
+            body = self.client.get('/dashboard').content.decode()
+        self.assertIn('<p id="app-splash-text" class="app-splash-text" role="status"></p>', body)
+
+    def test_the_current_menu_item_is_marked_so_it_can_be_skipped(self):
+        """A click on the screen already open must not raise a splash."""
+        with patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD):
+            body = self.client.get('/dashboard').content.decode()
+        self.assertIn('aria-current="page"', body)
+
+
+class HeadingHelpTests(SimpleTestCase):
+    """Every screen states what it is through the same tooltip control."""
+
+    HEADINGS = (
+        ('/dashboard', 'dashboard-heading', '스포츠강좌이용권 이용현황 자료에서'),
+        ('/programs', 'program-heading', '지역과 종목별로 등록 강좌를'),
+        ('/facilities', 'facility-heading', '전국체육시설현황 자료에서'),
+    )
+
+    def _patches(self):
+        return (
+            patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD),
+            patch('app.programs.models.programs', return_value=[program()]),
+            patch('app.programs.models.load_report', return_value=PROGRAM_REPORT),
+            patch('app.facilities.views.models.facilities', return_value=[facility()]),
+            patch('app.facilities.views.models.load_report', return_value=FACILITY_REPORT),
+            patch('app.facilities.views.facility_transit', return_value=None),
+        )
+
+    def test_each_heading_carries_an_alert_icon_tooltip(self):
+        for route, help_id, text in self.HEADINGS:
+            with self.subTest(route=route):
+                for patcher in self._patches():
+                    self.enterContext(patcher)
+                body = self.client.get(route).content.decode()
+                self.assertIn('class="heading-help"', body)
+                self.assertIn(f'aria-describedby="{help_id}-tooltip"', body)
+                self.assertIn(f'id="{help_id}-tooltip" class="heading-tooltip" role="tooltip"', body)
+                self.assertIn('href="#i-alert"', body)
+                self.assertIn(text, body)
+                # The description moved out of the heading paragraph.
+                self.assertNotIn(f'<p>{text}', body)
+
+    def test_the_tooltip_hangs_on_a_focusable_control(self):
+        """Hover-only help is unreachable by keyboard, so it must be a button."""
+        for patcher in self._patches():
+            self.enterContext(patcher)
+        body = self.client.get('/facilities').content.decode()
+        self.assertIn('<button class="heading-help" type="button"', body)
+        self.assertIn('aria-label="시설 현황 안내"', body)
+
+    def test_the_dashboard_heading_still_swaps_out_of_band(self):
+        with patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD):
+            fragment = self.client.get('/dashboard', HTTP_HX_REQUEST='true').content.decode()
+        self.assertIn('id="dashboard-heading" hx-swap-oob="true"', fragment)
+        self.assertIn('id="dashboard-heading-tooltip"', fragment)
+
+
 class RegionMapComponentTests(SimpleTestCase):
     """Both screens declare the shared map, and its data must be valid JSON.
 
-    An absent context variable makes `json_script` emit `""`, which the drawing
-    code parses into a string and then calls `.map()` on. That is what silently
-    killed the programs map after a merge, so the shape is asserted here.
+    An absent context variable makes `json_script` emit `""`. That used to
+    silently kill the map after a merge, so both JSON shapes are asserted here.
     """
 
     MAPS = (
@@ -170,17 +270,17 @@ class RegionMapComponentTests(SimpleTestCase):
                 self.assertIn(f'data-region-click="{click}"', body)
                 self.assertIn('region-map.js', body)
 
-    def test_map_data_blocks_parse_as_lists_not_empty_strings(self):
+    def test_map_data_blocks_have_the_shapes_the_renderer_expects(self):
         for route, map_id, _ in self.MAPS:
             with self.subTest(route=route):
                 for patcher in self._patches():
                     self.enterContext(patcher)
                 body = self.client.get(route).content.decode()
-                for suffix in ('region-data', 'district-data'):
+                for suffix, expected_type in (('region-data', list), ('district-data', dict)):
                     block = re.search(
                         rf'<script id="{map_id}-{suffix}"[^>]*>(.*?)</script>', body, re.S)
                     self.assertIsNotNone(block, f'{map_id}-{suffix} 누락')
-                    self.assertIsInstance(json.loads(block.group(1)), list)
+                    self.assertIsInstance(json.loads(block.group(1)), expected_type)
 
     def test_only_one_copy_of_the_drawing_script_is_loaded(self):
         for patcher in self._patches():
@@ -188,7 +288,17 @@ class RegionMapComponentTests(SimpleTestCase):
         for route, _, _ in self.MAPS:
             with self.subTest(route=route):
                 body = self.client.get(route).content.decode()
-                self.assertEqual(body.count('region-map.js'), 1)
+                self.assertEqual(body.count('src="/static/region-map.js'), 1)
+
+    def test_each_screen_loads_only_its_own_map_adapter(self):
+        for patcher in self._patches():
+            self.enterContext(patcher)
+        dashboard = self.client.get('/dashboard').content.decode()
+        programs = self.client.get('/programs').content.decode()
+        self.assertIn('dashboard-region-map.js', dashboard)
+        self.assertNotIn('programs-region-map.js', dashboard)
+        self.assertIn('programs-region-map.js', programs)
+        self.assertNotIn('dashboard-region-map.js', programs)
 
     def test_a_screen_without_a_map_does_not_load_the_script(self):
         with patch('app.facilities.views.models.facilities', return_value=[facility()]), \

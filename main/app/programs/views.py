@@ -5,8 +5,9 @@ from ..common.partials import render_screen
 from ..common.exports import EXPORT_ROW_LIMIT, excel_response, over_export_limit
 from . import models
 from .services import (SORT_LABELS, filter_programs, program_budget_plan,
-                       program_districts, program_facility_types, program_regions,
-                       program_region_district_map, program_seoul_district_distribution,
+                       program_district_distribution, program_districts,
+                       program_facility_types, program_regions,
+                       program_region_district_map,
                        program_summary)
 
 SEARCH_KEYS = ('region', 'district', 'facility_type', 'sport', 'target', 'weekday',
@@ -40,7 +41,8 @@ def programs(request):
         'facility_types': program_facility_types(catalogue),
         'region_district_map': region_district_map,
         'districts': program_districts(region_district_map, params['region']),
-        'seoul_district_distribution': program_seoul_district_distribution(results),
+        # 현재 검색 결과를 시군구 지도에 표시할 프로그램 건수로 집계한다.
+        'district_distribution': program_district_distribution(results),
         'budget_plan': budget_plan,
         'scroll_position': _scroll_position(request),
         'sort_labels': SORT_LABELS,
