@@ -304,6 +304,33 @@ class FacilityTransitTests(SimpleTestCase):
         self.assertFalse(result['has_records'])
         self.assertEqual(result['stops'], ())
 
+    def test_reason_separates_scope_from_a_real_gap(self):
+        """[SG001] - 시설 현황 데이터 예외처리 보완"""
+        with patch('app.facilities.services.models.facilities', return_value=[]):
+            public = services.facility_transit(facility(flag='공공'))
+            private = services.facility_transit(facility(flag='신고'))
+        self.assertEqual(public['reason'], transit.REASON_NOT_LISTED)
+        self.assertEqual(private['reason'], transit.REASON_NOT_PUBLIC)
+        self.assertEqual(public['error'], '')
+        self.assertEqual(private['error'], '')
+
+    def test_changed_columns_report_a_source_problem_not_an_empty_facility(self):
+        """[SG001] - 열 이름이 바뀌면 전 시설이 '기록 없음'으로 보이던 오진을 막는다."""
+        with tempfile.TemporaryDirectory() as directory:
+            with (Path(directory) / transit.TRANSIT_FILE).open('w', encoding='utf-8-sig', newline='') as handle:
+                csv.writer(handle).writerow(['다른', '열', '이름'])
+            with override_settings(DATA_DIR=directory),                  patch('app.facilities.services.models.facilities', return_value=[]):
+                result = services.facility_transit(facility())
+        self.assertEqual(result['reason'], transit.REASON_SOURCE)
+        self.assertEqual(result['error'], transit.MISSING_SOURCE)
+
+    def test_a_read_failure_reports_instead_of_raising(self):
+        """[SG001] - 1.6M행을 흘려 읽는 중 실패해도 상세 화면이 500으로 끊기지 않는다."""
+        with patch('app.facilities.transit.columns_present', return_value=True),              patch('app.facilities.transit.read_columns', side_effect=OSError('locked')),              patch('app.facilities.services.models.facilities', return_value=[]):
+            result = services.facility_transit(facility())
+        self.assertEqual(result['reason'], transit.REASON_SOURCE)
+        self.assertEqual(result['error'], transit.MISSING_SOURCE)
+
     def test_a_facility_without_a_position_reports_without_reading_the_file(self):
         with patch('app.facilities.transit._index') as index,              patch('app.facilities.services.models.facilities', return_value=[]):
             result = services.facility_transit(facility(geo_key=None))
