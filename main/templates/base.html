@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SPORT INSIGHT · 공공 체육복지 현황</title>
   <link rel="stylesheet" href="{% static 'sport-insight-colors.css' %}">
-  <link rel="stylesheet" href="{% static 'app.css' %}">
+  <link rel="stylesheet" href="{% static 'app.css' %}?v=20260914-heading-tooltip">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'interactions.js' %}" defer></script>
 </head>
@@ -30,7 +30,6 @@
   </aside>
   <main id="main-content" class="main-content" tabindex="-1">
     {% block content %}{% endblock %}
-    <footer class="source-footer">{% include 'components/source_status.html' %}</footer>
   </main>
   <dialog id="policy-dialog" class="policy-dialog" aria-labelledby="policy-dialog-title">
     <div id="policy-dialog-body"></div>

@@ -1,4 +1,11 @@
-"""Partial-rendering contract shared by all three screens."""
+"""Partial-rendering contract for the screens that swap a region.
+
+The programs screen does not take part: it reloads in full and restores the
+reader's scroll position from a hidden `_scroll` field instead, because its map
+initialises once per page load. See docs/DECISIONS.md.
+"""
+import json
+import re
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
@@ -20,7 +27,6 @@ class FragmentRenderingTests(SimpleTestCase):
     def _screens(self):
         return (
             ('/dashboard', 'dashboard/index.html', 'dashboard/_body.html', 'dashboard-body'),
-            ('/programs', 'programs/index.html', 'programs/_results.html', 'program-results'),
             ('/facilities', 'facilities/index.html', 'facilities/_workspace.html', 'facility-workspace'),
         )
 
@@ -55,23 +61,34 @@ class FragmentRenderingTests(SimpleTestCase):
     def test_fragment_keeps_the_same_data_as_the_full_page(self):
         for patcher in self._patches():
             self.enterContext(patcher)
-        full = self.client.get('/programs', {'region': '서울'})
-        partial = self.client.get('/programs', {'region': '서울'}, **HX)
-        self.assertEqual(full.context['result_count'], partial.context['result_count'])
-        self.assertIn('프로그램 비교표', partial.content.decode())
+        full = self.client.get('/facilities', {'region': '서울특별시'})
+        partial = self.client.get('/facilities', {'region': '서울특별시'}, **HX)
+        self.assertEqual(len(full.context['rows']), len(partial.context['rows']))
+        self.assertIn('시설 목록', partial.content.decode())
 
     def test_pagination_links_target_the_fragment_container(self):
-        rows = [program(id=str(index), name=f'강좌 {index:02}') for index in range(23)]
-        with patch('app.programs.views.filter_programs', return_value=rows), \
-             patch('app.programs.models.programs', return_value=rows), \
-             patch('app.programs.models.load_report', return_value=PROGRAM_REPORT):
-            response = self.client.get('/programs')
+        rows = [facility(id=f'facility-{index}', name=f'시설 {index:02}') for index in range(23)]
+        with patch('app.facilities.views.models.facilities', return_value=rows), \
+             patch('app.facilities.views.models.load_report', return_value=FACILITY_REPORT), \
+             patch('app.facilities.views.facility_transit', return_value=None):
+            response = self.client.get('/facilities')
         body = response.content.decode()
-        self.assertIn('hx-target="#program-results"', body)
+        self.assertIn('hx-target="#facility-workspace"', body)
         self.assertIn('hx-swap="innerHTML show:none"', body)
-        self.assertIn('hx-get="?region=&amp;district=', body)
+        self.assertIn('hx-get="?region=&amp;industry=', body)
         # Every htmx link keeps a real href so the page still works without JS.
-        self.assertIn('href="?region=&amp;district=', body)
+        self.assertIn('href="?region=&amp;industry=', body)
+
+    def test_the_programs_screen_reloads_in_full_and_restores_scroll(self):
+        """Programs opted out of swapping: its map initialises once per page load."""
+        with patch('app.programs.models.programs', return_value=[program()]), \
+             patch('app.programs.models.load_report', return_value=PROGRAM_REPORT):
+            response = self.client.get('/programs', {'_scroll': '640'})
+        body = response.content.decode()
+        self.assertNotIn('hx-target="#program-results"', body)
+        self.assertIn('id="program-scroll-position"', body)
+        self.assertIn('value="640"', body)
+
 
     def test_history_restore_returns_the_whole_page_not_a_fragment(self):
         """Back and forward re-request the URL with HX-Request still set.
@@ -94,19 +111,19 @@ class FragmentRenderingTests(SimpleTestCase):
     def test_history_restore_matches_a_plain_navigation_byte_for_byte(self):
         for patcher in self._patches():
             self.enterContext(patcher)
-        query = {'region': '서울', 'page': 1}
-        navigated = self.client.get('/programs', query)
-        restored = self.client.get('/programs', query, **RESTORE)
+        query = {'region': '서울특별시', 'page': 1}
+        navigated = self.client.get('/facilities', query)
+        restored = self.client.get('/facilities', query, **RESTORE)
         self.assertEqual(restored.content, navigated.content)
 
     def test_swapped_controls_carry_stable_focus_keys(self):
-        rows = [program(id=str(index), name=f'강좌 {index:02}') for index in range(23)]
-        with patch('app.programs.views.filter_programs', return_value=rows),              patch('app.programs.models.programs', return_value=rows),              patch('app.programs.models.load_report', return_value=PROGRAM_REPORT):
-            first = self.client.get('/programs')
-            second = self.client.get('/programs', {'page': 2}, **HX)
+        rows = [facility(id=f'facility-{index}', name=f'시설 {index:02}') for index in range(23)]
+        with patch('app.facilities.views.models.facilities', return_value=rows),              patch('app.facilities.views.models.load_report', return_value=FACILITY_REPORT),              patch('app.facilities.views.facility_transit', return_value=None):
+            first = self.client.get('/facilities')
+            second = self.client.get('/facilities', {'page': 2}, **HX)
         # The key survives the swap, so focus can return to the same control.
-        self.assertIn('data-focus-key="#program-results-next"', first.content.decode())
-        self.assertIn('data-focus-key="#program-results-prev"', second.content.decode())
+        self.assertIn('data-focus-key="#facility-workspace-next"', first.content.decode())
+        self.assertIn('data-focus-key="#facility-workspace-prev"', second.content.decode())
         # A focusable fallback exists for the last page, where next disappears.
         self.assertIn('data-focus-fallback', second.content.decode())
 
@@ -117,6 +134,69 @@ class FragmentRenderingTests(SimpleTestCase):
         self.assertNotContains(full, 'hx-swap-oob')
         self.assertContains(partial, 'hx-swap-oob="true"')
         self.assertEqual(full.content.decode().count('id="dashboard-heading"'), 1)
+
+
+class RegionMapComponentTests(SimpleTestCase):
+    """Both screens declare the shared map, and its data must be valid JSON.
+
+    An absent context variable makes `json_script` emit `""`, which the drawing
+    code parses into a string and then calls `.map()` on. That is what silently
+    killed the programs map after a merge, so the shape is asserted here.
+    """
+
+    MAPS = (
+        ('/dashboard', 'dashboard-region-map', 'emit'),
+        ('/programs', 'program-region-map', 'drilldown'),
+    )
+
+    def _patches(self):
+        return (
+            patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD),
+            patch('app.programs.models.programs', return_value=[program()]),
+            patch('app.programs.models.load_report', return_value=PROGRAM_REPORT),
+        )
+
+    def test_every_screen_declares_a_map_the_shared_script_can_find(self):
+        for route, map_id, click in self.MAPS:
+            with self.subTest(route=route):
+                for patcher in self._patches():
+                    self.enterContext(patcher)
+                response = self.client.get(route)
+                body = response.content.decode()
+                self.assertIn(f'id="{map_id}"', body)
+                self.assertIn('data-region-map', body)
+                self.assertIn(f'data-region-source="{map_id}-region-data"', body)
+                self.assertIn(f'data-district-source="{map_id}-district-data"', body)
+                self.assertIn(f'data-region-click="{click}"', body)
+                self.assertIn('region-map.js', body)
+
+    def test_map_data_blocks_parse_as_lists_not_empty_strings(self):
+        for route, map_id, _ in self.MAPS:
+            with self.subTest(route=route):
+                for patcher in self._patches():
+                    self.enterContext(patcher)
+                body = self.client.get(route).content.decode()
+                for suffix in ('region-data', 'district-data'):
+                    block = re.search(
+                        rf'<script id="{map_id}-{suffix}"[^>]*>(.*?)</script>', body, re.S)
+                    self.assertIsNotNone(block, f'{map_id}-{suffix} 누락')
+                    self.assertIsInstance(json.loads(block.group(1)), list)
+
+    def test_only_one_copy_of_the_drawing_script_is_loaded(self):
+        for patcher in self._patches():
+            self.enterContext(patcher)
+        for route, _, _ in self.MAPS:
+            with self.subTest(route=route):
+                body = self.client.get(route).content.decode()
+                self.assertEqual(body.count('region-map.js'), 1)
+
+    def test_a_screen_without_a_map_does_not_load_the_script(self):
+        with patch('app.facilities.views.models.facilities', return_value=[facility()]), \
+             patch('app.facilities.views.models.load_report', return_value=FACILITY_REPORT), \
+             patch('app.facilities.views.facility_transit', return_value=None):
+            body = self.client.get('/facilities').content.decode()
+        self.assertNotIn('region-map.js', body)
+        self.assertNotIn('data-region-map', body)
 
 
 SOURCE = {

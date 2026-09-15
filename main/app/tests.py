@@ -39,7 +39,7 @@ class ShellTests(SimpleTestCase):
         self.assertRedirects(response, '/dashboard', fetch_redirect_response=False)
         loader.assert_not_called()
 
-    def test_three_pages_navigation_source_status_and_focus_target(self):
+    def test_three_pages_navigation_and_focus_target(self):
         with patch('app.dashboard.views.dashboard_data', return_value={}), \
              patch('app.programs.views.filter_programs', return_value=[]), \
              patch('app.facilities.views.models.facilities', return_value=[]), \
@@ -57,7 +57,7 @@ class ShellTests(SimpleTestCase):
                     self.assertEqual(parser.skip_target, '#main-content')
                     self.assertEqual(parser.main_target, parser.skip_target)
                     self.assertContains(response, '실제 자료 모드 · 검증 진행 중')
-                    self.assertContains(response, '지도: 행정경계 데이터 미연결')
+                    self.assertNotContains(response, '자료 범위·검증 상태 확인')
                     self.assertContains(response, 'sport-insight-colors.css')
                     self.assertNotContains(response, 'fonts.googleapis.com')
                     self.assertNotContains(response, '⚙ 설정')

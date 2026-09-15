@@ -1,0 +1,41 @@
+{% comment %}
+Shared choropleth of Korea. static/region-map.js finds this container and draws it.
+
+Required:  id, region_data, value_label
+Optional:  district_data  Seoul figures, which turn on the 서울 drill-down
+           unit           appended to the tooltip number
+           region_click   "drilldown" (default) or "emit" to let the page handle it
+           country_help / district_help   note under the map at each level
+           focus_region   current region filter; 서울 opens on the district map
+
+Every id is derived from `id`, so a page can host more than one map.
+{% endcomment %}
+{% with region_data_id=id|add:"-region-data" district_data_id=id|add:"-district-data" %}
+<div class="region-map-head">
+  <span id="{{ id }}-level" class="region-map-level">{{ country_level|default:'전국 시·도' }}</span>
+  <button id="{{ id }}-back" class="button ghost region-map-back" type="button" hidden>전국 보기</button>
+</div>
+<div id="{{ id }}" class="region-map" role="img"
+     aria-label="{{ country_description|default:'시도별 분포 지도' }}"
+     data-region-map
+     data-region-source="{{ region_data_id }}"
+     data-district-source="{{ district_data_id }}"
+     data-level-target="{{ id }}-level"
+     data-help-target="{{ id }}-help"
+     data-back-target="{{ id }}-back"
+     data-value-label="{{ value_label }}"
+     data-unit="{{ unit }}"
+     data-region-click="{{ region_click|default:'drilldown' }}"
+     data-focus-region="{{ focus_region }}"
+     data-country-level="{{ country_level|default:'전국 시·도' }}"
+     data-district-level="{{ district_level|default:'서울 25개 자치구' }}"
+     data-country-description="{{ country_description|default:'시도별 분포 지도' }}"
+     data-district-description="{{ district_description|default:'서울특별시 자치구별 분포 지도' }}"
+     data-country-help="{{ country_help }}"
+     data-district-help="{{ district_help }}">
+  <p class="region-map-status">지도를 불러오는 중입니다.</p>
+</div>
+{% if country_help or district_help %}<p id="{{ id }}-help" class="chart-note region-map-help">{{ country_help }}</p>{% endif %}
+{{ region_data|json_script:region_data_id }}
+{{ district_data|json_script:district_data_id }}
+{% endwith %}

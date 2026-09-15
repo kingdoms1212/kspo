@@ -20,10 +20,34 @@ def dashboard_data(region=''):
         'region_options': sorted({area['region'] for area in snapshot['areas']
                                   if area['region'] != '지역 미제공'}),
         'period': [f'{months[0]} ~ {months[-1]}'] if months else ['기준일 미확인'],
+        # The map reads applications by province, and by Seoul district when it
+        # drills down. Districts are disjoint, so a province total is their sum.
+        'region_distribution': region_distribution(snapshot['areas']),
+        'seoul_district_distribution': seoul_district_distribution(snapshot['areas']),
         'load_report': {'ledger_rows': snapshot['ledger_rows'],
                         'unidentified': snapshot['unidentified'],
                         'source': snapshot['source']},
     }
+
+
+def region_distribution(areas):
+    """Applications per province, most first, skipping areas with no count."""
+    totals = Counter()
+    for area in areas:
+        if area['requests'] is not None and area['region'] != '지역 미제공':
+            totals[area['region']] += area['requests']
+    return totals.most_common()
+
+
+def seoul_district_distribution(areas):
+    """Applications per Seoul district, for the map's drill-down level."""
+    seoul_names = {'서울', '서울특별시'}
+    return Counter({
+        area['district']: area['requests']
+        for area in areas
+        if area['region'] in seoul_names and area['requests'] is not None
+        and area['district'] != '시군구 미제공'
+    }).most_common()
 
 
 def _sum_known(values):

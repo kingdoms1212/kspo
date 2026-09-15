@@ -8,10 +8,10 @@
 </div>
 <div class="dashboard-grid">
   <section class="panel map-panel" tabindex="-1" data-focus-fallback>
-    <div class="section-title"><h2>지역별 이용현황</h2><span class="tag muted">지도 미연결</span></div>
-    <div class="map-placeholder"><div class="placeholder-emblem">{% include 'components/icon.html' with name='pin' %}</div><h3>지역을 선택해 확인하세요</h3><p>행정경계 자료가 연결되면<br>이곳에서 지역별 지도를 제공합니다.</p><span class="tag">현재 선택 · {{ selected_region|default:'전국' }}</span></div>
+    <div class="section-title"><h2>지역별 이용현황</h2><span class="unit">단위: 명</span></div>
+    {% include 'components/region_map.html' with id='dashboard-region-map' region_data=region_distribution district_data=seoul_district_distribution value_label='신청인원' unit='명' region_click='emit' focus_region=selected_region country_description='시도별 신청인원 분포 지도' district_description='서울특별시 자치구별 신청인원 분포 지도' country_help='시도를 선택하면 해당 지역으로 조회 범위를 좁힙니다.' district_help='서울을 조회하면 25개 자치구별 신청인원이 표시됩니다.' %}
     <div class="region-picker" aria-label="지역 바로 선택" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy"><a class="{% if not selected_region %}selected{% endif %}" data-focus-key="region-all" href="{% url 'dashboard' %}" hx-get="{% url 'dashboard' %}">전국</a>{% for option in region_options %}<a class="{% if option == selected_region %}selected{% endif %}" data-focus-key="region-{{ option }}" href="?region={{ option|urlencode }}" hx-get="?region={{ option|urlencode }}">{{ option }}</a>{% endfor %}</div>
-    <p class="chart-note">이용현황 자료의 지역명은 <code>서울</code>처럼 짧은 형태이고 시설·프로그램 자료는 <code>서울특별시</code>처럼 전체 명칭이라 서로 대응표가 없습니다. 지역을 이어서 조회하려면 각 화면에서 직접 선택해 주세요.</p>
+    <p class="chart-note">지도 색상은 개설월 합계 신청인원이며 고유 이용자 수가 아닙니다. <code>전남광주</code>처럼 자료에만 있는 통합 명칭은 행정경계와 대응하지 않아 칠해지지 않습니다.<br>이용현황 자료의 지역명은 <code>서울</code>처럼 짧은 형태이고 시설·프로그램 자료는 <code>서울특별시</code>처럼 전체 명칭이라 화면 간 대응표가 없습니다.</p>
   </section>
   <section class="panel regional-panel">
     <div class="section-title"><h2>시군구별 신청인원</h2><span class="unit">단위: 명</span></div>

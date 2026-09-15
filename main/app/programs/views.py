@@ -4,20 +4,33 @@ from django.core.paginator import Paginator
 from ..common.partials import render_screen
 from ..common.exports import EXPORT_ROW_LIMIT, excel_response, over_export_limit
 from . import models
-from .services import (SORT_LABELS, filter_programs, program_facility_types,
-                       program_regions, program_summary)
+from .services import (SORT_LABELS, filter_programs, program_budget_plan,
+                       program_districts, program_facility_types, program_regions,
+                       program_region_district_map, program_seoul_district_distribution,
+                       program_summary)
 
-SEARCH_KEYS = ('region', 'district', 'facility_type', 'sport', 'target', 'weekday', 'query', 'sort')
+SEARCH_KEYS = ('region', 'district', 'facility_type', 'sport', 'target', 'weekday',
+               'query', 'sort', 'budget_min', 'budget_max')
 
+# Keep the existing controller patch point while importing the service module.
 
 def _search_params(request):
     """Use one query contract for both the page and its export."""
     return {key: request.GET.get(key, '') for key in SEARCH_KEYS}
 
+
+def _scroll_position(request):
+    """Echo back the position the search form recorded, digits only."""
+    value = request.GET.get('_scroll', '')
+    return value if value.isdigit() else ''
+
 def programs(request):
     params = _search_params(request)
-    results = filter_programs(params)
+    budget_plan = program_budget_plan(params)
+    results = filter_programs(params, budget_plan)
     catalogue = models.programs()
+    # One pass over the catalogue feeds both the cascading select and its JSON copy.
+    region_district_map = program_region_district_map(catalogue)
     context = {
         'page': 'programs',
         'results': results,
@@ -25,6 +38,11 @@ def programs(request):
         'result_count': len(results),
         'regions': program_regions(catalogue),
         'facility_types': program_facility_types(catalogue),
+        'region_district_map': region_district_map,
+        'districts': program_districts(region_district_map, params['region']),
+        'seoul_district_distribution': program_seoul_district_distribution(results),
+        'budget_plan': budget_plan,
+        'scroll_position': _scroll_position(request),
         'sort_labels': SORT_LABELS,
         'params': params,
         'page_obj': Paginator(results, 20).get_page(request.GET.get('page')),
@@ -38,7 +56,8 @@ def programs(request):
 
 def export_programs(request):
     params = _search_params(request)
-    rows = filter_programs(params)
+    # The export applies the same budget range the page did.
+    rows = filter_programs(params, program_budget_plan(params))
     refusal = over_export_limit(len(rows))
     if refusal is not None:
         return refusal

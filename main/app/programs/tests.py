@@ -107,7 +107,10 @@ class ProgramRepositoryTests(SimpleTestCase):
 
 class ProgramViewTests(SimpleTestCase):
     def setUp(self):
-        self.rows = [program(id='b', name='B', region='서울'), program(id='a', name='A', region='부산')]
+        self.rows = [program(id='b', name='B', region='서울', sport='축구', weekday='화',
+                             fee=1000, target='유아'),
+                     program(id='a', name='A', region='부산', sport='수영', weekday='월',
+                             fee=2000, target='유아')]
 
     def test_page_and_export_use_same_filters(self):
         with patch('app.programs.models.programs', return_value=self.rows), \
@@ -129,7 +132,8 @@ class ProgramViewTests(SimpleTestCase):
         with patch('app.programs.models.programs', return_value=self.rows), \
              patch('app.programs.models.load_report', return_value=REPORT):
             response = self.client.get(reverse('programs'))
-        self.assertContains(response, '공공체육시설 프로그램 정보')
+        # The page names the source it actually loaded, from the load report.
+        self.assertContains(response, '출처: x.csv')
         self.assertContains(response, '중복 2행을 제외해 3건을 적재했습니다')
 
     def test_oversized_export_is_refused_instead_of_truncated(self):
@@ -143,6 +147,98 @@ class ProgramViewTests(SimpleTestCase):
         self.assertEqual(allowed.status_code, 200)
         self.assertContains(page, '조건을 좁혀야 내보낼 수 있습니다')
         self.assertNotContains(page, '엑셀 내보내기')
+
+    def test_program_page_exposes_dependent_district_options(self):
+        rows = [
+            program(id='1', name='수영', region='서울특별시', district='관악구', sport='수영'),
+            program(id='2', name='축구', region='서울특별시', district='금천구', sport='축구'),
+            program(id='3', name='농구', region='경기도', district='수원시', sport='농구'),
+        ]
+        with patch('app.programs.models.programs', return_value=rows):
+            response = self.client.get(reverse('programs'), {
+                'region': '서울특별시',
+                'district': '관악구',
+            })
+
+        self.assertEqual(response.context['districts'], ['관악구', '금천구'])
+        self.assertEqual(response.context['params']['district'], '관악구')
+        self.assertEqual(response.context['region_district_map']['경기도'], ['수원시'])
+        self.assertContains(response, 'id="district"')
+        self.assertContains(response, 'id="region-district-map"')
+
+    def test_program_page_preserves_budget_range_without_removed_fields(self):
+        with patch('app.programs.models.programs', return_value=self.rows):
+            response = self.client.get(reverse('programs'), {
+                'budget_min': '1000',
+                'budget_max': '2000',
+            })
+
+        self.assertTrue(response.context['budget_plan']['active'])
+        self.assertContains(response, 'name="budget_min"')
+        self.assertContains(response, 'value="1000"')
+        self.assertNotContains(response, 'name="planned_people"')
+        self.assertNotContains(response, 'name="support_months"')
+        self.assertNotContains(response, 'name="target"')
+        self.assertNotContains(response, 'class="budget-filter"')
+        self.assertNotContains(response, '조건을 입력한 후 조회를 눌러 적용하세요')
+        self.assertNotContains(response, '수강료 단위는 별도 확인이 필요합니다')
+
+    def test_program_page_declares_the_shared_region_map(self):
+        """The page declares a map; static/region-map.js owns the drawing."""
+        with patch('app.programs.models.programs', return_value=self.rows):
+            response = self.client.get(reverse('programs'))
+
+        self.assertContains(response, '추천 시설 및 지역 분포')
+        self.assertContains(response, 'data-region-map')
+        self.assertContains(response, 'id="program-region-map"')
+        self.assertContains(response, 'id="program-region-map-region-data"')
+        self.assertContains(response, 'id="program-region-map-district-data"')
+        self.assertContains(response, 'id="program-region-map-back"')
+        self.assertContains(response, 'data-region-click="drilldown"')
+        self.assertContains(response, 'region-map.js')
+        self.assertContains(response, 'id="program-scroll-position"')
+        # The drawing details moved out of the page with the library.
+        self.assertNotContains(response, 'echarts@5.6.0')
+        self.assertNotContains(response, "backgroundColor: '#e6edf5'")
+
+
+    def test_program_heading_description_uses_accessible_tooltip(self):
+        with patch('app.programs.models.programs', return_value=self.rows):
+            response = self.client.get(reverse('programs'))
+
+        self.assertContains(response, 'class="heading-help"')
+        self.assertContains(response, 'aria-describedby="program-heading-tooltip"')
+        self.assertContains(response, 'id="program-heading-tooltip" class="heading-tooltip" role="tooltip"')
+        self.assertContains(response, '지역과 종목별로 등록 강좌를 조회하고 비교합니다.')
+        self.assertContains(response, 'href="#i-alert"')
+
+    def test_top_program_cards_show_compact_fee_and_weekday_tags(self):
+        with patch('app.programs.models.programs', return_value=self.rows):
+            response = self.client.get(reverse('programs'))
+
+        top_cards = response.content.decode().split('class="program-cards"', 1)[1].split('</section>', 1)[0]
+        self.assertIn('수강료 <b>1,000원</b>', top_cards)
+        self.assertIn('강좌 요일 <b>화</b>', top_cards)
+        self.assertLess(top_cards.index('축구'), top_cards.index('강좌 요일 <b>화</b>'))
+        self.assertLess(top_cards.index('강좌 요일 <b>화</b>'), top_cards.index('수강료 <b>1,000원</b>'))
+        self.assertNotIn('가격 단위', top_cards)
+        self.assertNotIn('program-period', top_cards)
+        self.assertNotIn('청소년', top_cards)
+
+    def test_comparison_table_hides_target_and_formats_fee(self):
+        with patch('app.programs.models.programs', return_value=self.rows):
+            response = self.client.get(reverse('programs'))
+
+        comparison_table = response.content.decode().split('aria-label="프로그램 비교표 가로 스크롤"', 1)[1].split('</table>', 1)[0]
+        self.assertIn('<th scope="col">종목</th>', comparison_table)
+        self.assertIn('<th scope="col">수강료</th>', comparison_table)
+        self.assertIn('<td class="price">1,000원</td>', comparison_table)
+        self.assertIn('<td class="price">2,000원</td>', comparison_table)
+        self.assertNotIn('종목 / 대상', comparison_table)
+        self.assertNotIn('수강료 / 단위', comparison_table)
+        self.assertNotIn('청소년', comparison_table)
+        self.assertNotIn('성인', comparison_table)
+        self.assertNotIn('단위 미확인', comparison_table)
 
     def test_url_resolves_to_module_controller(self):
         self.assertIs(resolve('/programs').func, views.programs)

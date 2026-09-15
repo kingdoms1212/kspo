@@ -43,7 +43,6 @@ def _walk(row):
     """Nearest of the five ranked stops; the register ranks by distance, not walk time."""
     return nearest_stop_minutes([to_number(row[column]) for column in WALK])
 
-
 @lru_cache(maxsize=1)
 def _snapshot():
     seen = set()
