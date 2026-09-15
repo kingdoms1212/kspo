@@ -20,10 +20,9 @@ def dashboard_data(region=''):
         'region_options': sorted({area['region'] for area in snapshot['areas']
                                   if area['region'] != '지역 미제공'}),
         'period': [f'{months[0]} ~ {months[-1]}'] if months else ['기준일 미확인'],
-        # The map reads applications by province, and by Seoul district when it
-        # drills down. Districts are disjoint, so a province total is their sum.
+        # 대시보드 전용 신청인원 집계를 공통 지도의 입력 형식으로 전달한다.
         'region_distribution': region_distribution(snapshot['areas']),
-        'seoul_district_distribution': seoul_district_distribution(snapshot['areas']),
+        'district_distribution': district_distribution(snapshot['areas']),
         'load_report': {'ledger_rows': snapshot['ledger_rows'],
                         'unidentified': snapshot['unidentified'],
                         'source': snapshot['source']},
@@ -39,15 +38,23 @@ def region_distribution(areas):
     return totals.most_common()
 
 
-def seoul_district_distribution(areas):
-    """Applications per Seoul district, for the map's drill-down level."""
-    seoul_names = {'서울', '서울특별시'}
-    return Counter({
-        area['district']: area['requests']
-        for area in areas
-        if area['region'] in seoul_names and area['requests'] is not None
-        and area['district'] != '시군구 미제공'
-    }).most_common()
+def district_distribution(areas):
+    """대시보드 신청인원을 지역별 시군구 분포로 집계한다.
+
+    공통 지도 모듈이 사용하는 ``{지역: [(시군구, 신청인원), ...]}``
+    구조를 반환한다. 프로그램 집계와 독립적으로 대시보드의 신청인원
+    계산 기준만 이 함수에서 관리한다.
+    """
+    totals = {}
+    for area in areas:
+        if (area['region'] == '지역 미제공' or area['district'] == '시군구 미제공'
+                or area['requests'] is None):
+            continue
+        totals.setdefault(area['region'], Counter())[area['district']] += area['requests']
+    return {
+        region: counts.most_common()
+        for region, counts in sorted(totals.items())
+    }
 
 
 def _sum_known(values):

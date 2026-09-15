@@ -11,17 +11,7 @@
   </form>
 </section>
 <div id="dashboard-body">{% include 'dashboard/_body.html' %}</div>
-<script src="{% static 'region-map.js' %}?v=20260915-map-fix" defer></script>
-<script>
-  // A province on the map narrows the dashboard the same way the picker does.
-  document.addEventListener('regionmap:select', (event) => {
-    if (event.detail.level !== 'region') return;
-    const select = document.getElementById('dashboard-region');
-    const match = select && Array.from(select.options)
-      .find((option) => window.SportInsightRegionMap.shortName(option.value) === event.detail.shortName);
-    if (!match) return;
-    select.value = match.value;
-    select.dispatchEvent(new Event('change'));
-  });
-</script>
+{# 공통 지도 엔진을 먼저 불러온 후 대시보드 전용 동작을 연결한다. #}
+<script src="{% static 'region-map.js' %}?v=20260915-nationwide-districts-2" defer></script>
+<script src="{% static 'dashboard-region-map.js' %}?v=20260915-nationwide-districts-2" defer></script>
 {% endblock %}
