@@ -240,9 +240,8 @@ class HeadingHelpTests(SimpleTestCase):
 class RegionMapComponentTests(SimpleTestCase):
     """Both screens declare the shared map, and its data must be valid JSON.
 
-    An absent context variable makes `json_script` emit `""`, which the drawing
-    code parses into a string and then calls `.map()` on. That is what silently
-    killed the programs map after a merge, so the shape is asserted here.
+    An absent context variable makes `json_script` emit `""`. That used to
+    silently kill the map after a merge, so both JSON shapes are asserted here.
     """
 
     MAPS = (
@@ -271,17 +270,17 @@ class RegionMapComponentTests(SimpleTestCase):
                 self.assertIn(f'data-region-click="{click}"', body)
                 self.assertIn('region-map.js', body)
 
-    def test_map_data_blocks_parse_as_lists_not_empty_strings(self):
+    def test_map_data_blocks_have_the_shapes_the_renderer_expects(self):
         for route, map_id, _ in self.MAPS:
             with self.subTest(route=route):
                 for patcher in self._patches():
                     self.enterContext(patcher)
                 body = self.client.get(route).content.decode()
-                for suffix in ('region-data', 'district-data'):
+                for suffix, expected_type in (('region-data', list), ('district-data', dict)):
                     block = re.search(
                         rf'<script id="{map_id}-{suffix}"[^>]*>(.*?)</script>', body, re.S)
                     self.assertIsNotNone(block, f'{map_id}-{suffix} 누락')
-                    self.assertIsInstance(json.loads(block.group(1)), list)
+                    self.assertIsInstance(json.loads(block.group(1)), expected_type)
 
     def test_only_one_copy_of_the_drawing_script_is_loaded(self):
         for patcher in self._patches():
@@ -289,7 +288,17 @@ class RegionMapComponentTests(SimpleTestCase):
         for route, _, _ in self.MAPS:
             with self.subTest(route=route):
                 body = self.client.get(route).content.decode()
-                self.assertEqual(body.count('region-map.js'), 1)
+                self.assertEqual(body.count('src="/static/region-map.js'), 1)
+
+    def test_each_screen_loads_only_its_own_map_adapter(self):
+        for patcher in self._patches():
+            self.enterContext(patcher)
+        dashboard = self.client.get('/dashboard').content.decode()
+        programs = self.client.get('/programs').content.decode()
+        self.assertIn('dashboard-region-map.js', dashboard)
+        self.assertNotIn('programs-region-map.js', dashboard)
+        self.assertIn('programs-region-map.js', programs)
+        self.assertNotIn('dashboard-region-map.js', programs)
 
     def test_a_screen_without_a_map_does_not_load_the_script(self):
         with patch('app.facilities.views.models.facilities', return_value=[facility()]), \

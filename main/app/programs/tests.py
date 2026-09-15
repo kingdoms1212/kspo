@@ -11,7 +11,7 @@ from django.test import SimpleTestCase, override_settings
 from django.urls import resolve, reverse
 
 from . import models, views
-from .services import filter_programs, program_facility_types
+from .services import filter_programs, program_district_distribution, program_facility_types
 
 
 def program(**overrides):
@@ -53,6 +53,19 @@ class ProgramServiceTests(SimpleTestCase):
             self.assertEqual([r.id for r in filter_programs({'weekday': '금'})], ['a'])
             self.assertEqual([r.id for r in filter_programs({'facility_type': '체육관'})], ['b'])
         self.assertEqual(program_facility_types(self.rows), ['수영장', '체육관'])
+
+    def test_district_distribution_groups_every_region(self):
+        rows = [
+            program(region='서울특별시', district='강남구'),
+            program(region='부산광역시', district='해운대구'),
+            program(region='부산광역시', district='해운대구'),
+            program(region='경기도', district='수원시 영통구'),
+        ]
+        self.assertEqual(program_district_distribution(rows), {
+            '경기도': [('수원시 영통구', 1)],
+            '부산광역시': [('해운대구', 2)],
+            '서울특별시': [('강남구', 1)],
+        })
 
 
 class ProgramRepositoryTests(SimpleTestCase):
@@ -208,6 +221,7 @@ class ProgramViewTests(SimpleTestCase):
         self.assertContains(response, 'id="program-region-map-back"')
         self.assertContains(response, 'data-region-click="drilldown"')
         self.assertContains(response, 'region-map.js')
+        self.assertContains(response, 'programs-region-map.js')
         self.assertContains(response, 'id="program-scroll-position"')
         # The drawing details moved out of the page with the library.
         self.assertNotContains(response, 'echarts@5.6.0')
