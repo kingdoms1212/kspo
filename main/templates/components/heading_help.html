@@ -1,0 +1,10 @@
+{% comment %}
+Alert icon beside a page title that reveals the screen's description.
+
+The description is a tooltip rather than a paragraph, so the heading row stays
+one line. It hangs on a real button: a tooltip that only appears on hover is
+out of reach for anyone navigating by keyboard.
+
+Params: id, label (accessible name), text
+{% endcomment %}
+<button class="heading-help" type="button" aria-label="{{ label }}" aria-describedby="{{ id }}-tooltip">{% include 'components/icon.html' with name='alert' %}<span id="{{ id }}-tooltip" class="heading-tooltip" role="tooltip">{{ text }}</span></button>

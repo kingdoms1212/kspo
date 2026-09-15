@@ -343,6 +343,14 @@ class FacilityViewTests(SimpleTestCase):
         self.assertIn('SPORT_INSIGHT_facilities.xlsx', export['Content-Disposition'])
         self.assertEqual(len(list(load_workbook(BytesIO(empty.content)).active.values)), 1)
 
+    def test_export_button_is_disabled_with_a_reason_over_the_limit(self):
+        with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None),              patch('app.common.exports.EXPORT_ROW_LIMIT', 1),              patch('app.facilities.views.EXPORT_ROW_LIMIT', 1):
+            page = self.client.get('/facilities')
+        self.assertContains(page, 'class="button export" type="button" disabled')
+        self.assertContains(page, 'id="facilities-export-limit"')
+        self.assertContains(page, '한 번에 내보낼 수 있는 1건을 넘습니다')
+        self.assertNotContains(page, 'href="/export/facilities.xlsx')
+
     def test_industry_filter_scopes_page_and_export_alike(self):
         with patch('app.facilities.views.models.facilities', return_value=self.rows), \
              patch('app.facilities.views.models.load_report', return_value=REPORT), \

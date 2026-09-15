@@ -136,6 +136,54 @@ class FragmentRenderingTests(SimpleTestCase):
         self.assertEqual(full.content.decode().count('id="dashboard-heading"'), 1)
 
 
+class HeadingHelpTests(SimpleTestCase):
+    """Every screen states what it is through the same tooltip control."""
+
+    HEADINGS = (
+        ('/dashboard', 'dashboard-heading', '스포츠강좌이용권 이용현황 자료에서'),
+        ('/programs', 'program-heading', '지역과 종목별로 등록 강좌를'),
+        ('/facilities', 'facility-heading', '전국체육시설현황 자료에서'),
+    )
+
+    def _patches(self):
+        return (
+            patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD),
+            patch('app.programs.models.programs', return_value=[program()]),
+            patch('app.programs.models.load_report', return_value=PROGRAM_REPORT),
+            patch('app.facilities.views.models.facilities', return_value=[facility()]),
+            patch('app.facilities.views.models.load_report', return_value=FACILITY_REPORT),
+            patch('app.facilities.views.facility_transit', return_value=None),
+        )
+
+    def test_each_heading_carries_an_alert_icon_tooltip(self):
+        for route, help_id, text in self.HEADINGS:
+            with self.subTest(route=route):
+                for patcher in self._patches():
+                    self.enterContext(patcher)
+                body = self.client.get(route).content.decode()
+                self.assertIn('class="heading-help"', body)
+                self.assertIn(f'aria-describedby="{help_id}-tooltip"', body)
+                self.assertIn(f'id="{help_id}-tooltip" class="heading-tooltip" role="tooltip"', body)
+                self.assertIn('href="#i-alert"', body)
+                self.assertIn(text, body)
+                # The description moved out of the heading paragraph.
+                self.assertNotIn(f'<p>{text}', body)
+
+    def test_the_tooltip_hangs_on_a_focusable_control(self):
+        """Hover-only help is unreachable by keyboard, so it must be a button."""
+        for patcher in self._patches():
+            self.enterContext(patcher)
+        body = self.client.get('/facilities').content.decode()
+        self.assertIn('<button class="heading-help" type="button"', body)
+        self.assertIn('aria-label="시설 현황 안내"', body)
+
+    def test_the_dashboard_heading_still_swaps_out_of_band(self):
+        with patch('app.dashboard.models.usage_snapshot', return_value=DASHBOARD):
+            fragment = self.client.get('/dashboard', HTTP_HX_REQUEST='true').content.decode()
+        self.assertIn('id="dashboard-heading" hx-swap-oob="true"', fragment)
+        self.assertIn('id="dashboard-heading-tooltip"', fragment)
+
+
 class RegionMapComponentTests(SimpleTestCase):
     """Both screens declare the shared map, and its data must be valid JSON.
 

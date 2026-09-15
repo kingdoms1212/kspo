@@ -5,9 +5,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SPORT INSIGHT · 공공 체육복지 현황</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon_32.png' %}">
   <link rel="stylesheet" href="{% static 'theme/sport-insight-colors.css' %}">
   <link rel="stylesheet" href="{% static 'fonts.css' %}?v=20260915-map-fix">
-  <link rel="stylesheet" href="{% static 'app.css' %}?v=20260915-theme-fonts">
+  <link rel="stylesheet" href="{% static 'app.css' %}?v=20260915-policy-design">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'interactions.js' %}" defer></script>
 </head>
@@ -15,10 +16,9 @@
   {% include 'components/icons.html' %}
   <a class="skip-link" href="#main-content">본문 바로가기</a>
   <header class="global-header">
-    <a class="global-brand" href="/dashboard"><span class="brand-mark" aria-hidden="true">{% include 'components/icon.html' with name='chart' %}</span><strong>SPORT INSIGHT</strong><span>체육복지 정책의사결정 지원 플랫폼</span></a>
+    <a class="global-brand" href="/dashboard"><span class="brand-mark" aria-hidden="true"><img class="icon" src="{% static 'image/logo/logo.svg' %}" alt="" width="180" height="23"></span><strong>SPORT INSIGHT</strong><span>체육복지 정책의사결정 지원 플랫폼</span></a>
     <div class="global-meta">
-      <a class="button ghost policy-open" href="{% url 'policies' %}" hx-get="{% url 'policies' %}" hx-target="#policy-dialog-body" hx-swap="innerHTML" hx-indicator="#policy-busy">{% include 'components/icon.html' with name='info' %} 체육정책{% include 'components/busy.html' with id='policy-busy' %}</a>
-      <span>공공데이터 기반 체육복지 현황</span><span class="mode-indicator">실제 자료 모드 · 검증 진행 중</span>
+      <a class="button ghost policy-open" aria-haspopup="dialog" aria-controls="policy-dialog" href="{% url 'policies' %}" hx-get="{% url 'policies' %}" hx-target="#policy-dialog-body" hx-swap="innerHTML" hx-indicator="#policy-busy">{% include 'components/icon.html' with name='info' %}주요 정책 보기</a>
     </div>
   </header>
   <aside class="sidebar">
