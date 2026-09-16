@@ -11,7 +11,9 @@ from django.test import SimpleTestCase, override_settings
 from django.urls import resolve, reverse
 
 from . import models, views
-from .services import filter_programs, program_district_distribution, program_facility_types
+from .services import (deduplicate_programs, filter_programs,
+                       program_district_distribution, program_facility_types,
+                       selected_weekdays)
 
 
 def program(**overrides):
@@ -47,12 +49,82 @@ class ProgramServiceTests(SimpleTestCase):
             self.assertEqual([r.id for r in filter_programs({'sort': 'walk'})], ['a', 'b', 'c'])
             self.assertEqual([r.id for r in filter_programs({'sort': 'capacity'})], ['a', 'b', 'c'])
 
+    def test_program_and_facility_name_filters_are_independent(self):
+        rows = [
+            program(id='a', name='아침 수영', facility='시민 체육관'),
+            program(id='b', name='저녁 수영', facility='가족 수영장'),
+            program(id='c', name='아침 요가', facility='시민 문화관'),
+        ]
+        with patch('app.programs.services.models.programs', return_value=rows):
+            self.assertEqual(
+                [row.id for row in filter_programs({'program_query': '아침'})],
+                ['a', 'c'],
+            )
+            self.assertEqual(
+                [row.id for row in filter_programs({'facility_query': '시민'})],
+                ['a', 'c'],
+            )
+            self.assertEqual(
+                [row.id for row in filter_programs({
+                    'program_query': '수영',
+                    'facility_query': '가족',
+                })],
+                ['b'],
+            )
+
+    def test_new_sort_options_order_by_the_requested_field(self):
+        rows = [
+            program(id='a', name='Z', facility='B', region='C', district='A', sport='C', fee=3000),
+            program(id='b', name='A', facility='C', region='A', district='A', sport='A', fee=1000),
+            program(id='c', name='M', facility='A', region='B', district='A', sport='B', fee=2000),
+        ]
+        with patch('app.programs.services.models.programs', return_value=rows):
+            self.assertEqual([row.id for row in filter_programs({'sort': 'name'})], ['b', 'c', 'a'])
+            self.assertEqual([row.id for row in filter_programs({'sort': 'facility'})], ['c', 'a', 'b'])
+            self.assertEqual([row.id for row in filter_programs({'sort': 'region'})], ['b', 'c', 'a'])
+            self.assertEqual([row.id for row in filter_programs({'sort': 'sport'})], ['b', 'c', 'a'])
+            self.assertEqual([row.id for row in filter_programs({'sort': 'fee'})], ['b', 'c', 'a'])
+            self.assertEqual(
+                [row.id for row in filter_programs({'sort': 'name_desc'})],
+                ['a', 'c', 'b'],
+            )
+            self.assertEqual(
+                [row.id for row in filter_programs({'sort': 'fee_desc'})],
+                ['a', 'c', 'b'],
+            )
+
     def test_target_weekday_and_facility_type_filters(self):
         with patch('app.programs.services.models.programs', return_value=self.rows):
             self.assertEqual([r.id for r in filter_programs({'target': '청소년'})], ['b'])
-            self.assertEqual([r.id for r in filter_programs({'weekday': '금'})], ['a'])
+            self.assertEqual([r.id for r in filter_programs({'weekday': '월수금'})], ['a'])
             self.assertEqual([r.id for r in filter_programs({'facility_type': '체육관'})], ['b'])
         self.assertEqual(program_facility_types(self.rows), ['수영장', '체육관'])
+
+    def test_multiple_weekday_filter_requires_an_exact_weekday_match(self):
+        rows = [
+            program(id='a', weekday='월금'),
+            program(id='b', weekday='월화'),
+            program(id='c', weekday='수금'),
+            program(id='d', weekday='월화수목금토일'),
+            program(id='e', weekday='금, 월'),
+        ]
+        with patch('app.programs.services.models.programs', return_value=rows):
+            self.assertEqual(
+                [row.id for row in filter_programs({'weekday': '금월'})],
+                ['a', 'e'],
+            )
+        self.assertEqual(selected_weekdays('금월월'), ('월', '금'))
+
+    def test_visible_duplicate_programs_keep_only_the_first_sorted_row(self):
+        rows = [
+            program(id='b', period='2026-08-01 ~ 2026-08-31', time='20:00~20:50'),
+            program(id='a', period='2026-07-01 ~ 2026-07-31', time='19:00~19:50'),
+            program(id='c', fee=60000),
+        ]
+
+        self.assertEqual([row.id for row in deduplicate_programs(rows)], ['b', 'c'])
+        with patch('app.programs.services.models.programs', return_value=rows):
+            self.assertEqual([row.id for row in filter_programs({'sort': 'name'})], ['a', 'c'])
 
     def test_district_distribution_groups_every_region(self):
         rows = [
@@ -138,8 +210,24 @@ class ProgramViewTests(SimpleTestCase):
         self.assertIn('SPORT_INSIGHT_programs.xlsx', export['Content-Disposition'])
         self.assertContains(response, '엑셀 내보내기')
         self.assertEqual(len(records), 2)
-        self.assertEqual(records[1][0], response.context['top_results'][0].id)
+        self.assertEqual(records[1][0], response.context['page_obj'][0].id)
         self.assertIn('정류장 도보(분)', records[0])
+
+    def test_page_and_export_share_visible_field_deduplication(self):
+        rows = [
+            program(id='b', period='2026-08-01 ~ 2026-08-31', time='20:00~20:50'),
+            program(id='a', period='2026-07-01 ~ 2026-07-31', time='19:00~19:50'),
+        ]
+        with patch('app.programs.models.programs', return_value=rows), \
+             patch('app.programs.models.load_report', return_value=REPORT):
+            response = self.client.get(reverse('programs'))
+            export = self.client.get(reverse('export_programs'))
+
+        self.assertEqual(response.context['result_count'], 1)
+        self.assertEqual([row.id for row in response.context['page_obj']], ['a'])
+        records = list(load_workbook(BytesIO(export.content)).active.values)
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[1][0], 'a')
 
     def test_page_states_its_own_source_and_deduplication(self):
         with patch('app.programs.models.programs', return_value=self.rows), \
@@ -147,10 +235,36 @@ class ProgramViewTests(SimpleTestCase):
             response = self.client.get(reverse('programs'))
         # The page names the source it actually loaded, from the load report.
         self.assertContains(response, '출처: x.csv')
-        self.assertContains(response, '중복 2행을 제외해 3건을 적재했습니다')
+        self.assertContains(response, '중복 2행을 제외해 3건을 보존했습니다')
+        self.assertContains(response, '프로그램명, 시설, 지역, 종목, 요일, 수강료가 모두 같은 강좌를 1건으로 표시합니다')
+
+    def test_pagination_uses_full_navigation_and_returns_to_comparison(self):
+        rows = [program(id=str(index), name=f'강좌 {index:03}') for index in range(221)]
+        with patch('app.programs.models.programs', return_value=rows), \
+             patch('app.programs.models.load_report', return_value=REPORT):
+            response = self.client.get(reverse('programs'))
+
+        body = response.content.decode()
+        pagination = body.split('aria-label="프로그램 비교표 페이지"', 1)[1].split('</nav>', 1)[0]
+        self.assertIn('page=2#program-comparison', pagination)
+        self.assertIn('page=11#program-comparison', pagination)
+        self.assertIn('aria-label="10페이지 이전"', pagination)
+        self.assertIn('aria-label="10페이지 다음"', pagination)
+        self.assertIn('&lt;&lt;', pagination)
+        self.assertIn('&gt;&gt;', pagination)
+        self.assertNotIn('hx-get=', pagination)
+        self.assertNotIn('hx-target=', pagination)
+
+        with patch('app.programs.models.programs', return_value=rows), \
+             patch('app.programs.models.load_report', return_value=REPORT):
+            page_eleven = self.client.get(reverse('programs'), {'page': 11})
+        page_eleven_pagination = page_eleven.content.decode().split(
+            'aria-label="프로그램 비교표 페이지"', 1
+        )[1].split('</nav>', 1)[0]
+        self.assertIn('page=1#program-comparison', page_eleven_pagination)
 
     def test_oversized_export_is_refused_instead_of_truncated(self):
-        rows = [program(id=str(i)) for i in range(3)]
+        rows = [program(id=str(i), name=f'강좌 {i}') for i in range(3)]
         with patch('app.programs.models.programs', return_value=rows),              patch('app.programs.models.load_report', return_value=REPORT),              patch('app.common.exports.EXPORT_ROW_LIMIT', 2),              patch('app.programs.views.EXPORT_ROW_LIMIT', 2):
             page = self.client.get(reverse('programs'))
             refused = self.client.get(reverse('export_programs'))
@@ -191,6 +305,19 @@ class ProgramViewTests(SimpleTestCase):
         self.assertContains(response, 'id="district"')
         self.assertContains(response, 'id="region-district-map"')
 
+    def test_weekday_picker_includes_monday_and_updates_the_weekday_field(self):
+        with patch('app.programs.models.programs', return_value=self.rows):
+            response = self.client.get(reverse('programs'), {'weekday': '월금'})
+
+        body = response.content.decode()
+        picker = body.split('class="weekday-options"', 1)[1].split('</div>', 1)[0]
+        for day in ('월', '화', '수', '목', '금', '토', '일'):
+            self.assertIn(f'value="{day}"', picker)
+            self.assertIn(f'<span>{day}</span>', picker)
+        self.assertContains(response, 'id="weekday" name="weekday" type="hidden" value="월금"')
+        self.assertContains(response, 'id="weekday-label-value">월, 금</span>')
+        self.assertIn('weekdayInput.value = selectedDays.join(\'\');', body)
+
     def test_program_page_preserves_budget_range_without_removed_fields(self):
         with patch('app.programs.models.programs', return_value=self.rows):
             response = self.client.get(reverse('programs'), {
@@ -223,6 +350,10 @@ class ProgramViewTests(SimpleTestCase):
         self.assertContains(response, 'region-map.js')
         self.assertContains(response, 'programs-region-map.js')
         self.assertContains(response, 'id="program-scroll-position"')
+        self.assertContains(response, 'aria-describedby="program-distribution-heading-tooltip"')
+        self.assertContains(response, '시도를 선택하면 해당 지역의 시군구별 프로그램 분포를 확인할 수 있습니다.')
+        self.assertContains(response, '지도 색상은 검색된 프로그램의 지역별 건수이며 시설 중복을 제거한 수치는 아닙니다.')
+        self.assertContains(response, 'id="program-region-map-help" class="region-map-help sr-only"')
         # The drawing details moved out of the page with the library.
         self.assertNotContains(response, 'echarts@5.6.0')
         self.assertNotContains(response, "backgroundColor: '#e6edf5'")
@@ -238,18 +369,24 @@ class ProgramViewTests(SimpleTestCase):
         self.assertContains(response, '지역과 종목별로 등록 강좌를 조회하고 비교합니다.')
         self.assertContains(response, 'href="#i-alert"')
 
-    def test_top_program_cards_show_compact_fee_and_weekday_tags(self):
+    def test_comparison_source_note_uses_accessible_tooltip(self):
+        with patch('app.programs.models.programs', return_value=self.rows), \
+             patch('app.programs.models.load_report', return_value=REPORT):
+            response = self.client.get(reverse('programs'))
+
+        self.assertContains(response, 'aria-describedby="program-comparison-heading-tooltip"')
+        self.assertContains(response, 'id="program-comparison-heading-tooltip" class="heading-tooltip" role="tooltip"')
+        self.assertContains(response, '출처: x.csv, 원본 5행 중 모든 적재 항목이 같은 중복 2행을 제외해 3건을 보존했습니다.')
+        self.assertContains(response, '내보내기는 모든 페이지의 적용 결과입니다.')
+
+    def test_distribution_replaces_top_program_cards(self):
         with patch('app.programs.models.programs', return_value=self.rows):
             response = self.client.get(reverse('programs'))
 
-        top_cards = response.content.decode().split('class="program-cards"', 1)[1].split('</section>', 1)[0]
-        self.assertIn('수강료 <b>1,000원</b>', top_cards)
-        self.assertIn('강좌 요일 <b>화</b>', top_cards)
-        self.assertLess(top_cards.index('축구'), top_cards.index('강좌 요일 <b>화</b>'))
-        self.assertLess(top_cards.index('강좌 요일 <b>화</b>'), top_cards.index('수강료 <b>1,000원</b>'))
-        self.assertNotIn('가격 단위', top_cards)
-        self.assertNotIn('program-period', top_cards)
-        self.assertNotIn('청소년', top_cards)
+        body = response.content.decode()
+        self.assertNotIn('조건에 맞는 프로그램', body)
+        self.assertNotIn('class="program-cards"', body)
+        self.assertLess(body.index('추천 시설 및 지역 분포'), body.index('프로그램 비교표'))
 
     def test_comparison_table_hides_target_and_formats_fee(self):
         with patch('app.programs.models.programs', return_value=self.rows):
@@ -258,6 +395,8 @@ class ProgramViewTests(SimpleTestCase):
         comparison_table = response.content.decode().split('aria-label="프로그램 비교표 가로 스크롤"', 1)[1].split('</table>', 1)[0]
         self.assertIn('<th scope="col">종목</th>', comparison_table)
         self.assertIn('<th scope="col">수강료</th>', comparison_table)
+        self.assertIn('<td class="weekday-cell">월</td>', comparison_table)
+        self.assertIn('<td class="weekday-cell">화</td>', comparison_table)
         self.assertIn('<td class="price">1,000원</td>', comparison_table)
         self.assertIn('<td class="price">2,000원</td>', comparison_table)
         self.assertNotIn('종목 / 대상', comparison_table)

@@ -20,9 +20,16 @@
     <div class="field"><label for="region">지역</label><select id="region" name="region"><option value="">전체 지역</option>{% for item in regions %}<option value="{{ item }}" {% if item == params.region %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
     <div class="field"><label for="district">시군구</label><select id="district" name="district" data-selected="{{ params.district }}" {% if not params.region %}disabled{% endif %}><option value="">{% if params.region %}전체 시군구{% else %}지역을 먼저 선택하세요{% endif %}</option>{% for item in districts %}<option value="{{ item }}" {% if item == params.district %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
     <div class="field"><label for="sport">종목</label><input id="sport" name="sport" value="{{ params.sport }}" placeholder="종목 검색어"></div>
-    <div class="field"><label for="weekday">요일</label><input id="weekday" name="weekday" value="{{ params.weekday }}" placeholder="예: 월"></div>
-    <div class="field"><label for="query">강좌·시설명</label><input id="query" name="query" value="{{ params.query }}" placeholder="강좌명 또는 시설명"></div>
-    <div class="field"><label for="sort">정렬 기준</label><select id="sort" name="sort"><option value="name" {% if params.sort != 'fee' %}selected{% endif %}>강좌명순</option><option value="fee" {% if params.sort == 'fee' %}selected{% endif %}>원본 금액순 · 단위 혼합</option></select></div>
+    <div class="field weekday-field">
+      <label id="weekday-label" for="weekday">요일 <span id="weekday-label-value">{{ weekday_label }}</span></label>
+      <input id="weekday" name="weekday" type="hidden" value="{{ params.weekday }}">
+      <div class="weekday-options" role="group" aria-labelledby="weekday-label">
+        {% for day in weekdays %}<label class="weekday-option"><input type="checkbox" value="{{ day }}"{% if day in selected_weekdays %} checked{% endif %}><span>{{ day }}</span></label>{% endfor %}
+      </div>
+    </div>
+    <div class="field"><label for="program_query">강좌</label><input id="program_query" name="program_query" value="{{ params.program_query }}" placeholder="강좌명 검색어"></div>
+    <div class="field"><label for="facility_query">시설명</label><input id="facility_query" name="facility_query" value="{{ params.facility_query }}" placeholder="시설명 검색어"></div>
+    <div class="field"><label for="sort">정렬 기준</label><select id="sort" name="sort"><option value="name_asc" {% if not params.sort or params.sort == 'name' or params.sort == 'name_asc' %}selected{% endif %}>강좌명순 ▲</option><option value="name_desc" {% if params.sort == 'name_desc' %}selected{% endif %}>강좌명순 ▼</option><option value="facility_asc" {% if params.sort == 'facility' or params.sort == 'facility_asc' %}selected{% endif %}>시설명순 ▲</option><option value="facility_desc" {% if params.sort == 'facility_desc' %}selected{% endif %}>시설명순 ▼</option><option value="region_asc" {% if params.sort == 'region' or params.sort == 'region_asc' %}selected{% endif %}>지역명순 ▲</option><option value="region_desc" {% if params.sort == 'region_desc' %}selected{% endif %}>지역명순 ▼</option><option value="sport_asc" {% if params.sort == 'sport' or params.sort == 'sport_asc' %}selected{% endif %}>종목순 ▲</option><option value="sport_desc" {% if params.sort == 'sport_desc' %}selected{% endif %}>종목순 ▼</option><option value="fee_asc" {% if params.sort == 'fee' or params.sort == 'fee_asc' %}selected{% endif %}>수강료순 ▲</option><option value="fee_desc" {% if params.sort == 'fee_desc' %}selected{% endif %}>수강료순 ▼</option></select></div>
     <div class="field">
       <label>예산 범위 <small>(천원)</small></label>
       <div class="budget-range">
@@ -44,6 +51,22 @@
       const regionSelect = document.getElementById('region');
       const districtSelect = document.getElementById('district');
       const districtData = document.getElementById('region-district-map');
+      const weekdayInput = document.getElementById('weekday');
+      const weekdayLabelValue = document.getElementById('weekday-label-value');
+      const weekdayCheckboxes = [...document.querySelectorAll('.weekday-option input[type="checkbox"]')];
+
+      function syncWeekdaySelection() {
+        const selectedDays = weekdayCheckboxes
+          .filter((checkbox) => checkbox.checked)
+          .map((checkbox) => checkbox.value);
+        if (weekdayInput) weekdayInput.value = selectedDays.join('');
+        if (weekdayLabelValue) weekdayLabelValue.textContent = selectedDays.join(', ');
+      }
+
+      weekdayCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', syncWeekdaySelection);
+      });
+      syncWeekdaySelection();
 
       // 검색 전 스크롤 위치를 저장하고 결과 화면에서 같은 위치로 복원한다.
       const savedScrollPosition = Number(scrollPositionInput?.value);
@@ -98,19 +121,11 @@
       <div class="summary-item"><div class="metric-icon">{% include 'components/icon.html' with name='wallet' %}</div><div><span>가격 제공 강좌</span><strong>{{ fee_count|floatformat:'0g' }}<em>건</em></strong></div></div>
       <div class="summary-item"><div class="metric-icon">{% include 'components/icon.html' with name='pin' %}</div><div><span>검색 결과 지역</span><strong>{{ region_distribution|length }}<em>개</em></strong></div></div>
     </div></section>
-    <section class="panel top-programs"><div class="section-title"><h2>조건에 맞는 프로그램 <span class="heading-accent">TOP 3</span></h2><span class="unit">선택한 정렬 기준 · 독립 비교안</span></div>
-      <div class="program-cards">{% for item in top_results %}<article class="program-card">
-        <div class="program-card-title"><span class="rank">{{ forloop.counter }}</span><h3>{{ item.name }}</h3></div>
-        <div class="card-tags"><span class="tag">{{ item.sport }}</span><span class="tag neutral">강좌 요일 <b>{{ item.weekday }}</b></span><span class="tag neutral">수강료 <b>{% if item.fee %}{{ item.fee|floatformat:'0g' }}원{% else %}미제공{% endif %}</b></span></div>
-        <div class="program-facts"><div class="facility-art"><img src="{% centre_photo item.id %}" alt="" loading="lazy"><small>대표 이미지</small></div></div>
-        <div class="program-location">{% include 'components/icon.html' with name='pin' %}<span>{{ item.facility }}<small>{{ item.region }}</small></span></div>
-      </article>{% empty %}<div class="empty wide-empty">{% include 'components/icon.html' with name='search' %}<h3>조건에 맞는 프로그램이 없습니다</h3><p>입력한 검색 조건을 확인해 주세요.</p><a class="text-link" href="/programs">검색 조건 초기화</a></div>{% endfor %}</div>
-    </section>
     <div class="program-bottom">
-        <section class="panel distribution-panel"><div class="section-title"><h2>추천 시설 및 지역 분포</h2></div>{% include 'components/region_map.html' with id='program-region-map' region_data=region_distribution district_data=district_distribution value_label='추천 프로그램' unit='건' region_click='drilldown' focus_region=params.region country_description='검색 결과 프로그램의 대한민국 시도별 분포 지도' country_help='시도를 선택하면 해당 지역의 시군구별 프로그램 분포를 확인할 수 있습니다.' district_help='데이터가 있는 시군구를 선택하면 해당 지역의 프로그램만 조회합니다.' %}<div class="distribution-list">{% for region, count in region_distribution %}<div><span>{{ region }}</span><b>{{ count|floatformat:'0g' }}<small>건</small></b></div>{% empty %}<p class="empty">표시할 지역 자료가 없습니다.</p>{% endfor %}</div><p class="chart-note">지도 색상은 검색된 프로그램의 지역별 건수이며 시설 중복을 제거한 수치는 아닙니다.</p></section>
-        <section class="panel comparison-panel"><div class="section-title"><h2>프로그램 비교표 <span class="count">총 {{ result_count|floatformat:'0g' }}건</span></h2>{% url 'export_programs' as programs_export_url %}{% include 'components/export_button.html' with id='programs-export' url=programs_export_url|add:'?'|add:export_query count=result_count limit=export_limit %}</div>
-        <div class="table-scroll" tabindex="0" role="region" aria-label="프로그램 비교표 가로 스크롤"><table><caption class="sr-only">전체 검색 결과 중 현재 페이지의 강좌 정보</caption><thead><tr><th scope="col">No.</th><th scope="col">프로그램명</th><th scope="col">시설 · 지역</th><th scope="col">종목</th><th scope="col">요일</th><th scope="col">수강료</th></tr></thead><tbody>{% for item in page_obj %}<tr><td class="number">{{ page_obj.start_index|add:forloop.counter0 }}</td><td><b>{{ item.name }}</b></td><td>{{ item.facility }}<small>{{ item.region }}</small></td><td>{{ item.sport }}</td><td>{{ item.weekday }}</td><td class="price">{% if item.fee %}{{ item.fee|floatformat:'0g' }}원{% else %}미제공{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="empty">표시할 결과가 없습니다.</td></tr>{% endfor %}</tbody></table></div>
-        <div class="table-footer"><span>{{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ result_count|floatformat:'0g' }}건</span>{% include 'components/pagination.html' with label='프로그램 비교표' %}</div><p class="chart-note">출처: {{ load_report.source }} · 원본 {{ load_report.register_rows|floatformat:'0g' }}행 중 표시 항목이 모두 같은 중복 {{ load_report.duplicates|floatformat:'0g' }}행을 제외해 {{ load_report.programs|floatformat:'0g' }}건을 적재했습니다. 시설 {{ load_report.facilities|floatformat:'0g' }}개.<br>내보내기는 모든 페이지의 적용 결과입니다.</p>
+      <section class="panel distribution-panel"><div class="section-title"><h2>추천 시설 및 지역 분포 {% include 'components/heading_help.html' with id='program-distribution-heading' label='추천 시설 및 지역 분포 안내' text='시도를 선택하면 해당 지역의 시군구별 프로그램 분포를 확인할 수 있습니다. 지도 색상은 검색된 프로그램의 지역별 건수이며 시설 중복을 제거한 수치는 아닙니다.' %}</h2></div>{% include 'components/region_map.html' with id='program-region-map' region_data=region_distribution district_data=district_distribution value_label='추천 프로그램' unit='건' region_click='drilldown' focus_region=params.region country_description='검색 결과 프로그램의 대한민국 시도별 분포 지도' country_help='시도를 선택하면 해당 지역의 시군구별 프로그램 분포를 확인할 수 있습니다.' district_help='데이터가 있는 시군구를 선택하면 해당 지역의 프로그램만 조회합니다.' help_hidden=True %}<div class="distribution-list">{% for region, count in region_distribution %}<div><span>{{ region }}</span><b>{{ count|floatformat:'0g' }}<small>건</small></b></div>{% empty %}<p class="empty">표시할 지역 자료가 없습니다.</p>{% endfor %}</div></section>
+      <section id="program-comparison" class="panel comparison-panel"><div class="section-title"><h2>프로그램 비교표 {% include 'programs/_comparison_help.html' %}<span class="count">총 {{ result_count|floatformat:'0g' }}건</span></h2>{% url 'export_programs' as programs_export_url %}{% include 'components/export_button.html' with id='programs-export' url=programs_export_url|add:'?'|add:export_query count=result_count limit=export_limit %}</div>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="프로그램 비교표 가로 스크롤"><table><caption class="sr-only">전체 검색 결과 중 현재 페이지의 강좌 정보</caption><thead><tr><th scope="col">No.</th><th scope="col">프로그램명</th><th scope="col">시설, 지역</th><th scope="col">종목</th><th scope="col">요일</th><th scope="col">수강료</th></tr></thead><tbody>{% for item in page_obj %}<tr><td class="number">{{ page_obj.start_index|add:forloop.counter0 }}</td><td><b>{{ item.name }}</b></td><td>{{ item.facility }}<small>{{ item.region }}</small></td><td>{{ item.sport }}</td><td class="weekday-cell">{{ item.weekday }}</td><td class="price">{% if item.fee is not None %}{{ item.fee|floatformat:'0g' }}원{% else %}미제공{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="empty">표시할 결과가 없습니다.</td></tr>{% endfor %}</tbody></table></div>
+        <div class="table-footer"><span>{{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ result_count|floatformat:'0g' }}건</span>{% include 'components/pagination.html' with label='프로그램 비교표' anchor='program-comparison' %}</div>
       </section>
     </div>
   </div>

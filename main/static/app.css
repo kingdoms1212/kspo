@@ -112,9 +112,21 @@ tbody tr:hover { background:var(--si-surface-hover); }
 .reference-grid strong { display:block; font-size:15px; color:var(--si-heading); margin:5px 0; }
 .program-workspace { display:grid; grid-template-columns:216px minmax(0,1fr); gap:var(--gap); align-items:start; }
 .search-panel { position:sticky; top:calc(var(--header-height) + 14px); align-self:start; height:calc(100vh - var(--header-height) - 28px); overflow-y:auto; padding:16px; z-index:4; }
+/* 프로그램 검색 조건은 내부 스크롤을 만들지 않고 내용 높이만큼 확장한다.
+   시설 검색 패널은 기존 높이와 스크롤 방식을 유지한다. */
+.program-workspace > .search-panel { height:auto; min-height:calc(100vh - var(--header-height) - 28px); overflow-y:visible; }
 .search-panel .field { margin-bottom:16px; }
 .search-panel .section-title { padding-bottom:12px; border-bottom:1px solid var(--si-border); }
 .search-panel .section-title .icon { width:17px; height:17px; color:var(--si-primary); }
+.weekday-field > label { display:flex; align-items:center; gap:4px; }
+.weekday-label-value { color:var(--si-primary-hover); font-weight:700; }
+.weekday-options { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; }
+.weekday-option { position:relative; min-width:0; cursor:pointer; }
+.weekday-option input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.weekday-option span { display:grid; place-items:center; width:100%; aspect-ratio:1; border:1px solid var(--si-border); border-radius:50%; background:var(--si-disabled-bg); color:var(--si-heading); font-size:11px; font-weight:750; transition:background .15s ease,border-color .15s ease,color .15s ease; }
+.weekday-option:hover span { border-color:var(--si-primary); background:var(--si-surface-soft); }
+.weekday-option input:checked + span { border-color:var(--si-primary); background:var(--si-primary); color:var(--si-text-inverse); }
+.weekday-option input:focus-visible + span { outline:2px solid var(--si-focus); outline-offset:2px; }
 .filter-actions { display:grid; gap:8px; padding-top:5px; }
 .field-help { margin-top:15px; line-height:1.7; }
 .program-results { display:grid; gap:var(--gap); min-width:0; }
@@ -145,7 +157,7 @@ tbody tr:hover { background:var(--si-surface-hover); }
 .program-facts { display:block; }
 .facility-art { width:100%; min-height:150px; border-radius:4px; background:linear-gradient(145deg,var(--si-surface-soft),var(--si-bg)); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--si-primary-hover); }
 .facility-art .icon { width:42px; height:42px; }
-.facility-art small { font-size:9px; color:var(--si-text-muted); }
+.facility-art small { font-size:9px; color:var(--si-text-inverse); }
 .program-facts dl { display:grid; grid-template-columns:auto minmax(0,1fr); gap:5px 6px; margin:0; align-content:center; font-size:10px; }
 .program-facts dt { color:var(--si-text-muted); }
 .program-facts dd { margin:0; color:var(--si-heading); overflow-wrap:anywhere; }
@@ -164,9 +176,13 @@ tbody tr:hover { background:var(--si-surface-hover); }
 .distribution-list small { font-weight:400; margin-left:3px; }
 .table-scroll { max-width:100%; overflow:auto; scrollbar-width:thin; }
 .table-scroll table { min-width:610px; }
-.comparison-panel .table-scroll { max-height:450px; }
+.comparison-panel { display:flex; flex-direction:column; min-height:0; }
+.comparison-panel .table-scroll { flex:1 1 450px; width:100%; height:450px; min-height:0; max-height:none; }
+.comparison-panel .table-footer { margin-top:auto; }
+#program-comparison { scroll-margin-top:calc(var(--header-height) + 14px); }
 .table-scroll thead { position:sticky; top:0; z-index:1; }
 .number { color:var(--si-text-muted); font-variant-numeric:tabular-nums; text-align:center; }
+.weekday-cell { white-space:nowrap; }
 .price { color:var(--si-heading); white-space:nowrap; }
 .table-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-top:14px; color:var(--si-text-muted); font-size:10px; }
 .pagination { display:flex; align-items:center; gap:5px; }
@@ -280,6 +296,7 @@ tbody tr:hover { background:var(--si-surface-hover); }
   .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .program-bottom { grid-template-columns:minmax(0,1fr); }
   .distribution-panel { order:2; }
+  .comparison-panel .table-scroll { flex:none; height:auto; max-height:450px; }
   .compact-placeholder { min-height:100px; }
   .facility-workspace { grid-template-columns:minmax(0,1fr); }
   .detail-panel { position:static; }

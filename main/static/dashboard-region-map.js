@@ -1,5 +1,6 @@
-/* Dashboard adapter for the same region/district event contract as programs.
- * Look up the form on every interaction because HTMX replaces the fragment.
+/* 대시보드 전용 지도 연결 모듈.
+ * 지도 선택과 지역 필터 변경을 반영한 후 HTMX 조회를 실행한다.
+ * HTMX가 폼을 교체하므로 각 동작에서 현재 DOM을 다시 조회한다.
  */
 (() => {
   'use strict';
@@ -27,13 +28,14 @@
     region.value = option.value;
     updateDistrictOptions(option.value, districtName);
     district.value = districtName;
+    // change 이벤트를 함께 발생시키면 조회가 중복되므로 여기서 한 번만 제출한다.
     form.requestSubmit();
   }
 
   document.addEventListener('regionmap:select', event => {
     if (event.target.id !== 'dashboard-region-map') return;
-    const { level, region, name } = event.detail;
-    if (level === 'region') selectArea(region || name);
+    const { level, region, name, shortName } = event.detail;
+    if (level === 'region') selectArea(region || name || shortName);
     if (level === 'district') selectArea(region, name);
   });
 
