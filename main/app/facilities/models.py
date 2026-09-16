@@ -18,12 +18,12 @@ The key that links a facility to its nearby transport is geometric; see
 app.facilities.transit for why an address or a name cannot carry that join.
 """
 from collections import namedtuple
-from functools import lru_cache
 
 from ..common.data import read_columns, to_number
+from ..common.versioned_csv import VersionedCsvCache
 from .transit import geo_key
 
-FACILITY_FILE = '전국체육시설현황 데이터.csv'
+FACILITY_FILE = '전국체육시설현황 데이터_seoul.csv'
 
 COLUMNS = ('FCLTY_NM', 'FCLTY_FLAG_NM', 'INDUTY_NM', 'FCLTY_TY_NM', 'FCLTY_STATE_VALUE',
            'RDNMADR_ONE_NM', 'RDNMADR_TWO_NM', 'FCLTY_ADDR_ONE_NM', 'CTPRVN_NM', 'SIGNGU_NM',
@@ -53,8 +53,7 @@ def _address(row):
     return row[ADDR_ONE] or ' '.join(filter(None, names)) or '주소 미제공'
 
 
-@lru_cache(maxsize=1)
-def _snapshot():
+def _load_snapshot():
     rows = []
     register_rows = 0
     deleted = 0
@@ -102,6 +101,17 @@ def _snapshot():
         'source': FACILITY_FILE,
     }
     return rows, report
+
+
+# 시설 CSV 세대별로 프로세스 내부 목록을 한 번만 만든다.
+_snapshot_cache = VersionedCsvCache(FACILITY_FILE, _load_snapshot)
+
+
+def _snapshot():
+    return _snapshot_cache.get()
+
+
+_snapshot.cache_clear = _snapshot_cache.clear
 
 
 def facilities():

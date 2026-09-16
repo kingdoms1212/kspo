@@ -59,7 +59,8 @@ Controller(Django view)는 요청·페이지 이동·응답, Template은 화면 
 - 프로그램 페이지와 엑셀 내보내기가 같은 검색 파라미터 추출 함수를 사용한다.
 - 검색 정렬 전에 목록을 복사하여 `lru_cache`에 저장된 원본 순서를 변경하지 않는다.
 - 엑셀은 openpyxl로 생성한다. 첫 행 고정·자동 필터·열 너비·헤더 서식을 적용하며, 원본 문자열은 명시적 텍스트 셀로 저장해 수식 실행과 전화번호 앞자리 손실을 방지한다.
-- CSV 경로는 읽는 시점의 `settings.DATA_DIR`을 사용한다.
+- 웹 화면은 `data/Batch`의 서울 전용 CSV를 읽으며, 경로는 읽는 시점의
+  `settings.DATA_DIR`을 사용한다.
 - 기존 통합 테스트와 모듈별 라우팅·필터·캐시·내보내기 회귀 테스트를 추가했다.
 
 ## 유지된 데이터 제약과 후속 검토
@@ -88,6 +89,21 @@ config\Scripts\python.exe main\manage.py makemigrations --check --dry-run
 ```
 
 모듈만 검사하려면 `test app.programs`처럼 지정한다.
+
+## 서울 CSV 배치와 자동 캐시 갱신
+
+웹서비스 시작 시 `app/Batch/seoul_csv_batch.py`를 실행하고, 서버가 실행 중이면
+APScheduler가 매주 일요일 00시에 같은 배치를 실행한다. 배치는 서울 전용 CSV
+네 개를 교체한 뒤 `batch_manifest.json`의 세대를 갱신한다. 각 웹 프로세스는
+작은 manifest 변경만 확인하고, 세대가 바뀐 경우 자신의 프로그램·이용현황·
+시설·교통 캐시를 자동으로 다시 만든다.
+
+실행 요일과 시각은 `main/settings.py`의 `SEOUL_BATCH_SCHEDULE`에서 변경한다.
+개발 서버 자동 재로더의 실제 서버 프로세스에서만 스케줄러가 한 번 시작된다.
+서버가 종료되어 있으면 예약 실행도 동작하지 않지만, 다음 서버 시작 시 시작
+배치가 최신 CSV를 다시 생성한다.
+
+배치 실행 기록은 `data/Batch/logs/seoul_batch.log`에 남는다.
 
 ## 프로그램 설계 (2026-09-16)
 

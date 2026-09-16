@@ -7,11 +7,11 @@ recipient counts the dashboard used to show came from a coverage file that is
 no longer in `data/`, so those figures are not computed from another source.
 """
 from collections import Counter
-from functools import lru_cache
 
 from ..common.data import course_month, read_columns, to_number
+from ..common.versioned_csv import VersionedCsvCache
 
-USAGE_FILE = '스포츠강좌이용권 이용현황 정보.csv'
+USAGE_FILE = '스포츠강좌이용권 이용현황 정보_seoul.csv'
 
 COLUMNS = ('CTPRVN_CD', 'CTPRVN_NM', 'SIGNGU_CD', 'SIGNGU_NM', 'FCLTY_NM',
            'FCLTY_ADDR', 'FCLTY_DETAIL_ADDR', 'ITEM_NM', 'COURSE_NO',
@@ -32,8 +32,7 @@ def _area():
             'months': set(), 'sports': Counter(), 'sport_details': {}}
 
 
-@lru_cache(maxsize=1)
-def usage_snapshot():
+def _load_usage_snapshot():
     """One pass over the ledger, aggregated per district.
 
     District keys are disjoint, so a region total is the sum of its districts
@@ -77,6 +76,17 @@ def usage_snapshot():
         'unidentified': unidentified,
         'source': USAGE_FILE,
     }
+
+
+# 일요일 배치 세대가 바뀌면 이 프로세스의 집계를 다시 만든다.
+_usage_cache = VersionedCsvCache(USAGE_FILE, _load_usage_snapshot)
+
+
+def usage_snapshot():
+    return _usage_cache.get()
+
+
+usage_snapshot.cache_clear = _usage_cache.clear
 
 
 def _finish(region, district, area):

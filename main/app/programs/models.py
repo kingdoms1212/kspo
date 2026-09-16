@@ -10,12 +10,12 @@ data costs about 80MB as tuples and about 320MB as dicts. Django templates
 resolve `item.name` through attribute access, so the page code is unchanged.
 """
 from collections import namedtuple
-from functools import lru_cache
 
 from ..common.calculations import nearest_stop_minutes
 from ..common.data import facility_key, iso_date, read_columns, strip_markup, to_number
+from ..common.versioned_csv import VersionedCsvCache
 
-PROGRAM_FILE = '공공체육시설 프로그램 정보.csv'
+PROGRAM_FILE = '공공체육시설 프로그램 정보_seoul.csv'
 
 WALK_COLUMNS = tuple(f'WLKG_MVMN_{rank}R_TIME' for rank in range(1, 6))
 COLUMNS = ('CTPRVN_CD', 'CTPRVN_NM', 'SIGNGU_CD', 'SIGNGU_NM', 'FCLTY_NM', 'FCLTY_ADDR',
@@ -43,8 +43,7 @@ def _walk(row):
     """Nearest of the five ranked stops; the register ranks by distance, not walk time."""
     return nearest_stop_minutes([to_number(row[column]) for column in WALK])
 
-@lru_cache(maxsize=1)
-def _snapshot():
+def _load_snapshot():
     seen = set()
     records = []
     facilities = set()
@@ -92,6 +91,17 @@ def _snapshot():
         'source': PROGRAM_FILE,
     }
     return records, report
+
+
+# 각 웹 프로세스가 manifest 세대 변경을 직접 감지한다.
+_snapshot_cache = VersionedCsvCache(PROGRAM_FILE, _load_snapshot)
+
+
+def _snapshot():
+    return _snapshot_cache.get()
+
+
+_snapshot.cache_clear = _snapshot_cache.clear
 
 
 def programs():

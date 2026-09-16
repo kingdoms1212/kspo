@@ -16,11 +16,11 @@ at start-up: only a reader who opens a facility detail pays for it, once.
 """
 import csv
 import heapq
-from functools import lru_cache
 
-from ..common.data import columns_present, normalize, read_columns
+from ..common.data import columns_present, data_path, normalize, read_columns
+from ..common.versioned_csv import VersionedCsvCache
 
-TRANSIT_FILE = '체육시설 인접 대중교통 정보.csv'
+TRANSIT_FILE = '체육시설 인접 대중교통 정보_seoul.csv'
 
 COLUMNS = ('ALSFC_NM', 'ALSFC_LA', 'ALSFC_LO', 'PBTRNSP_FCLTY_SDIV_NM',
            'STRT_DSTNC_VALUE', 'WLKG_DSTNC_VALUE', 'WLKG_MVMN_TIME', 'BSTP_SUBWAYST_NM')
@@ -79,8 +79,7 @@ def _distance(value):
         return FAR
 
 
-@lru_cache(maxsize=1)
-def _index(wanted):
+def _load_index(wanted):
     """Nearest stops per facility, keyed by position.
 
     `wanted` is the set of facility keys the register actually holds, passed in
@@ -99,6 +98,20 @@ def _index(wanted):
         # 돌려주면 수록된 시설조차 '기록 없음'으로 보인다.
         return None
     return index
+
+
+# 교통 CSV 세대와 시설 좌표 집합이 같을 때만 색인을 재사용한다.
+_index_cache = VersionedCsvCache(TRANSIT_FILE, _load_index)
+
+
+def _index(wanted):
+    # 최초 적재에서 원본이 없으면 기존 오류 사유 형식을 그대로 반환한다.
+    if not data_path(TRANSIT_FILE).exists():
+        return None
+    return _index_cache.get(wanted)
+
+
+_index.cache_clear = _index_cache.clear
 
 
 def _fill(index, wanted):

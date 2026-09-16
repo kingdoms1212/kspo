@@ -1,5 +1,5 @@
 """Facility search and transport linking shared by page and export."""
-from functools import lru_cache
+import threading
 
 from . import models, transit
 
@@ -50,10 +50,32 @@ def facility_owners(rows):
     return sorted({row.owner for row in rows if row.owner != '보유주체 미제공'})
 
 
-@lru_cache(maxsize=1)
+# 시설 목록 객체가 바뀌면 교통 연결용 좌표도 함께 갱신한다.
+_positions_lock = threading.Lock()
+_positions_rows = None
+_positions_value = frozenset()
+
+
 def _positions():
-    """Facility positions the register holds, so the transit index skips the rest."""
-    return frozenset(row.geo_key for row in models.facilities() if row.geo_key)
+    global _positions_rows, _positions_value
+    rows = models.facilities()
+    if rows is _positions_rows:
+        return _positions_value
+    with _positions_lock:
+        if rows is not _positions_rows:
+            _positions_value = frozenset(row.geo_key for row in rows if row.geo_key)
+            _positions_rows = rows
+    return _positions_value
+
+
+def _positions_cache_clear():
+    global _positions_rows, _positions_value
+    with _positions_lock:
+        _positions_rows = None
+        _positions_value = frozenset()
+
+
+_positions.cache_clear = _positions_cache_clear
 
 
 def facility_transit(facility):

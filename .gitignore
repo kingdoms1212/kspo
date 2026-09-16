@@ -5,3 +5,11 @@ __pycache__/
 *.pyd
 
 main/docs/
+
+# 배치가 생성하는 대용량 서울 CSV와 실행 상태 파일
+data/Batch/*.csv
+data/Batch/*.part
+data/Batch/*.batch_*
+data/Batch/*.lock
+data/Batch/*.json
+data/Batch/logs/
