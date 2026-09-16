@@ -1,12 +1,19 @@
 <section id="program-planner" class="planner panel" aria-labelledby="planner-title" data-list-url="{% url 'plan_facilities' %}" data-detail-url="{% url 'plan_facility_detail' %}" data-preview-url="{% url 'plan_preview' %}">
-  <div class="planner-heading"><div><span class="planner-eyebrow">STEP 02</span><h2 id="planner-title">종목과 시설 선택</h2></div></div>
-  <p id="plan-context">먼저 위 지도에서 지역을 선택하고 조회하세요.</p>
+  <div class="planner-heading"><div><span class="planner-eyebrow">STEP 02</span><h2 id="planner-title">종목과 시설 선택</h2></div><span id="plan-context" class="plan-pill">지역 미선택</span></div>
   <p id="plan-status" role="status" aria-live="polite"></p>
+  <p id="plan-error" class="plan-error" role="alert"></p>
   <div id="plan-selection" hidden>
     <label class="plan-field">어떤 종목을 설계할까요?<select id="plan-sport"><option value="">종목 선택</option>{% for sport in planning_sports %}<option>{{ sport }}</option>{% endfor %}</select></label>
-    <p class="chart-note">시설 유형에 해당 종목이 명시된 정상운영 시설을 표시합니다. 이용현황과 시설 명부는 수록 범위가 다르며, 대관 가능 여부는 시설 확인이 필요합니다.</p>
+    <p class="chart-note">시설 유형이나 업종에 해당 종목이 명시된 정상운영 시설만 표시합니다. 종합체육관처럼 이름만으로는 종목을 추정하지 않으므로, 목록이 비어 있어도 그 지역에 해당 종목 시설이 없다는 뜻은 아닙니다. 지역·종목을 바꾸면 시설 선택이 해제되어 다시 확정해야 합니다.</p>
     <form id="plan-search" class="plan-search"><label for="plan-query" class="sr-only">시설명 또는 주소 검색</label><input id="plan-query" maxlength="100" placeholder="시설명 또는 주소"><button class="button ghost" type="submit">시설 검색</button></form>
-    <div class="plan-facility-grid"><section aria-label="시설 후보"><p id="plan-count"></p><div id="plan-candidates" class="plan-candidates"></div><div class="plan-pagination"><button id="plan-prev" type="button" class="button ghost">이전</button><span id="plan-page"></span><button id="plan-next" type="button" class="button ghost">다음</button></div></section><aside id="plan-detail" class="plan-detail" aria-label="선택한 시설 상세" tabindex="-1"><p>시설의 상세보기를 눌러 정보를 확인하세요.</p></aside></div>
+    <div class="plan-facility-grid">
+      <section aria-labelledby="plan-candidates-heading">
+        <div class="section-title"><h3 id="plan-candidates-heading">설계 후보 시설 <span id="plan-count" class="count"></span></h3><span class="unit">시설을 눌러 상세정보를 확인하세요</span></div>
+        <div id="plan-candidates" class="plan-candidates"></div>
+        <div class="plan-pagination"><button id="plan-prev" type="button" class="button ghost">이전</button><span id="plan-page"></span><button id="plan-next" type="button" class="button ghost">다음</button></div>
+      </section>
+      <aside id="plan-detail" class="plan-detail" aria-label="선택한 시설 상세" tabindex="-1"><div class="plan-detail-content"><p>시설의 상세보기를 눌러 정보를 확인하세요.</p></div></aside>
+    </div>
     <div class="plan-actions"><span id="plan-selected-count">선택 0곳 / 최대 20곳</span><button type="button" class="button primary" id="plan-confirm" disabled>시설 확정하기</button></div>
   </div>
   <div id="plan-entry" hidden>
@@ -22,5 +29,11 @@
   </div>
 <button type="button" class="button ghost" id="plan-back-region">← 지역 현황으로</button>
 </section>
-<dialog id="plan-result" class="plan-result" aria-labelledby="plan-result-title"><div id="plan-result-content"></div><p id="plan-share-status" role="status"></p><div class="plan-result-actions"><button type="button" class="button primary" id="plan-print">프린트</button><button type="button" class="button ghost" id="plan-sms">문자보내기</button><button type="button" class="button ghost" id="plan-kakao">카카오톡 보내기</button><button type="button" class="button ghost" id="plan-close">닫기</button></div></dialog>
+<dialog id="plan-result" class="plan-result" aria-labelledby="plan-result-title">
+  <div class="plan-result-head"><span class="plan-pill">생성 완료 · 저장되지 않는 검토용 계획서</span><button type="button" class="button ghost plan-close-icon" id="plan-close-top" aria-label="계획서 닫기">×</button></div>
+  <div id="plan-result-content"></div>
+  <p id="plan-share-status" role="status"></p>
+  <div class="plan-result-actions"><button type="button" class="button primary" id="plan-print">{% include 'components/icon.html' with name='print' %}프린트</button><button type="button" class="button ghost" id="plan-sms">{% include 'components/icon.html' with name='message' %}문자보내기</button><button type="button" class="button ghost" id="plan-kakao">{% include 'components/icon.html' with name='chat' %}카카오톡 보내기</button><button type="button" class="button ghost" id="plan-close">닫기</button></div>
+</dialog>
+<div id="plan-print-area" class="plan-print-area" aria-hidden="true"></div>
 <dialog id="plan-share-dialog" class="plan-result" aria-labelledby="plan-share-title"><div class="planner-heading"><h2 id="plan-share-title">공유 내용 확인</h2><button id="plan-share-close" class="button ghost" type="button">공유 닫기</button></div><div class="plan-share-body"><label id="plan-recipient-label" class="plan-field">받는 사람 연락처<input id="plan-recipient" type="tel" placeholder="010-0000-0000" autocomplete="off"></label><label class="plan-field">전달 내용<textarea id="plan-share-message" rows="9" readonly></textarea></label><p id="plan-share-help" class="chart-note"></p><button class="button primary" type="button" disabled>외부 서비스 연동 후 발송 가능</button></div></dialog>

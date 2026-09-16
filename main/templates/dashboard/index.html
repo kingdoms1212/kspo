@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load assets %}
 {% block content %}
 {% include 'dashboard/_styles.html' %}
-<link rel="stylesheet" href="{% static 'program-planner.css' %}?v=20260916">
+<link rel="stylesheet" href="{% asset 'program-planner.css' %}">
 <div class="dashboard-screen">
 <header class="page-head db-heading"><div class="review-intro"><span class="planner-eyebrow">SPORTS PROGRAM PLANNING</span>
 <div class="heading-copy program-heading-copy" id="dashboard-heading"><h1>프로그램 설계</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>
@@ -11,7 +12,7 @@
 <div id="dashboard-body" hx-sync="#dashboard-body:replace">{% include 'dashboard/_body.html' %}</div>
 {% include 'dashboard/_planner.html' %}
 </div>
-<script src="{% static 'region-map.js' %}?v=20260915-nationwide-districts-2" defer></script>
-<script src="{% static 'dashboard-region-map.js' %}?v=20260916-dashboard-connect" defer></script>
-<script src="{% static 'program-planner.js' %}?v=20260916" defer></script>
+<script src="{% asset 'region-map.js' %}" defer></script>
+<script src="{% asset 'dashboard-region-map.js' %}" defer></script>
+<script src="{% asset 'program-planner.js' %}" defer></script>
 {% endblock %}

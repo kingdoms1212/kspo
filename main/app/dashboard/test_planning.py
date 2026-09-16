@@ -61,9 +61,12 @@ class PlanningTests(SimpleTestCase):
     def test_preview_accepts_free_program_without_database_or_session(self):
         response = self.client.post('/dashboard/plan/preview', self.payload)
         self.assertContains(response, '청소년 농구')
-        self.assertContains(response, '합계 20명')
-        self.assertContains(response, '0원 / 월')
+        self.assertContains(response, '전체 20명')
+        # A fee of zero is stated as free rather than printed as an amount.
+        self.assertContains(response, '무료')
+        self.assertNotContains(response, '0원')
         self.assertContains(response, '120명')
+        self.assertContains(response, '작성')
         self.assertIn('no-store', response['Cache-Control'])
         self.assertNotIn('sessionid', response.cookies)
 

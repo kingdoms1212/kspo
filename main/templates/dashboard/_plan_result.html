@@ -1,7 +1,31 @@
-<article class="plan-document"><p class="planner-eyebrow">SPORT INSIGHT · PROGRAM PLAN</p><h2 id="plan-result-title">{{ plan.name }}</h2><p>{{ plan.region }} {{ plan.district }} · {{ plan.sport }}</p>
-<h3>설계에 참고한 지역 현황</h3><dl class="plan-summary"><dt>이용 시설</dt><dd>{{ statistics.facilities|default_if_none:'미제공' }}개</dd><dt>개설 강좌</dt><dd>{{ statistics.courses|default_if_none:'미제공' }}건</dd><dt>신청인원 합계</dt><dd>{{ statistics.requests|default_if_none:'미제공' }}명</dd><dt>관측 기간</dt><dd>{{ statistics.period|join:', ' }}</dd></dl>
-<p class="chart-note">신청인원은 개설월별 합계이며 고유 이용자 수가 아닙니다.</p>
-<details><summary>종목별 신청인원</summary><ul>{% for sport, count in statistics.sports %}<li>{{ sport }}: {{ count }}명</li>{% endfor %}</ul></details>
-<h3>선택 시설 · {{ selected|length }}곳</h3>{% for row in selected %}<section class="plan-document-facility"><h4>{{ row.name }}</h4><p>{{ row.address }}</p><p>{{ row.facility_type }} · {{ row.state }} · 연락처 {{ row.phone }}</p></section>{% endfor %}
-<h3>프로그램 운영안</h3><dl class="plan-summary"><dt>대상</dt><dd>{{ plan.target|default:"미정" }}</dd><dt>운영기간</dt><dd>{{ plan.start|date:"Y-m-d"|default:"미정" }} ~ {{ plan.end|date:"Y-m-d"|default:"미정" }}</dd><dt>시설별 모집인원</dt><dd>{{ plan.capacity }}명 (합계 {{ total_capacity }}명)</dd><dt>1인 수강료</dt><dd>{{ plan.fee }}원 / {{ plan.fee_unit }}</dd></dl><p class="plan-description">{{ plan.description }}</p>
-<p class="chart-note">검토용 계획서이며 시설 예약·강좌 등록이 아닙니다. 이 계획서는 저장되지 않으며 창을 닫으면 사라집니다.</p></article>
+{% load assets %}
+<article class="plan-document">
+<p class="planner-eyebrow">SPORT INSIGHT · PROGRAM PLAN</p><h2 id="plan-result-title">{{ plan.name }}</h2>
+<p class="plan-document-meta">{{ plan.region }}{% if plan.district %} {{ plan.district }}{% endif %} · {{ plan.sport }} · {{ created|date:"Y-m-d H:i" }} 작성 · 실제 개설·대관 확정 전</p>
+<div class="plan-document-block">
+<h3>설계에 참고한 지역 현황</h3>
+<div class="result-kpis">
+  <div><span class="result-kpi-label">{% include 'components/icon.html' with name='building' %}이용 시설</span><strong>{% if statistics.facilities is not None %}{{ statistics.facilities|floatformat:'0g' }}<em>개</em>{% else %}미제공{% endif %}</strong></div>
+  <div><span class="result-kpi-label">{% include 'components/icon.html' with name='program' %}개설 강좌</span><strong>{% if statistics.courses is not None %}{{ statistics.courses|floatformat:'0g' }}<em>건</em>{% else %}미제공{% endif %}</strong></div>
+  <div><span class="result-kpi-label">{% include 'components/icon.html' with name='people' %}신청인원 합계</span><strong>{% if statistics.requests is not None %}{{ statistics.requests|floatformat:'0g' }}<em>명</em>{% else %}미제공{% endif %}</strong></div>
+</div>
+<p>선택 종목 <b>{{ plan.sport }}</b> · 이 지역의 해당 종목 신청인원 <b>{% if sport_requests is not None %}{{ sport_requests|floatformat:'0g' }}명{% else %}이용현황 자료에 없음{% endif %}</b></p>
+<p class="chart-note">관측 개설월 {{ statistics.period|join:', ' }}. 신청인원은 개설월별 합계이며 고유 이용자 수가 아닙니다. 이용현황과 시설 명부는 서로 다른 모집단입니다.</p>
+<details class="plan-sport-detail"><summary>종목별 신청인원 전체 {{ statistics.sports|length }}종목</summary>
+  <div class="plan-sport-scroll"><table class="plan-sport-table"><caption class="sr-only">{{ plan.region }} {{ plan.district }} 종목별 신청인원, 많은 순</caption>
+    <thead><tr><th scope="col">순위</th><th scope="col">종목</th><th scope="col">신청인원</th></tr></thead>
+    <tbody>{% for sport, count in statistics.sports %}<tr{% if sport == plan.sport %} class="current"{% endif %}><td class="number">{{ forloop.counter }}</td><td>{{ sport }}</td><td class="value">{{ count|floatformat:'0g' }}명</td></tr>{% empty %}<tr><td colspan="3" class="empty">집계할 종목 자료가 없습니다.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</details>
+</div>
+<div class="plan-document-block">
+<h3>선택 시설 · {{ selected|length }}곳</h3>
+<div class="plan-document-facilities">{% for row in selected %}<section class="plan-document-facility"><img src="{% centre_photo row.id %}" alt="" loading="lazy"><div><h4>{{ row.name }}</h4><p>{{ row.address }}</p><p class="chart-note">{{ row.facility_type }} · {{ row.state }} · 연락처 {{ row.phone }}</p></div></section>{% endfor %}</div>
+<p class="chart-note">시설 이미지는 대표 이미지이며 해당 시설의 실제 사진이 아닙니다.</p>
+</div>
+<div class="plan-document-block">
+<h3>프로그램 운영안</h3><dl class="plan-summary"><dt>대상</dt><dd>{{ plan.target|default:"미정" }}</dd><dt>운영기간</dt><dd>{{ plan.start|date:"Y-m-d"|default:"미정" }} ~ {{ plan.end|date:"Y-m-d"|default:"미정" }}</dd><dt>모집인원</dt><dd>시설당 {{ plan.capacity|floatformat:'0g' }}명 · 전체 {{ total_capacity|floatformat:'0g' }}명</dd><dt>수강료</dt><dd>{% if plan.fee %}{{ plan.fee|floatformat:'0g' }}원 / 1인 / {{ plan.fee_unit }} 기준{% else %}무료{% endif %}</dd></dl>
+<p class="plan-description">{{ plan.description }}</p>
+</div>
+<p class="chart-note">검토용 계획서이며 시설 예약·강좌 등록이 아닙니다. 이 계획서는 저장되지 않으며 창을 닫으면 사라집니다.</p>
+</article>
