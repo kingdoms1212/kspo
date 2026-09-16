@@ -4,18 +4,16 @@ from urllib.parse import urlencode
 from ..common.partials import render_screen
 from .planning import SPORT_TYPES
 from .services import (
-    chart_sort, courses_per_facility, dashboard_data, normalized_chart_rows,
-    region_chart_rows, requests_per_course, requests_per_facility, pie_chart_data,
+    selected_districts, chart_sort, courses_per_facility, dashboard_data, normalized_chart_rows,
+    region_chart_rows, requests_per_course, requests_per_facility, requests_per_sport, pie_chart_data,
 )
 
 def dashboard(request):
-    region = request.GET.get('region', '')
-    district = request.GET.get('district', '') if region else ''
+    region = '서울'
+    districts = selected_districts(','.join(request.GET.getlist('district')))
+    district = ','.join(districts)
     region_sort = chart_sort(request.GET.get('region_sort', 'desc'))
     sport_sort = chart_sort(request.GET.get('sport_sort', 'desc'))
-    chart_type = request.GET.get('chart_type', 'bar')
-    if chart_type not in ('bar', 'pie'):
-        chart_type = 'bar'
     context = dashboard_data(region, district) if district else dashboard_data(region)
     context.setdefault('region_district_options', {})
     context['district_options'] = context.get('region_district_options', {}).get(region, [])
@@ -26,24 +24,13 @@ def dashboard(request):
     context['requests_per_course'] = requests_per_course(context.get('courses'), context.get('requests'))
     context['requests_per_facility'] = requests_per_facility(context.get('facilities'), context.get('requests'))
     context['sport_chart_rows'] = normalized_chart_rows(context.get('sport_rows', []), sport_sort)
-    context['chart_type'] = chart_type
-    if chart_type == 'pie':
-        context['region_pie'] = pie_chart_data(chart_rows)
-        context['sport_pie'] = pie_chart_data(context['sport_chart_rows'])
-    filters = {'region': region, 'region_sort': region_sort, 'sport_sort': sport_sort}
-    if district:
-        filters['district'] = district
-    # Keep old default URLs concise; preserve the chosen non-default chart mode.
-    shape_filter = {'chart_type': chart_type} if chart_type != 'bar' else {}
-    if district:
-        shape_filter['district'] = district
-    context['chart_modes'] = [
-        {'type': mode, 'label': label, 'url': '?' + urlencode({**filters, 'chart_type': mode})}
-        for mode, label in (('bar', '막대'), ('pie', '원형'))
-    ]
+    context['requests_per_sport'] = requests_per_sport(context.get('sport_count'), context.get('requests'))
+    context['region_pie'] = pie_chart_data(chart_rows)
+    context['sport_pie'] = pie_chart_data(context['sport_chart_rows'])
+    shape_filter = {'district': district} if district else {}
     context.update({
         'planning_sports': list(SPORT_TYPES),
-        'page': 'dashboard', 'selected_region': region, 'selected_district': district,
+        'page': 'dashboard', 'selected_region': region, 'selected_district': district, 'selected_districts': districts,
         'region_sort': region_sort, 'sport_sort': sport_sort,
         'region_sort_url': '?' + urlencode({
             'region': region, 'region_sort': 'desc' if region_sort == 'asc' else 'asc',

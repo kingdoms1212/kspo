@@ -3,11 +3,13 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
 from ..facilities.services import facility_transit
 from .planning import ScopeForm, PlanForm, candidates, facility_token
+from .services import pie_chart_data, region_chart_rows
 
 
 @never_cache
@@ -49,8 +51,15 @@ def preview(request):
     form = PlanForm(request.POST)
     if not form.is_valid():
         return JsonResponse({'errors': form.errors}, status=400)
+    # The plan states the chosen sport's own application count beside the area
+    # total. A sport absent from the usage ledger stays absent; it is reported
+    # as such rather than shown as zero.
+    sport_requests = dict(form.statistics['sports']).get(form.cleaned_data['sport'])
     return render(request, 'dashboard/_plan_result.html', {
         'plan': form.cleaned_data, 'selected': form.selected,
         'statistics': form.statistics,
+        'region_pie': pie_chart_data(region_chart_rows(form.statistics.get('areas', []))),
         'total_capacity': form.cleaned_data['capacity'] * len(form.selected),
+        'sport_requests': sport_requests,
+        'created': timezone.localtime(),
     })

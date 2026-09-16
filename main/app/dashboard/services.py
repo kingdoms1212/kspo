@@ -1,20 +1,27 @@
 """Dashboard aggregates and presentation data."""
 from collections import Counter
+from math import cos, sin, pi
 
 from . import models
 
 
+def selected_districts(value):
+    values = value.split(',') if isinstance(value, str) else value
+    return sorted({name.strip() for name in values if name.strip()})
+
+
 def dashboard_data(region='', district=''):
+    districts = selected_districts(district)
     snapshot = models.usage_snapshot()
-    areas = [area for area in snapshot['areas']
-             if (not region or area['region'] == region)
-             and (not district or area['district'] == district)]
+    seoul_areas = [area for area in snapshot['areas'] if area['region'] == '서울']
+    areas = [area for area in seoul_areas
+             if not districts or area['district'] in districts]
     sports = Counter()
     for area in areas:
         sports.update(area['sports'])
     sport_rows = sport_totals(areas)
     region_districts = {}
-    for area in snapshot['areas']:
+    for area in seoul_areas:
         if area['region'] != '지역 미제공' and area['district'] != '시군구 미제공':
             region_districts.setdefault(area['region'], set()).add(area['district'])
     months = sorted({month for area in areas for month in (area['first_month'], area['last_month']) if month})
@@ -27,12 +34,11 @@ def dashboard_data(region='', district=''):
         'sport_rows': sport_rows,
         'region_district_options': {name: sorted(names) for name, names in region_districts.items()},
         'sport_count': sum(row['name'] != '종목 미제공' for row in sport_rows),
-        'region_options': sorted({area['region'] for area in snapshot['areas']
-                                  if area['region'] != '지역 미제공'}),
+        'region_options': ['서울'],
         'period': [f'{months[0]} ~ {months[-1]}'] if months else ['기준일 미확인'],
         # 대시보드 전용 신청인원 집계를 공통 지도의 입력 형식으로 전달한다.
-        'region_distribution': region_distribution(snapshot['areas']),
-        'district_distribution': district_distribution(snapshot['areas']),
+        'region_distribution': region_distribution(seoul_areas),
+        'district_distribution': district_distribution(seoul_areas),
         'load_report': {'ledger_rows': snapshot['ledger_rows'],
                         'unidentified': snapshot['unidentified'],
                         'source': snapshot['source']},
@@ -151,11 +157,13 @@ def region_chart_rows(areas, order='desc'):
 
 def pie_chart_data(rows):
     """Pie angles use actual positive counts, independently of bar normalization."""
+    rows = list(rows)
+    canonical = sorted(rows, key=lambda row: (-(row.get('requests') or 0), row.get('name', ''), row.get('region', ''), row.get('district', '')))
     total = sum(max(row.get('requests') or 0, 0) for row in rows)
     palette = ('--si-map-5', '--si-map-3', '--si-chart-primary', '--si-map-2', '--si-navy')
     segments, legend = [], []
     cumulative = 0
-    for index, row in enumerate(rows):
+    for index, row in enumerate(canonical):
         value = max(row.get('requests') or 0, 0)
         start = cumulative / total * 100 if total else 0
         cumulative += value
@@ -163,7 +171,19 @@ def pie_chart_data(rows):
         color = palette[index % len(palette)]
         if value and total:
             segments.append(f'var({color}) {start:.8f}% {end:.8f}%')
-        legend.append({**row, 'number': index + 1, 'color': color,
+        start_angle, end_angle = start / 100 * 2 * pi - pi / 2, end / 100 * 2 * pi - pi / 2
+        path = (f'M 100 100 L {100 + 95 * cos(start_angle):.6f} {100 + 95 * sin(start_angle):.6f} '
+                f'A 95 95 0 {int(end - start > 50)} 1 '
+                f'{100 + 95 * cos(end_angle):.6f} {100 + 95 * sin(end_angle):.6f} Z')
+        legend.append({**row, 'number': index + 1, 'color': color, 'path': path,
                        'share': value / total * 100 if total else 0})
-    return {'rows': legend, 'total': total,
+    by_identity = {id(row): item for row, item in zip(canonical, legend)}
+    return {'rows': [by_identity[id(row)] for row in rows], 'total': total,
             'gradient': 'conic-gradient(' + ', '.join(segments) + ')' if segments else 'none'}
+
+
+def requests_per_sport(sport_count, requests):
+    """Recorded applications divided by the number of named sports."""
+    if sport_count is None or sport_count <= 0 or requests is None:
+        return None
+    return requests / sport_count

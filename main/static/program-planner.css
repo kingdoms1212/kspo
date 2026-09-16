@@ -298,39 +298,38 @@
     grid-template-columns:90px 1fr;
   }
 }
+.plan-print-area { display:none; }
 @media print {
-  body:has(#plan-result[open])>* {
+  /* The plan prints from #plan-print-area, a copy that program-planner.js puts
+     in the ordinary document flow. A modal dialog lives in the top layer, which
+     Chrome prints as one page cut at the dialog's own scroll position, so a long
+     plan came out starting halfway down. */
+  body:has(#plan-print-area:not(:empty))>*:not(#plan-print-area) {
     display:none!important;
   }
-  body:has(#plan-result[open]) .main-content,body:has(#plan-result[open]) .dashboard-screen {
-    display:block!important;
-    margin:0!important;
-    padding:0!important;
-  }
-  body:has(#plan-result[open]) .main-content>*:not(.dashboard-screen),body:has(#plan-result[open]) .dashboard-screen>*:not(#plan-result) {
-    display:none!important;
-  }
-  #plan-result[open] {
-    display:block!important;
-    position:static;
-    width:100%;
-    max-width:none;
-    max-height:none;
-    overflow:visible;
-    border:0;
+  #plan-print-area:not(:empty) {
+    display:block;
+    margin:0;
     padding:0;
   }
-  .plan-result-actions,#plan-share-status {
+  #plan-result,#plan-share-dialog {
     display:none!important;
+  }
+  #plan-result::backdrop {
+    display:none;
   }
   .plan-document details>* {
     display:block!important;
   }
+  .plan-document summary {
+    list-style:none;
+    color:inherit;
+  }
+  .plan-document h3 {
+    break-after:avoid;
+  }
   .plan-document-facility {
     break-inside:avoid;
-  }
-  #plan-result::backdrop {
-    display:none;
   }
 }
 /* Match docs/program-design-review: overview, then a dedicated touch wizard. */
@@ -348,18 +347,21 @@
 .planner-steps .complete::before { content:'✓';background:var(--si-success-bg);color:var(--si-success); }
 .dashboard-screen .db-layout { grid-template-columns:repeat(3,minmax(0,1fr));gap:18px; }
 .dashboard-screen .db-right,.dashboard-screen .db-charts { display:contents; }
-.dashboard-screen .db-metrics { grid-column:1/-1;grid-row:1;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px; }
+.dashboard-screen .db-scope { grid-column:1/-1;grid-row:1;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px; }
+.dashboard-screen .db-scope h2 { font-size:25px; }
+.dashboard-screen .db-scope .chart-note { margin:0; }
+.dashboard-screen .db-metrics { grid-column:1/-1;grid-row:2;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px; }
 .dashboard-screen .db-metric { padding:24px;border-radius:18px; }
-.dashboard-screen .map-panel { grid-column:1;grid-row:3; }
-.dashboard-screen .db-chart-modes { grid-column:1/-1;grid-row:2; }
-.dashboard-screen .db-chart-panel { grid-row:3;border-radius:18px;padding:24px; }
+.dashboard-screen .map-panel { grid-column:1;grid-row:4; }
+.dashboard-screen .db-chart-modes { grid-column:1/-1;grid-row:3; }
+.dashboard-screen .db-chart-panel { grid-row:4;border-radius:18px;padding:24px; }
 .dashboard-screen .db-chart-panel:first-child { grid-column:2; }
 .dashboard-screen .db-chart-panel:last-child { grid-column:3; }
 .dashboard-screen .db-chart-heading h2 { font-size:18px; }
 .dashboard-screen .db-chart-scroll { height:350px; }
 .dashboard-screen .db-bar-track { height:10px;border-radius:8px; }
 .dashboard-screen .map-panel { border-radius:18px;padding:24px; }
-.dashboard-screen .db-policy { grid-column:1/-1;grid-row:4;border-radius:18px; }
+.dashboard-screen .db-policy { grid-column:1/-1;grid-row:5;border-radius:18px; }
 .dashboard-screen #dashboard-region-map { height:280px; }
 .dashboard-screen .region-picker a { min-height:40px;display:inline-flex;align-items:center;padding:8px; }
 .plan-insight { border-radius:12px;background:var(--si-surface-soft);padding:16px;margin:20px 0;font-size:13px; }
@@ -385,8 +387,78 @@
 #plan-entry .plan-actions { justify-content:flex-end; }
 #plan-generate { min-height:64px;font-size:20px;min-width:280px; }
 #plan-kakao { background:#fee500;color:#191919;border-color:#fee500; }
-.plan-result-actions .button { flex:1;min-height:60px; }
+.plan-result-actions .button { flex:none;min-height:42px;padding:9px 16px;font-size:14px;gap:7px; }
+.plan-result-actions #plan-close { margin-left:auto; }
 @media(max-width:1250px){.dashboard-screen .db-metric{padding:16px}.dashboard-screen .db-metric strong{font-size:24px}.dashboard-screen .db-chart-panel,.dashboard-screen .map-panel{padding:18px}}
-@media(max-width:1050px){.dashboard-screen .db-layout{grid-template-columns:1fr}.dashboard-screen .db-metrics{grid-template-columns:1fr 1fr}.dashboard-screen .map-panel,.dashboard-screen .db-chart-panel,.dashboard-screen .db-chart-panel:first-child,.dashboard-screen .db-chart-panel:last-child,.dashboard-screen .db-policy{grid-column:1;grid-row:auto}.plan-facility-grid{grid-template-columns:1fr}.plan-candidates{max-height:380px}}
-@media(max-width:700px){.review-intro h1{font-size:25px}.review-intro p{font-size:15px}.planner-steps{grid-template-columns:1fr}.dashboard-screen .db-metrics{grid-template-columns:1fr}.plan-facility-grid{grid-template-columns:minmax(0,1fr)}.plan-candidate>button{flex-wrap:wrap}.planner{padding:18px}#plan-generate{min-width:0;width:100%}.plan-result-actions .button{flex-basis:100%}}
+@media(max-width:1050px){.dashboard-screen .db-layout{grid-template-columns:1fr}.dashboard-screen .db-metrics{grid-template-columns:1fr 1fr}.dashboard-screen .map-panel,.dashboard-screen .db-chart-panel,.dashboard-screen .db-chart-panel:first-child,.dashboard-screen .db-chart-panel:last-child,.dashboard-screen .db-scope,.dashboard-screen .db-policy{grid-column:1;grid-row:auto}.plan-facility-grid{grid-template-columns:1fr}.plan-candidates{max-height:380px}}
+@media(max-width:700px){.plan-result-actions #plan-close{margin-left:0}.review-intro h1{font-size:25px}.review-intro p{font-size:15px}.planner-steps{grid-template-columns:1fr}.dashboard-screen .db-metrics{grid-template-columns:1fr}.plan-facility-grid{grid-template-columns:minmax(0,1fr)}.plan-candidate>button{flex-wrap:wrap}.planner{padding:18px}#plan-generate{min-width:0;width:100%}.plan-result-actions .button{flex:1 1 auto}}
 .plan-share-body{display:grid;gap:22px;padding:24px 0}.plan-share-body input,.plan-share-body textarea{font:inherit}.plan-share-body>.button{min-height:58px}
+
+/* Review mock-up parity: scope line, alert tone, detail card, plan document. */
+.plan-pill { display:inline-block;background:var(--si-surface-soft);color:var(--si-primary-hover);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;white-space:nowrap; }
+#plan-start-help { margin-top:10px; }
+#plan-error:empty { display:none; }
+.plan-error { margin-top:14px;padding:14px;border-radius:12px;background:var(--si-warning-bg);color:var(--si-danger);font-weight:700;line-height:1.7; }
+.plan-facility-grid .section-title { margin-bottom:14px; }
+#plan-count { color:var(--si-primary-hover); }
+.plan-detail { padding:0;overflow:hidden; }
+.plan-detail-content { padding:22px; }
+.plan-photo { margin:0; }
+.plan-photo img { border-radius:0;display:block;height:240px; }
+.detail-tags { display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 20px; }
+.detail-tags .tag { font-size:12px;padding:5px 10px; }
+.plan-transit-box { background:var(--si-bg);border-radius:12px;padding:16px;margin:20px 0; }
+.plan-transit-box h4 { margin:0 0 10px;font-size:16px; }
+.plan-transit-box .chart-note { margin-top:10px; }
+.plan-transit { margin:0;padding-left:20px;display:grid;gap:10px; }
+.plan-confirmed-row { display:flex;align-items:center;gap:14px;padding:16px;border-radius:12px;background:var(--si-bg); }
+.plan-confirmed-row img { width:96px;height:68px;object-fit:cover;border-radius:10px;flex:none; }
+.plan-confirmed-row small { display:block;font-weight:400;margin-top:6px;color:var(--si-text-secondary); }
+.plan-result-head { position:sticky;top:-32px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--si-surface);margin:-32px -32px 0;padding:24px 32px 14px; }
+.plan-close-icon { min-width:56px;font-size:22px;line-height:1; }
+.plan-document-meta { color:var(--si-text-secondary);font-size:13px;margin-top:8px; }
+.plan-document-block { margin-top:24px;padding-top:18px;border-top:1px solid var(--si-border); }
+.result-kpis { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0; }
+.result-kpis>div { background:var(--si-bg);border-radius:12px;padding:16px; }
+.result-kpis small { color:var(--si-text-secondary);font-size:13px; }
+.result-kpis strong { display:block;margin-top:8px;font-size:24px;letter-spacing:-.5px;color:var(--si-heading); }
+.result-kpis em { font-style:normal;font-size:14px;font-weight:400;margin-left:3px; }
+@media(max-width:700px) {
+  .plan-result-head { top:-20px;margin:-20px -20px 0;padding:16px 20px 12px; }
+  .result-kpis { grid-template-columns:1fr; }
+  .plan-confirmed-row { flex-wrap:wrap; }
+}
+@media print {
+  .plan-sport-table thead { display:table-header-group; }
+  .plan-sport-table tr { break-inside:avoid; }
+}
+
+/* Report styling: labelled figures, a sport table, and pictured facilities. */
+.result-kpi-label { display:flex;align-items:center;gap:7px;color:var(--si-text-secondary);font-size:13px; }
+.result-kpi-label .icon { width:17px;height:17px;color:var(--si-primary); }
+.plan-sport-detail { margin-top:18px; }
+.plan-sport-detail summary { cursor:pointer;font-weight:700;color:var(--si-primary-hover); }
+.plan-sport-scroll { max-height:320px;overflow:auto;margin-top:14px;border:1px solid var(--si-border);border-radius:12px; }
+.plan-sport-table { width:100%;border-collapse:collapse;font-size:13px; }
+.plan-sport-table th { position:sticky;top:0;background:var(--si-surface-soft);color:var(--si-heading);text-align:left;padding:10px 12px;font-weight:700; }
+.plan-sport-table td { padding:9px 12px;border-top:1px solid var(--si-border); }
+.plan-sport-table .number { width:52px;color:var(--si-text-muted);font-variant-numeric:tabular-nums; }
+.plan-sport-table .value,.plan-sport-table th:last-child { text-align:right;font-variant-numeric:tabular-nums; }
+.plan-sport-table .current { background:var(--si-surface-soft); }
+.plan-sport-table .current td { font-weight:700;color:var(--si-heading); }
+.plan-document-facilities { display:grid;gap:12px;margin-top:14px; }
+.plan-document-facility { display:flex;align-items:flex-start;gap:14px;padding:14px;border:1px solid var(--si-border);border-radius:12px; }
+.plan-document-facility img { width:104px;height:74px;object-fit:cover;border-radius:10px;flex:none; }
+.plan-document-facility h4 { margin:0 0 6px; }
+.plan-document-facility p { margin:0; }
+.plan-document-facility .chart-note { margin-top:6px; }
+@media(max-width:700px) {
+  .plan-document-facility { flex-wrap:wrap; }
+  .plan-sport-scroll { max-height:260px; }
+}
+@media print {
+  /* The printed report shows every sport, not a scrolling window. */
+  .plan-sport-scroll { max-height:none;overflow:visible; }
+  .plan-sport-table th { position:static; }
+  .plan-document-facility { break-inside:avoid; }
+}
