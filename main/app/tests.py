@@ -56,7 +56,8 @@ class ShellTests(SimpleTestCase):
                     self.assertEqual(parser.current, [route])
                     self.assertEqual(parser.skip_target, '#main-content')
                     self.assertEqual(parser.main_target, parser.skip_target)
-                    self.assertContains(response, '실제 자료 모드 · 검증 진행 중')
+                    for label in ('프로그램 설계', '프로그램 현황', '시설 현황'):
+                        self.assertContains(response, label)
                     self.assertNotContains(response, '자료 범위·검증 상태 확인')
                     self.assertContains(response, 'sport-insight-colors.css')
                     self.assertNotContains(response, 'fonts.googleapis.com')
@@ -71,7 +72,7 @@ class ShellTests(SimpleTestCase):
 
 
 class DesignInteractionTests(SimpleTestCase):
-    def test_program_pagination_keeps_top_three_and_export_filters(self):
+    def test_program_pagination_keeps_results_and_export_filters(self):
         rows = [program(id=str(i), name=f'테스트 강좌 {i:02}') for i in range(23)]
         with patch('app.programs.views.filter_programs', return_value=rows), \
              patch('app.programs.views.models.programs', return_value=rows), \
@@ -80,7 +81,7 @@ class DesignInteractionTests(SimpleTestCase):
                                                      'target': '성인', 'sort': 'name', 'page': 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.context['page_obj']), rows[20:])
-        self.assertEqual(response.context['top_results'], rows[:3])
+        self.assertEqual(response.context['results'], rows)
         from urllib.parse import parse_qs
         filters = parse_qs(response.context['export_query'])
         self.assertEqual(filters['sport'], ['수영'])

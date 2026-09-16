@@ -309,12 +309,12 @@ tbody tr:hover { background:var(--si-surface-hover); }
   .global-brand strong { font-size:20px; }
   .global-meta { font-size:9px; }
   .mode-indicator { font-size:9px; white-space:normal; max-width:110px; }
-  .sidebar { position:static; width:auto; margin:0 10px; padding:6px; border-radius:5px; }
-  .sidebar nav { display:flex; gap:4px; }
-  .nav-link { flex:1; justify-content:center; min-height:42px; padding:9px 4px; font-size:12px; gap:6px; }
+  .sidebar { position:fixed; top:var(--header-height); bottom:10px; left:6px; width:94px; margin:10px 0 0; padding:6px; border-radius:10px; }
+  .sidebar nav { display:grid; gap:8px; }
+  .nav-link { flex-direction:column; justify-content:center; min-height:64px; padding:9px 4px; font-size:11px; gap:6px; white-space:normal; text-align:center; }
   .nav-link .icon { width:17px; height:17px; }
   .sidebar-foot { display:none; }
-  .main-content { margin-left:0; padding:0 14px 20px; }
+  .main-content { margin-left:106px; padding:0 10px 20px; }
   .page-head { flex-wrap:wrap; gap:12px; padding:20px 0 16px; }
   .heading-copy { display:block; }
   .program-heading-copy { display:flex; }

@@ -1,11 +1,12 @@
-{% if htmx_fragment %}<div class="heading-copy program-heading-copy" id="dashboard-heading" hx-swap-oob="true"><h1>시설 이용 현황</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>{% endif %}
+<div id="plan-scope" data-region="{{ selected_region }}" data-district="{{ selected_district }}" hidden></div>
+{% if htmx_fragment %}<div class="heading-copy program-heading-copy" id="dashboard-heading" hx-swap-oob="true"><h1>프로그램 설계</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>{% endif %}
 <p class="sr-only" role="status">{{ selected_region|default:'전국' }} 조회 완료. 시설 {{ facilities|default_if_none:'미제공' }}개, 강좌 {{ courses|default_if_none:'미제공' }}건. 시군구 {% if region_sort == 'asc' %}적은{% else %}많은{% endif %} 순, 종목 {% if sport_sort == 'asc' %}적은{% else %}많은{% endif %} 순.</p>
 <form id="dashboard-filters" class="db-layout" method="get" action="{% url 'dashboard' %}" hx-get="{% url 'dashboard' %}" hx-trigger="submit" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy">
 <input type="hidden" name="region_sort" value="{{ region_sort }}">
 <input type="hidden" name="sport_sort" value="{{ sport_sort }}">
 <input type="hidden" name="chart_type" value="{{ chart_type }}">
   <section class="panel map-panel" tabindex="-1" data-focus-fallback>
-    <div class="section-title"><h2>지역별 이용현황</h2><span class="unit">단위: 명</span><div class="db-helper">{% include 'dashboard/_info.html' with label='지역별 이용현황 안내' text='지도 색상은 개설월 합계 신청인원이며 고유 이용자 수가 아닙니다. 전남광주처럼 자료에만 있는 통합 명칭은 행정경계와 대응하지 않아 칠해지지 않습니다.이용현황 자료의 지역명은 서울처럼 짧은 형태이고 시설·프로그램 자료는 서울특별시처럼 전체 명칭이라 화면 간 대응표가 없습니다.' %}</div></div>
+    <div class="section-title"><h2>지역별 이용현황</h2><span class="unit">단위: 명</span><div class="db-helper">{% include 'dashboard/_info.html' with label='지역별 이용현황 안내' text='지도 색상은 개설월 합계 신청인원이며 고유 이용자 수가 아닙니다. 전남광주처럼 자료에만 있는 통합 명칭은 행정경계와 대응하지 않아 칠해지지 않습니다.프로그램 설계에서는 서울·서울특별시 같은 시도명 별칭을 대응합니다. 이용현황과 시설 명부의 수록 범위는 다를 수 있습니다.' %}</div></div>
     <div class="db-map-selectors">
       <label for="dashboard-region">시·도<select id="dashboard-region" name="region" data-focus-key="dashboard-region"><option value="" {% if not selected_region %}selected{% endif %}>전체</option>{% for option in region_options %}<option value="{{ option }}" {% if option == selected_region %}selected{% endif %}>{{ option }}</option>{% endfor %}</select></label>
       <label for="dashboard-district">시·군·구<select id="dashboard-district" name="district" data-focus-key="dashboard-district" {% if not selected_region %}disabled{% endif %}><option value="" {% if not selected_district %}selected{% endif %}>전체</option>{% for option in district_options %}<option value="{{ option }}" {% if option == selected_district %}selected{% endif %}>{{ option }}</option>{% endfor %}</select></label>
@@ -33,6 +34,7 @@
 <section class="panel db-chart-panel">
 <div class="db-section-title db-chart-heading"><h2>종목별 신청인원</h2>{% include 'dashboard/_info.html' with label='종목별 집계 및 그래프 기준' text='선택 지역의 모든 종목을 표시합니다. 시설·강좌 수는 각 종목 안에서 중복 제거하며 여러 종목을 운영하는 시설은 각 종목에 포함됩니다. 종목별 시설 수의 합은 전체 고유 시설 수와 다를 수 있습니다. 막대는 최소값 0%·최대값 100%의 상대 위치입니다. 최소값은 시작점, 동일한 양수는 전체 길이, 모두 0이면 시작점, 누락은 미제공으로 표시합니다.' %}<a class="db-sort-toggle" data-focus-key="dashboard-sport-sort" href="{{ sport_sort_url }}" hx-get="{{ sport_sort_url }}" hx-params="none" aria-label="종목별 신청인원: 현재 {% if sport_sort == 'asc' %}적은 순{% else %}많은 순{% endif %}, {% if sport_sort == 'asc' %}많은 순{% else %}적은 순{% endif %}으로 정렬" title="정렬 방향 전환"><span aria-hidden="true" class="{% if sport_sort == 'asc' %}active{% endif %}">↑</span><span aria-hidden="true" class="{% if sport_sort == 'desc' %}active{% endif %}">↓</span></a></div>
 {% if chart_type == 'pie' %}{% include 'dashboard/_pie.html' with pie=sport_pie label='종목별 신청인원' %}{% else %}{% include 'dashboard/_chart.html' with rows=sport_chart_rows label='종목별 신청인원' name_label='종목' %}{% endif %}
+<div class="plan-insight"><b>프로그램 설계의 참고 지표</b><p>과거 개설월 합계입니다. 현재 수요·고유 이용자 수와 다릅니다.</p></div><button type="button" class="button primary" id="plan-start" {% if not selected_region %}disabled{% endif %}>계획서 생성하기 →</button>
 </section>
 </div>
 <section class="panel db-policy">
