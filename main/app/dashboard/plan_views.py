@@ -1,0 +1,56 @@
+"""Read-only facility selection and validated, unsaved plan previews."""
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.templatetags.static import static
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
+
+from ..facilities.services import facility_transit
+from .planning import ScopeForm, PlanForm, candidates, facility_token
+
+
+@never_cache
+@require_GET
+def facility_list(request):
+    form = ScopeForm(request.GET)
+    if not form.is_valid():
+        return JsonResponse({'errors': form.errors}, status=400)
+    rows = candidates(**form.cleaned_data)
+    query = request.GET.get('q', '').strip()[:100].casefold()
+    if query:
+        rows = [row for row in rows if query in row.name.casefold() or query in row.address.casefold()]
+    page = Paginator(rows, 20).get_page(request.GET.get('page', 1))
+    return JsonResponse({'count': len(rows), 'page': page.number,
+                         'pages': page.paginator.num_pages,
+                         'rows': [{'id': row.id, 'token': facility_token(row),
+                                   'name': row.name, 'address': row.address,
+                                   'type': row.facility_type, 'state': row.state,
+                                   'photo': static('image/center/center' + row.id[-1] + '.jpg')} for row in page]})
+
+
+@never_cache
+@require_GET
+def facility_detail(request):
+    form = ScopeForm(request.GET)
+    if not form.is_valid():
+        return JsonResponse({'errors': form.errors}, status=400)
+    row = next((row for row in candidates(**form.cleaned_data)
+                if row.id == request.GET.get('id')), None)
+    if row is None:
+        return JsonResponse({'error': '현재 조건에서 시설을 찾을 수 없습니다.'}, status=404)
+    return render(request, 'dashboard/_plan_detail.html',
+                  {'selected': row, 'transit': facility_transit(row)})
+
+
+@never_cache
+@require_POST
+def preview(request):
+    form = PlanForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'errors': form.errors}, status=400)
+    return render(request, 'dashboard/_plan_result.html', {
+        'plan': form.cleaned_data, 'selected': form.selected,
+        'statistics': form.statistics,
+        'total_capacity': form.cleaned_data['capacity'] * len(form.selected),
+    })

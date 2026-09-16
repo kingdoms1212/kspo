@@ -2,6 +2,7 @@
 from urllib.parse import urlencode
 
 from ..common.partials import render_screen
+from .planning import SPORT_TYPES
 from .services import (
     chart_sort, courses_per_facility, dashboard_data, normalized_chart_rows,
     region_chart_rows, requests_per_course, requests_per_facility, pie_chart_data,
@@ -41,6 +42,7 @@ def dashboard(request):
         for mode, label in (('bar', '막대'), ('pie', '원형'))
     ]
     context.update({
+        'planning_sports': list(SPORT_TYPES),
         'page': 'dashboard', 'selected_region': region, 'selected_district': district,
         'region_sort': region_sort, 'sport_sort': sport_sort,
         'region_sort_url': '?' + urlencode({

@@ -1,0 +1,11 @@
+{% load assets %}
+<h3>{{ selected.name }}</h3>
+<div class="plan-photo"><img src="{% centre_photo selected.id %}" alt="" loading="lazy"><span>대표 이미지 · 해당 시설의 실제 사진이 아닙니다</span></div>
+<p class="tag">{{ selected.facility_type }} · {{ selected.state }}</p>
+<dl class="plan-detail-list"><dt>주소</dt><dd>{{ selected.address }}</dd><dt>시설 구분</dt><dd>{{ selected.flag }} · {{ selected.industry }}</dd><dt>보유주체</dt><dd>{{ selected.owner }}</dd><dt>운영형태</dt><dd>{{ selected.operation }}</dd><dt>실내·실외</dt><dd>{{ selected.indoor }}</dd><dt>연락처</dt><dd>{{ selected.phone }}</dd><dt>담당부서</dt><dd>{{ selected.department }}</dd><dt>면적</dt><dd>{{ selected.area|default_if_none:'미제공' }}{% if selected.area is not None %}㎡{% endif %}</dd><dt>시설 수용인원</dt><dd>{{ selected.capacity|default_if_none:'미제공' }}{% if selected.capacity is not None %}명{% endif %} (모집 가능 인원과 다름)</dd></dl>
+<h4>인접 대중교통</h4>
+{% if transit.error %}<p>{{ transit.error }}</p>
+{% elif transit.has_records %}<ul class="plan-transit">{% for stop in transit.stops %}<li>{{ stop.name }} · {{ stop.mode }}<small>직선 {{ stop.metres|default_if_none:'미제공' }}m · 도보 {% if stop.minutes is not None %}{{ stop.minutes }}분{% else %}시간 미제공{% endif %}</small></li>{% endfor %}</ul><p class="chart-note">{{ transit.total }}곳 중 가까운 {{ transit.shown }}곳. 시설명과 좌표로 연결한 자료이며 실제 이동 시간과 다를 수 있습니다.</p>
+{% elif transit.reason == 'not_public' %}<p>공공시설 대상 교통 자료에 포함되지 않는 시설입니다. 주변에 정류장이 없다는 뜻은 아닙니다.</p>
+{% else %}<p>연결할 수 있는 교통 정보가 없습니다. 주변에 정류장이 없다는 뜻은 아닙니다.</p>{% endif %}
+<p class="chart-note">자료상 등록 정보입니다. 시설에 운영시간과 대관 가능 여부를 확인하세요.</p>

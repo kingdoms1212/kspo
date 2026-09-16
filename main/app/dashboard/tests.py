@@ -234,7 +234,7 @@ class DashboardViewTests(SimpleTestCase):
                        requests=100, region_options=['서울'])
         with patch('app.dashboard.views.dashboard_data', return_value=context):
             response = self.client.get('/dashboard')
-        self.assertContains(response, '<h1>시설 이용 현황</h1>', html=True)
+        self.assertContains(response, '<h1>프로그램 설계</h1>', html=True)
         self.assertContains(response, '종목 수')
         self.assertNotContains(response, 'db-sport-count')
         self.assertContains(response, '종목6')
@@ -285,7 +285,10 @@ class DashboardViewTests(SimpleTestCase):
         self.assertContains(partial, 'hx-trigger="submit"')
         self.assertNotContains(partial, 'id="dashboard-body"')
         self.assertNotContains(partial, 'region-map.js')
-        self.assertEqual(full.content, restored.content)
+        # CSRF masks are freshly randomized on each full-page response.
+        import re
+        normalize = lambda body: re.sub(rb'name="csrfmiddlewaretoken" value="[^"]+"', b'name="csrfmiddlewaretoken"', body)
+        self.assertEqual(normalize(full.content), normalize(restored.content))
 
     def test_shared_map_retains_original_markup_without_legend_override(self):
         context = dict(id='test-map', region_data=[], district_data=[], value_label='신청인원')
