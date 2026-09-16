@@ -1,5 +1,5 @@
 <section id="program-planner" class="planner panel" aria-labelledby="planner-title" data-list-url="{% url 'plan_facilities' %}" data-detail-url="{% url 'plan_facility_detail' %}" data-preview-url="{% url 'plan_preview' %}">
-  <div class="planner-heading"><div><span class="planner-eyebrow">STEP 02</span><h2 id="planner-title">종목과 시설 선택</h2></div><span id="plan-context" class="plan-pill">지역 미선택</span></div>
+  <div class="planner-heading"><div><h2 id="planner-title">종목과 시설 선택</h2></div><span id="plan-context" class="plan-pill">지역 미선택</span></div>
   <p id="plan-status" role="status" aria-live="polite"></p>
   <p id="plan-error" class="plan-error" role="alert"></p>
   <div id="plan-selection" hidden>
@@ -18,7 +18,7 @@
   </div>
   <div id="plan-entry" hidden>
     <div class="planner-heading"><h3>확정한 시설</h3><button type="button" class="button ghost" id="plan-reselect">시설 다시 선택</button></div><ul id="plan-confirmed"></ul>
-    <div class="plan-info-heading"><span class="planner-eyebrow">STEP 03</span><h2>프로그램 정보 입력</h2></div><form id="plan-form">{% csrf_token %}<div class="plan-fields">
+    <div class="plan-info-heading"><h2>프로그램 정보 입력</h2></div><form id="plan-form">{% csrf_token %}<div class="plan-fields">
       <label class="plan-field plan-wide">프로그램명<input name="name" required maxlength="100" placeholder="예: 우리 동네 청소년 농구 교실"></label>
       <label class="plan-field">시설별 모집인원 (명)<input name="capacity" type="number" required min="1" max="100000" step="1" inputmode="numeric"></label>
       <label class="plan-field">1인 수강료 (원)<input name="fee" type="number" required min="0" max="100000000" step="1" inputmode="numeric" placeholder="무료는 0"></label>

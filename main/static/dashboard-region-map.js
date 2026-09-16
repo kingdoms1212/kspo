@@ -1,6 +1,38 @@
-/* Only update form controls: never mutate or observe the shared map renderer. */
+/* Selection updates are event-driven; no mutation/render observation loops. */
 (function () {
   'use strict';
+  var prepared = new WeakSet();
+  var loadTimer;
+  function paintSelection() {
+    var element = document.getElementById('dashboard-region-map');
+    var chart = element && window.echarts && window.echarts.getInstanceByDom(element);
+    if (!chart || !input()) return false;
+    var series = (chart.getOption().series || [])[0];
+    if (!series || String(series.map).indexOf('sport-insight-municipalities-') !== 0) return false;
+    if (!prepared.has(chart)) {
+      chart.setOption({series: [{selectedMode: 'multiple', select: {itemStyle: {areaColor: '#FFD54F', borderColor: '#967100', borderWidth: 2}, label: {color: '#172B4D'}}}]}, {silent: true});
+      prepared.add(chart);
+    }
+    var names = values();
+    var batch = Array.from(document.querySelectorAll('.db-district-picker [data-district]')).filter(function (b) { return b.dataset.district; });
+    batch.forEach(function (button) {
+      var name = button.dataset.district;
+      chart.dispatchAction({type: names.indexOf(name) >= 0 ? 'mapSelect' : 'mapUnSelect', seriesIndex: 0, name: name}, {silent: true});
+    });
+    return true;
+  }
+  function initializeMap() {
+    clearTimeout(loadTimer);
+    var element = document.getElementById('dashboard-region-map');
+    var attempts = 0;
+    function ready() {
+      if (element !== document.getElementById('dashboard-region-map') || !element) return;
+      if (!paintSelection() && ++attempts < 80) loadTimer = setTimeout(ready, 250);
+    }
+    ready();
+  }
+  document.addEventListener('DOMContentLoaded', initializeMap);
+  document.addEventListener('htmx:afterSwap', initializeMap);
   function input() { return document.getElementById('dashboard-district'); }
   function values() { return input().value.split(',').filter(Boolean); }
   function apply(names) {
@@ -8,6 +40,7 @@
     if (!field) return;
     names = Array.from(new Set(names)).sort();
     field.value = names.join(',');
+    paintSelection();
     document.querySelectorAll('.db-district-picker [data-district]').forEach(function (button) {
       var selected = button.dataset.district ? names.indexOf(button.dataset.district) >= 0 : !names.length;
       button.classList.toggle('selected', selected);
@@ -19,7 +52,7 @@
     if (!names.length) {
       var all = document.createElement('span');
       all.className = 'db-selection-all';
-      all.textContent = '\uc11c\uc6b8 \uc804\uccb4';
+      all.textContent = '행정구역을 선택해주세요';
       list.appendChild(all);
     }
     names.forEach(function (name) {
@@ -60,6 +93,10 @@
     }
   });
   document.addEventListener('regionmap:select', function (event) {
-    if (event.target.id === 'dashboard-region-map' && event.detail.level === 'district') toggle(event.detail.name);
+    if (event.target.id === 'dashboard-region-map' && event.detail.level === 'district') {
+      toggle(event.detail.name);
+      // Reconcile after ECharts completes its own click selection handling.
+      setTimeout(paintSelection, 0);
+    }
   });
 })();

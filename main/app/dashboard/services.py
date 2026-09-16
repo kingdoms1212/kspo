@@ -157,11 +157,13 @@ def region_chart_rows(areas, order='desc'):
 
 def pie_chart_data(rows):
     """Pie angles use actual positive counts, independently of bar normalization."""
+    rows = list(rows)
+    canonical = sorted(rows, key=lambda row: (-(row.get('requests') or 0), row.get('name', ''), row.get('region', ''), row.get('district', '')))
     total = sum(max(row.get('requests') or 0, 0) for row in rows)
     palette = ('--si-map-5', '--si-map-3', '--si-chart-primary', '--si-map-2', '--si-navy')
     segments, legend = [], []
     cumulative = 0
-    for index, row in enumerate(rows):
+    for index, row in enumerate(canonical):
         value = max(row.get('requests') or 0, 0)
         start = cumulative / total * 100 if total else 0
         cumulative += value
@@ -175,7 +177,8 @@ def pie_chart_data(rows):
                 f'{100 + 95 * cos(end_angle):.6f} {100 + 95 * sin(end_angle):.6f} Z')
         legend.append({**row, 'number': index + 1, 'color': color, 'path': path,
                        'share': value / total * 100 if total else 0})
-    return {'rows': legend, 'total': total,
+    by_identity = {id(row): item for row, item in zip(canonical, legend)}
+    return {'rows': [by_identity[id(row)] for row in rows], 'total': total,
             'gradient': 'conic-gradient(' + ', '.join(segments) + ')' if segments else 'none'}
 
 

@@ -31,8 +31,9 @@
       el('plan-region-again').hidden = index === 0;
     }
     document.querySelectorAll('.planner-steps li').forEach((item, i) => {
-      item.classList.toggle('complete', i < index);
-      if (i === index) item.setAttribute('aria-current', 'step');
+      const visibleStep = Math.min(index, 2);
+      item.classList.toggle('complete', i < visibleStep);
+      if (i === visibleStep) item.setAttribute('aria-current', 'step');
       else item.removeAttribute('aria-current');
     });
     if (index === 0) window.dispatchEvent(new Event('resize'));

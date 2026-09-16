@@ -99,6 +99,19 @@ class DashboardServiceTests(SimpleTestCase):
 
 
 class DashboardChartTests(SimpleTestCase):
+    def test_pie_geometry_colors_and_print_rank_are_independent_of_list_order(self):
+        rows = [dict(name=f'sport{i}', requests=i) for i in range(12)]
+        ascending = pie_chart_data(normalized_chart_rows(rows, 'asc'))
+        descending = pie_chart_data(normalized_chart_rows(rows, 'desc'))
+        self.assertEqual(ascending['gradient'], descending['gradient'])
+        self.assertEqual(ascending['rows'][0]['requests'], 0)
+        self.assertEqual(descending['rows'][0]['requests'], 11)
+        for left, right in zip(ascending['rows'], reversed(descending['rows'])):
+            self.assertEqual((left['path'], left['color'], left['number']), (right['path'], right['color'], right['number']))
+        markup = render_to_string('dashboard/_pie.html', dict(pie=ascending, label='test'))
+        self.assertEqual(markup.count('class="db-print-omit"'), 2)
+        self.assertEqual(sum(row['number'] <= 10 for row in ascending['rows']), 10)
+
     def test_pie_uses_actual_totals_and_handles_missing_zero_data(self):
         rows = [dict(requests=10), dict(requests=30), dict(requests=0), dict(requests=None)]
         pie = pie_chart_data(rows)
@@ -400,6 +413,20 @@ class DashboardViewTests(SimpleTestCase):
         self.assertLess(html.index('class="panel map-panel"'), html.index('class="db-metrics"'))
         self.assertLess(html.index('class="db-metrics"'), html.index('class="db-charts"'))
         self.assertLess(html.index('class="panel db-policy"'), html.index('id="plan-start"'))
+
+    def test_step_header_region_layout_and_removed_copy(self):
+        from bs4 import BeautifulSoup
+        with patch('app.dashboard.views.dashboard_data', return_value={}):
+            response = self.client.get('/dashboard')
+        page = BeautifulSoup(response.content, 'html.parser')
+        steps = page.select('.planner-steps li')
+        self.assertEqual(len(steps), 3)
+        self.assertEqual(steps[0].get_text(' ', strip=True), 'STEP 01 지역 선택')
+        self.assertEqual(page.select_one('.db-scope h2').text, '시설 이용현황')
+        self.assertEqual(page.select_one('.db-selection-all').text, '행정구역을 선택해주세요')
+        self.assertIsNotNone(page.select_one('.db-region-map-column .section-title h2 + .db-helper'))
+        for selector in ('#dashboard-region-map-level', '#dashboard-region-map-help', '.map-panel .unit', '.plan-insight', '#plan-start-help'):
+            self.assertIsNone(page.select_one(selector))
 
     def test_seoul_controls_and_policy_order(self):
         context = dict(region_options=['서울'], region_district_options={'서울': ['강남구', '중구']},
