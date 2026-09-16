@@ -1,0 +1,22 @@
+{% with region_data_id=id|add:"-region-data" district_data_id=id|add:"-district-data" %}
+
+<div id="{{ id }}" class="region-map" role="img"
+     aria-label="{{ country_description|default:'시도별 분포 지도' }}"
+     data-region-map
+     data-region-source="{{ region_data_id }}"
+     data-district-source="{{ district_data_id }}"
+     data-value-label="{{ value_label }}"
+     data-unit="{{ unit }}"
+     data-region-click="{{ region_click|default:'drilldown' }}"
+     data-focus-region="{{ focus_region }}"
+     data-country-level="{{ country_level|default:'전국 시·도' }}"
+     data-district-level="{{ district_level|default:'시군구' }}"
+     data-country-description="{{ country_description|default:'시도별 분포 지도' }}"
+     data-district-description="{{ district_description|default:'선택한 지역의 시군구별 분포 지도' }}"
+     data-country-help="{{ country_help }}"
+     data-district-help="{{ district_help }}">
+  <p class="region-map-status">지도를 불러오는 중입니다.</p>
+</div>
+{{ region_data|json_script:region_data_id }}
+{{ district_data|json_script:district_data_id }}
+{% endwith %}

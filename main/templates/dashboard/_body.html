@@ -22,7 +22,7 @@
     </div>
     <div class="db-selected-column"><h3>선택한 행정구역</h3><div id="dashboard-selected-districts" class="db-selected-districts" aria-label="선택한 행정구역">
       {% for option in selected_districts %}<button type="button" class="db-selected-chip" data-remove-district="{{ option }}" aria-label="{{ option }} 선택 해제">{{ option }}<span class="db-chip-remove" aria-hidden="true">×</span></button>{% empty %}<span class="db-selection-all">행정구역을 선택해주세요</span>{% endfor %}
-    </div><p class="chart-note">선택한 구를 조회하면 아래 통계에 반영됩니다.</p></div>
+    </div></div>
     <div class="db-map-actions"><button class="button ghost" type="button" id="dashboard-reset">초기화</button><button class="button primary" type="submit">조회</button></div>
     </div>
   </section>
