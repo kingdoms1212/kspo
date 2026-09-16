@@ -4,6 +4,7 @@
 <p class="plan-document-meta">{{ plan.region }}{% if plan.district %} {{ plan.district }}{% endif %} · {{ plan.sport }} · {{ created|date:"Y-m-d H:i" }} 작성 · 실제 개설·대관 확정 전</p>
 <div class="plan-document-block">
 <h3>설계에 참고한 지역 현황</h3>
+<section class="plan-region-chart"><h4>선택구역 신청인원</h4>{% include 'dashboard/_pie.html' with pie=region_pie label='선택구역 신청인원' use_svg=True %}</section>
 <div class="result-kpis">
   <div><span class="result-kpi-label">{% include 'components/icon.html' with name='building' %}이용 시설</span><strong>{% if statistics.facilities is not None %}{{ statistics.facilities|floatformat:'0g' }}<em>개</em>{% else %}미제공{% endif %}</strong></div>
   <div><span class="result-kpi-label">{% include 'components/icon.html' with name='program' %}개설 강좌</span><strong>{% if statistics.courses is not None %}{{ statistics.courses|floatformat:'0g' }}<em>건</em>{% else %}미제공{% endif %}</strong></div>

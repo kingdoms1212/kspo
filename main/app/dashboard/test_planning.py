@@ -32,6 +32,22 @@ class PlanningTests(SimpleTestCase):
         self.assertEqual(len(candidates('서울', '', '농구')), 2)
         self.assertEqual(candidates('', '', '농구'), [])
 
+    def test_multi_district_plan_contains_selected_region_pie(self):
+        statistics = dict(region_options=['서울'], region_district_options={'서울': ['강남구', '중구']},
+                          facilities=2, courses=4, requests=40, sports=[('농구', 40)], period=[],
+                          areas=[dict(region='서울', district='강남구', facilities=1, courses=2, requests=10),
+                                 dict(region='서울', district='중구', facilities=1, courses=2, requests=30)])
+        with patch('app.dashboard.planning.dashboard_data', return_value=statistics):
+            response = self.client.post('/dashboard/plan/preview', dict(self.payload, district='강남구,중구'))
+            invalid = self.client.get('/dashboard/plan/facilities', dict(self.scope, district='강남구,해운대구'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '선택구역 신청인원')
+        self.assertContains(response, '<svg class="db-pie"')
+        self.assertContains(response, '<path d=')
+        self.assertEqual(response.context['region_pie']['total'], 40)
+        self.assertEqual(invalid.status_code, 400)
+        self.assertEqual(len(candidates('서울', '강남구,중구', '농구')), 2)
+
     def test_list_is_paginated_searchable_and_does_not_load_transport(self):
         with patch('app.dashboard.plan_views.facility_transit') as transit:
             response = self.client.get('/dashboard/plan/facilities', self.scope)

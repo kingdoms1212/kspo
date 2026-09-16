@@ -72,4 +72,34 @@
   .dashboard-screen .db-metric{padding:13px 10px;grid-template-columns:40px minmax(0,1fr);column-gap:8px}
   .dashboard-screen .db-metric>.metric-icon{width:40px;height:40px}
   .dashboard-screen .db-metric>strong{font-size:clamp(18px,1.6vw,25px)}
+  .dashboard-screen .map-panel{display:flex;flex-direction:column}
+  .dashboard-screen .db-map-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:auto;padding-top:20px}
+  .dashboard-screen .db-district-picker{display:flex;flex-wrap:wrap;gap:5px}
+  .dashboard-screen .db-district-picker button{font:inherit;font-size:12px;padding:5px 8px;background:var(--si-surface);color:var(--si-text);border:1px solid var(--si-border-control);border-radius:4px;cursor:pointer}
+  .dashboard-screen .db-district-picker button.selected{background:var(--si-primary);color:var(--si-text-inverse);border-color:var(--si-primary)}
+  .dashboard-screen .db-pie-panel{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--si-border)}
+  .dashboard-screen form.db-layout{display:flex;flex-direction:column;gap:18px}
+  .dashboard-screen form.db-layout .db-right{display:flex;flex-direction:column;gap:18px}
+  .dashboard-screen form.db-layout .db-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .dashboard-screen form.db-layout .db-chart-panel{grid-column:auto;grid-row:auto}
+  .dashboard-screen .db-region-workspace{display:grid;grid-template-columns:minmax(250px,1.2fr) minmax(210px,1fr) minmax(180px,.8fr) 100px;gap:24px;align-items:start}
+  .dashboard-screen .db-region-workspace h3{font-size:14px;margin:8px 0 14px}
+  .dashboard-screen .db-region-workspace .db-map-actions{flex-direction:column;margin:0;align-self:center;padding:0}
+  .dashboard-screen .db-selected-districts{display:flex;flex-wrap:wrap;gap:10px;align-content:start;min-height:80px;max-height:300px;overflow-y:auto;padding:8px}
+  .dashboard-screen .db-selected-chip{position:relative;padding:8px 16px;border:1px solid var(--si-primary);border-radius:6px;background:var(--si-surface-hover);color:var(--si-heading);font:inherit;font-size:13px;cursor:pointer}
+  .dashboard-screen .db-chip-remove{position:absolute;right:-5px;top:-7px;border-radius:50%;background:var(--si-primary);color:white;width:18px;height:18px;line-height:18px;opacity:0}
+  .dashboard-screen .db-selected-chip:hover .db-chip-remove,.dashboard-screen .db-selected-chip:focus-visible .db-chip-remove{opacity:1}
+  .dashboard-screen .db-plan-action{align-self:flex-end;max-width:480px;text-align:right}
+  .dashboard-screen .db-plan-action .plan-insight{margin-top:0;text-align:left}
+  .dashboard-screen form.db-layout .db-pie-legend{max-height:360px}
+  @media(hover:none){.dashboard-screen .db-chip-remove{opacity:1}}
+  @media(max-width:1050px){.dashboard-screen .db-region-workspace{grid-template-columns:1fr 1fr}.dashboard-screen .db-region-workspace .db-map-actions{align-self:end}}
+  @media(max-width:650px){.dashboard-screen .db-region-workspace,.dashboard-screen form.db-layout .db-charts{grid-template-columns:1fr}.dashboard-screen form.db-layout .db-metrics{grid-template-columns:1fr 1fr}.dashboard-screen .db-plan-action{max-width:none;width:100%}}
+  .plan-document .db-pie{display:block;width:180px;height:180px;margin:12px auto}
+  .plan-document .db-pie-legend{list-style:none;padding:0}
+  .plan-document .db-pie-legend li{display:flex;gap:10px;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--si-border)}
+  .plan-document .db-pie-legend small{display:block}
+  .plan-document .db-pie-key{width:10px;height:10px;flex-shrink:0;margin-top:5px}
+  .plan-document .db-pie-note{text-align:center}
+  @media print{.plan-document .db-pie-panel{break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact}.plan-document .db-pie-legend{max-height:none;overflow:visible}}
 </style>

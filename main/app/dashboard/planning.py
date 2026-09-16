@@ -3,7 +3,7 @@ from django import forms
 from django.core import signing
 
 from ..facilities import models as facilities
-from .services import dashboard_data
+from .services import dashboard_data, selected_districts
 
 REGIONS = (
     ('서울', '서울특별시'), ('부산', '부산광역시'), ('대구', '대구광역시'),
@@ -33,12 +33,13 @@ def region_key(value):
 
 
 def candidates(region, district, sport):
+    districts = selected_districts(district)
     types = SPORT_TYPES.get(sport, ())
     if not region or not types:
         return []
     return [row for row in facilities.facilities()
             if region_key(row.region) == region_key(region)
-            and (not district or row.district == district)
+            and (not districts or row.district in districts)
             and row.state == facilities.OPERATING
             and (row.facility_type in types or row.industry in types)]
 
@@ -51,7 +52,7 @@ def facility_token(row):
 
 class ScopeForm(forms.Form):
     region = forms.CharField(max_length=30)
-    district = forms.CharField(required=False, max_length=60)
+    district = forms.CharField(required=False, max_length=300)
     sport = forms.ChoiceField(choices=[(name, name) for name in SPORT_TYPES])
 
     def clean(self):
@@ -61,7 +62,8 @@ class ScopeForm(forms.Form):
         self.statistics = dashboard_data(region, district)
         if region not in self.statistics['region_options']:
             self.add_error('region', '지도에서 조회할 시·도를 선택해 주세요.')
-        elif district and district not in self.statistics['region_district_options'].get(region, []):
+        elif any(name not in self.statistics['region_district_options'].get(region, [])
+                 for name in selected_districts(district)):
             self.add_error('district', '선택 지역에 속하는 시·군·구를 다시 선택해 주세요.')
         return cleaned
 

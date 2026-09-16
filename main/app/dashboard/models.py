@@ -44,6 +44,10 @@ def usage_snapshot():
     ledger_rows = 0
     unidentified = 0
     for row in read_columns(USAGE_FILE, COLUMNS):
+        if row[CTPRVN_NM].strip() not in ("서울", "서울시", "서울특별시"):
+            continue
+        row = list(row)
+        row[CTPRVN_NM] = "서울"
         ledger_rows += 1
         key = usage_key(row)
         if key is None:
