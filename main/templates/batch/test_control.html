@@ -1,0 +1,34 @@
+{% load assets %}
+<div class="batch-test-control">
+  <button type="button" class="batch-test-launch" data-batch-dialog-open aria-haspopup="dialog" aria-controls="batch-test-dialog">
+    {% include 'components/icon.html' with name='settings' %}
+    <span>데이터 최신화 관리</span>
+  </button>
+  <dialog id="batch-test-dialog" class="batch-test-dialog" aria-labelledby="batch-test-dialog-title" data-status-url="{% url 'batch-test-status' %}">
+    <div class="batch-test-panel">
+      <header class="batch-test-head">
+        <div>
+          <p>운영 데이터 관리</p>
+          <div class="batch-test-title-row">
+            <h2 id="batch-test-dialog-title">데이터 최신화 관리</h2>
+            <strong class="batch-test-progress" data-batch-progress>0%</strong>
+          </div>
+        </div>
+        <span>현재 반영 방식은 {{ batch_storage_label }}이며, 실행하면 서울 운영 데이터가 최신화됩니다.</span>
+      </header>
+      <div id="batch-test-status-body" class="batch-test-body" aria-live="polite">
+        <p class="batch-test-loading">최근 실행 상태를 불러오는 중입니다.</p>
+      </div>
+      <footer class="batch-test-footer">
+        <form id="batch-test-clear-log-form" action="{% url 'batch-test-clear-log' %}" method="post">
+        </form>
+        <form id="batch-test-run-form" action="{% url 'batch-test-run' %}" method="post">
+        </form>
+        <button type="submit" form="batch-test-clear-log-form" class="button ghost" data-batch-clear-log>로그 초기화</button>
+        <button type="submit" form="batch-test-run-form" class="button primary" data-batch-run>지금 최신화</button>
+        <button type="button" class="button ghost" data-batch-dialog-close>나가기</button>
+      </footer>
+    </div>
+  </dialog>
+</div>
+<script src="{% asset 'batch-test.js' %}" defer></script>

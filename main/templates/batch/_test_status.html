@@ -1,0 +1,38 @@
+<div class="batch-test-status" data-batch-running="{{ batch_running|yesno:'true,false' }}" data-batch-progress="{{ batch_status.progress_percent }}">
+  {% if batch_notice %}<p class="batch-test-notice">{{ batch_notice }}</p>{% endif %}
+  <dl class="batch-test-summary">
+    <div><dt>상태</dt><dd class="status-{{ batch_status.status }}">{{ batch_status_label }}{% if batch_running %}, {{ batch_status.progress_message }}{% endif %}</dd></div>
+    <div><dt>요청 시간</dt><dd>{{ batch_status.requested_at|default:'-' }}</dd></div>
+    <div><dt>시작 시간</dt><dd>{{ batch_status.started_at|default:'-' }}</dd></div>
+    <div><dt>종료 시간</dt><dd>{{ batch_status.finished_at|default:'-' }}</dd></div>
+    <div><dt>작업 번호</dt><dd>{{ batch_status.job_id|default:'-' }}</dd></div>
+    <div><dt>데이터 세대</dt><dd>{{ batch_status.generation|default:'-' }}</dd></div>
+  </dl>
+  {% if batch_status.error %}<p class="batch-test-error"><strong>실패 원인</strong>{{ batch_status.error }}</p>{% endif %}
+  <div class="batch-test-output-grid">
+    <section>
+      <h3>변경 사항 내역</h3>
+      <p class="batch-change-help">품질 검증 수치는 원본 CSV 전체의 시군구 코드 문제와 대상 지역의 시도 코드 문제로 제외된 행 수입니다.</p>
+      {% if manifest_summary.available %}
+      <dl class="batch-change-summary">
+        <div><dt>데이터 세대</dt><dd>{{ manifest_summary.generation }}</dd></div>
+        <div><dt>생성 시각</dt><dd>{{ manifest_summary.created_at }}</dd></div>
+        <div><dt>대상 지역</dt><dd>{{ manifest_summary.region }}</dd></div>
+      </dl>
+      <div class="batch-change-table-wrap" tabindex="0">
+        <table class="batch-change-table">
+          <caption class="sr-only">최근 데이터 변경 사항</caption>
+          <thead><tr><th scope="col">데이터</th><th scope="col">원본 행</th><th scope="col">반영 행</th><th scope="col">제외 행</th><th scope="col">코드 누락</th><th scope="col">형식 오류</th><th scope="col">코드 불일치</th></tr></thead>
+          <tbody>
+            {% for file in manifest_summary.files %}<tr><th scope="row">{{ file.label }}<small>{{ file.filename }}</small></th><td>{{ file.source_rows|floatformat:'0g' }}</td><td>{{ file.rows|floatformat:'0g' }}</td><td>{{ file.skipped_rows|floatformat:'0g' }}</td><td>{{ file.missing_region_codes|floatformat:'0g' }}</td><td>{{ file.invalid_region_codes|floatformat:'0g' }}</td><td>{{ file.region_code_mismatches|floatformat:'0g' }}</td></tr>{% empty %}<tr><td colspan="7">기록된 파일 변경 사항이 없습니다.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<p class="batch-change-empty">{{ manifest_summary.message }}</p>{% endif %}
+    </section>
+    <section>
+      <h3>최근 로그</h3>
+      <pre tabindex="0">{{ log_text }}</pre>
+    </section>
+  </div>
+</div>
