@@ -3,6 +3,9 @@
   padding:30px;
   border-radius:22px;
 }
+#program-planner[hidden] {
+  display:none!important;
+}
 .planner [hidden] {
   display:none!important;
 }
@@ -481,11 +484,12 @@
 
 /* Previous selections shown in steps 02 and 03. */
 .plan-step-one-result { padding:0 16px;border:1px solid var(--si-border);border-radius:16px;background:var(--si-surface); }
-.plan-summary-row { display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);align-items:center;gap:24px;padding:20px 8px; }
+.plan-summary-row { display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);align-items:center;gap:24px;padding:20px 8px; align-items: start; }
 .plan-summary-row + .plan-summary-row { border-top:1px solid var(--si-border); }
-.plan-summary-row h2 { display:block;font-size:32px;font-weight:800;color:var(--si-heading);margin:0; }
-.plan-region-summary { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0;border:0;border-radius:0; }
-.plan-region-chip { justify-content:center;text-align:center;min-height:32px;padding:6px;border-color:var(--si-border-control);background:var(--si-surface);color:var(--si-heading);font-size:13px;overflow-wrap:anywhere; }
+.plan-summary-row h2 { display:flex;align-items:center;gap:14px;margin:0;color:var(--si-heading);font-size:32px;font-weight:800; align-items: end; }
+.planner-steps li>span,.plan-summary-row h2>span { flex:none;color:inherit;font-size:20px;font-weight:700;letter-spacing:normal;line-height:1.4;white-space:nowrap; }
+.plan-region-summary { display:grid;grid-template-columns:repeat(var(--plan-region-columns,1),minmax(0,150px));gap:8px;padding:0;border:0;border-radius:0; }
+.plan-region-chip { justify-content:center;width:100%;max-width:150px;text-align:center;min-height:32px;padding:6px;border-color:var(--si-border-control);background:var(--si-surface);color:var(--si-heading);font-size:13px;overflow-wrap:anywhere; }
 #plan-sport-summary { text-align:right;font-size:14px;overflow-wrap:anywhere; }
 .plan-without-facility { display:flex;align-items:center;gap:10px;margin-top:16px;padding:16px;background:var(--si-surface-soft);border-radius:10px; }
 .plan-without-facility input { min-height:20px;width:20px;flex-shrink:0; }
@@ -497,8 +501,9 @@ body:is([data-plan-step="1"],[data-plan-step="2"]) .dashboard-screen .planner-st
 body:is([data-plan-step="1"],[data-plan-step="2"]) .dashboard-screen .planner-steps li[aria-current] { padding-top:20px;border-top:1px solid var(--si-border); }
 body:is([data-plan-step="1"],[data-plan-step="2"]) #program-planner { margin-top:0;padding-top:0;border-top:0;border-radius:0 0 16px 16px; }
 .plan-summary-row[hidden] { display:none; }
-.plan-region-summary { justify-items:stretch; }
-.plan-facility-grid[data-empty="true"] { display:block;max-width:600px;margin:0 auto; }
+.plan-region-summary { justify-self:end;justify-content:end;justify-items:stretch;width:100%; }
+.plan-detail-content[data-empty="true"],.plan-detail-content:has(.plan-candidates:empty) { width:100%; }
+.plan-facility-grid[data-empty="true"] { display:block;width:100%;max-width:none;margin:0; }
 .plan-facility-grid[data-empty="true"] .plan-detail { border:1px solid var(--si-border);border-radius:18px;background:var(--si-surface); }
 .plan-facility-grid[data-empty="true"] .plan-empty { background:var(--si-surface-soft); }
 .plan-facility-grid[data-empty="true"] .plan-without-facility { font-size:13px; }
