@@ -1,5 +1,17 @@
 # SPORT INSIGHT 작업 상태
 
+## 최신 작업 — 원본 CSV 이름 단일 관리 (2026-09-17, 12차)
+
+같은 파일 이름이 다섯 모듈에 따로 적혀 있던 것을 `app/common/sources.py` 한 곳으로 모았다.
+
+- 이전 상태: `programs/models.py`의 `PROGRAM_FILE`, `dashboard/models.py`의 `USAGE_FILE`, `facilities/models.py`의 `FACILITY_FILE`, `facilities/transit.py`의 `TRANSIT_FILE`, 그리고 `Batch/seoul_csv_batch.py`의 `SOURCE_SPECS`가 서로를 모른 채 같은 이름을 반복했다. 쓰는 쪽과 읽는 쪽이 어긋나면 예외가 아니라 **빈 화면**으로만 드러난다.
+- 레지스트리에는 **원본 이름만** 적는다. 서비스 파일(`_seoul.csv`)과 직전 실행 보관본(`_seoul_temp.csv`)은 배치의 명명 규칙대로 파생되므로 두 half가 어긋날 수 없다. `SourceSpec` 자체를 옮겼기 때문에 배치 쪽 속성 이름과 기존 테스트는 그대로다.
+- Django를 import하지 않는다. `manage.py`가 `django.setup()` 이전에 배치를 부르므로 레지스트리가 django에 의존하면 기동이 깨진다. `app/__init__.py`·`app/common/__init__.py`가 비어 있음을 확인하고 실제로 setup 없이 import되는 것까지 검증했다.
+- 배치에 상대 import가 생겨 `python seoul_csv_batch.py` 직접 실행은 더 이상 되지 않는다. `python -m app.Batch.seoul_csv_batch`로 실행하며 README에 적었다.
+- 원본 이름은 **한글을 유지**했다. 작업 트리에 커밋되지 않은 영문 전환(`public_sports_program.csv` 등)이 있었으나 `data/` 리네이밍이 끝나지 않아 8개 테스트가 실패하고 화면이 비어 보였다. 전환은 이제 `sources.py` 네 줄 수정으로 끝난다.
+- 변경 파일: `app/common/sources.py`(신규), `app/common/test_sources.py`(신규), `app/Batch/seoul_csv_batch.py`, `app/{programs,dashboard,facilities}/models.py`, `app/facilities/transit.py`, `main/README.md`.
+- 검증: 테스트 **182개**(신규 3개) 통과, `check`·`compileall` 정상, `-m` 실행 확인. 영문 이름으로 잠시 바꿔 8개 실패가 전부 "파일 없음" 계열임을 확인한 뒤 되돌렸다 — 리팩터링 자체는 이름 선택과 무관하게 건전하다.
+
 ## 최신 작업 — 계획서 거절 안내 + 지도 자산 로컬화 (2026-09-17, 11차)
 
 `POST /dashboard/plan/preview` 400의 원인을 특정하고, 그 원인이 화면에 전달되지 않던 문제와 지도의 외부 CDN 의존을 함께 고쳤다.

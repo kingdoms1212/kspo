@@ -105,6 +105,18 @@ APScheduler가 매주 일요일 00시에 같은 배치를 실행한다. 배치�
 
 배치 실행 기록은 `data/Batch/logs/seoul_batch.log`에 남는다.
 
+원본 CSV 네 개의 이름은 `app/common/sources.py` **한 곳**에서만 정한다. 배치가
+읽는 `data/<이름>.csv`와 화면이 읽는 `data/Batch/<줄기>_seoul.csv`가 모두 이
+정의에서 나오므로, 원본 파일 이름을 바꿀 때는 이 파일의 네 줄만 고치면 된다.
+회귀 테스트는 `app/common/test_sources.py`이며, 배치가 쓰는 이름과 네 저장소가
+읽는 이름이 같은 객체에서 나오는지 확인한다.
+
+명령줄로 직접 돌릴 때는 패키지 모듈로 실행한다(상대 import를 쓴다).
+
+```powershell
+config\Scripts\python.exe -m app.Batch.seoul_csv_batch
+```
+
 ## 프로그램 설계 (2026-09-16)
 
 좌측 메뉴는 **프로그램 설계 / 프로그램 현황 / 시설 현황**으로 유지한다. 좁은 화면에서도 좌측에 남는다.

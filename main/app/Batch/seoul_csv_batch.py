@@ -17,6 +17,9 @@ from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
+# 원본 이름은 배치와 네 저장소가 함께 쓰므로 공용 모듈에서만 정한다.
+from ..common.sources import SOURCE_SPECS, SourceSpec
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_DATA_DIR = PROJECT_ROOT / "data"
@@ -31,39 +34,12 @@ LOCK_STALE_SECONDS = 6 * 60 * 60
 
 
 @dataclass(frozen=True)
-class SourceSpec:
-    filename: str
-    code_column: str
-    name_column: str
-
-    @property
-    def final_filename(self) -> str:
-        return f"{Path(self.filename).stem}_seoul.csv"
-
-    @property
-    def previous_filename(self) -> str:
-        return f"{Path(self.filename).stem}_seoul_temp.csv"
-
-
-@dataclass(frozen=True)
 class ExtractResult:
     source: Path
     output: Path
     source_rows: int
     seoul_rows: int
     skipped_rows: int
-
-
-SOURCE_SPECS = (
-    SourceSpec("공공체육시설 프로그램 정보.csv", "CTPRVN_CD", "CTPRVN_NM"),
-    SourceSpec("스포츠강좌이용권 이용현황 정보.csv", "CTPRVN_CD", "CTPRVN_NM"),
-    SourceSpec("전국체육시설현황 데이터.csv", "CTPRVN_CD", "CTPRVN_NM"),
-    SourceSpec(
-        "체육시설 인접 대중교통 정보.csv",
-        "ALSFC_CTPRVN_CD",
-        "ALSFC_CTPRVN_NM",
-    ),
-)
 
 
 def _is_seoul(code: str, name: str) -> bool:

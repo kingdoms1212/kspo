@@ -20,10 +20,11 @@ app.facilities.transit for why an address or a name cannot carry that join.
 from collections import namedtuple
 
 from ..common.data import read_columns, to_number
+from ..common.sources import FACILITY
 from ..common.versioned_csv import VersionedCsvCache
 from .transit import geo_key
 
-FACILITY_FILE = '전국체육시설현황 데이터_seoul.csv'
+FACILITY_FILE = FACILITY.final_filename
 
 COLUMNS = ('FCLTY_NM', 'FCLTY_FLAG_NM', 'INDUTY_NM', 'FCLTY_TY_NM', 'FCLTY_STATE_VALUE',
            'RDNMADR_ONE_NM', 'RDNMADR_TWO_NM', 'FCLTY_ADDR_ONE_NM', 'CTPRVN_NM', 'SIGNGU_NM',

@@ -18,9 +18,10 @@ import csv
 import heapq
 
 from ..common.data import columns_present, data_path, normalize, read_columns
+from ..common.sources import TRANSIT
 from ..common.versioned_csv import VersionedCsvCache
 
-TRANSIT_FILE = '체육시설 인접 대중교통 정보_seoul.csv'
+TRANSIT_FILE = TRANSIT.final_filename
 
 COLUMNS = ('ALSFC_NM', 'ALSFC_LA', 'ALSFC_LO', 'PBTRNSP_FCLTY_SDIV_NM',
            'STRT_DSTNC_VALUE', 'WLKG_DSTNC_VALUE', 'WLKG_MVMN_TIME', 'BSTP_SUBWAYST_NM')

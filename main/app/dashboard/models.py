@@ -9,9 +9,10 @@ no longer in `data/`, so those figures are not computed from another source.
 from collections import Counter
 
 from ..common.data import course_month, read_columns, to_number
+from ..common.sources import USAGE
 from ..common.versioned_csv import VersionedCsvCache
 
-USAGE_FILE = '스포츠강좌이용권 이용현황 정보_seoul.csv'
+USAGE_FILE = USAGE.final_filename
 
 COLUMNS = ('CTPRVN_CD', 'CTPRVN_NM', 'SIGNGU_CD', 'SIGNGU_NM', 'FCLTY_NM',
            'FCLTY_ADDR', 'FCLTY_DETAIL_ADDR', 'ITEM_NM', 'COURSE_NO',
