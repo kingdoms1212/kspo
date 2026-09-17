@@ -12,13 +12,13 @@
   .budget-separator { color: var(--si-text-muted); }
   .search-panel .filter-actions { margin-top: 18px; }
 </style>
-<section class="page-head"><div class="heading-copy program-heading-copy"><h1>프로그램 현황</h1>{% include 'components/heading_help.html' with id='program-heading' label='프로그램 현황 안내' text='지역과 종목별로 등록 강좌를 조회하고 비교합니다.' %}</div></section>
+<section class="page-head"><div class="heading-copy program-heading-copy"><h1>프로그램 현황</h1>{% include 'components/heading_help.html' with id='program-heading' label='프로그램 현황 안내' text=program_heading_help %}</div></section>
 <div class="program-workspace">
-  <form id="program-search-form" class="panel search-panel" method="get">
+  <form id="program-search-form" class="panel search-panel" method="get" data-region-filter-enabled="{{ region_filter_enabled|yesno:'true,false' }}" data-fixed-region="{{ fixed_region }}">
     <input id="program-scroll-position" name="_scroll" type="hidden" value="{{ scroll_position }}">
     <div class="section-title"><h2>{% include 'components/icon.html' with name='search' %} 검색 조건</h2></div>
-    <div class="field"><label for="region">지역</label><select id="region" name="region"><option value="">전체 지역</option>{% for item in regions %}<option value="{{ item }}" {% if item == params.region %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
-    <div class="field"><label for="district">시군구</label><select id="district" name="district" data-selected="{{ params.district }}" {% if not params.region %}disabled{% endif %}><option value="">{% if params.region %}전체 시군구{% else %}지역을 먼저 선택하세요{% endif %}</option>{% for item in districts %}<option value="{{ item }}" {% if item == params.district %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    {% if region_filter_enabled %}<div class="field"><label for="region">지역</label><select id="region" name="region"><option value="">전체 지역</option>{% for item in regions %}<option value="{{ item }}" {% if item == params.region %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>{% endif %}
+    <div class="field"><label for="district">지역</label><select id="district" name="district" data-selected="{{ params.district }}" {% if region_filter_enabled and not params.region %}disabled{% endif %}><option value="">{% if region_filter_enabled and not params.region %}지역을 먼저 선택하세요{% else %}전체{% endif %}</option>{% for item in districts %}<option value="{{ item }}" {% if item == params.district %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
     <div class="field"><label for="sport">종목</label><input id="sport" name="sport" value="{{ params.sport }}" placeholder="종목 검색어"></div>
     <div class="field weekday-field">
       <label id="weekday-label" for="weekday">요일 <span id="weekday-label-value">{{ weekday_label }}</span></label>
@@ -85,6 +85,7 @@
         scrollPositionInput.value = String(window.scrollY);
       });
 
+      // 고정 지역 모드에서는 이미 전체 시군구가 있으므로 종속 선택 구성을 생략한다.
       if (!regionSelect || !districtSelect || !districtData) return;
 
       const districtsByRegion = JSON.parse(districtData.textContent);
@@ -96,7 +97,7 @@
 
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
-        defaultOption.textContent = region ? '전체 시군구' : '지역을 먼저 선택하세요';
+        defaultOption.textContent = region ? '전체' : '지역을 먼저 선택하세요';
         districtSelect.append(defaultOption);
 
         districts.forEach((district) => {

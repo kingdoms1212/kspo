@@ -119,8 +119,11 @@ def filter_programs(params, budget_plan=None):
         result = [item for item in result if target in item.target.lower()]
     weekday_value = str(params.get('weekday') or '').strip()
     weekdays = selected_weekdays(weekday_value)
-    if weekdays:
-        # 선택한 요일과 강좌의 운영 요일 구성이 정확히 같은 강좌만 표시한다.
+    if len(weekdays) == 1:
+        # 한 요일 선택은 해당 요일이 운영 요일에 포함된 강좌를 모두 표시한다.
+        result = [item for item in result if weekdays[0] in selected_weekdays(item.weekday)]
+    elif len(weekdays) >= 2:
+        # 여러 요일 선택은 선택한 요일 구성과 정확히 같은 강좌만 표시한다.
         result = [item for item in result if selected_weekdays(item.weekday) == weekdays]
     elif weekday_value:
         # 기존 북마크나 직접 입력한 비표준 값은 이전의 부분 일치 방식을 유지한다.

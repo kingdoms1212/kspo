@@ -51,7 +51,7 @@ result = {'method': 'UTF-8-SIG, permissive csv.reader; malformed-width rows excl
           'sources': {}}
 
 configs = [
- ('스포츠강좌이용권 이용현황 정보.csv', 'FCLTY_DETAIL_ADDR', 'COURSE_NM'),
+ ('sports_voucher_usage.csv', 'FCLTY_DETAIL_ADDR', 'COURSE_NM'),
  ('장애인스포츠강좌이용권 이용현황 정보.csv', 'FCLTY_DETAIL_ADDR', 'COURSE_NM'),
  ('장애인스포츠강좌이용권시설정보.csv', 'FCLTY_DETAIL_ADDR', 'COURSE_NM'),
  ('청소년 유아동 이용가능 체육시설 프로그램 정보.csv', '__none__', 'PROGRM_NM'),
@@ -123,7 +123,7 @@ for filename, detail, course_col in configs:
 
 for filename in ['스포츠강좌이용권 이용시설 강좌 데이터.csv', '장애인스포츠강좌이용권 강좌 정보.csv']:
     counts = Counter()
-    bridge_owners = usage_owners['장애인스포츠강좌이용권 이용현황 정보.csv' if filename.startswith('장애인') else '스포츠강좌이용권 이용현황 정보.csv']
+    bridge_owners = usage_owners['장애인스포츠강좌이용권 이용현황 정보.csv' if filename.startswith('장애인') else 'sports_voucher_usage.csv']
     variants = defaultdict(set)
     for row in read(filename):
         k = (norm(row.get('ITEM_CD')), norm(row.get('COURSE_NM')))

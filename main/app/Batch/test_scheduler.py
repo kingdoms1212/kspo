@@ -6,13 +6,14 @@ from django.test import override_settings
 from . import scheduler as scheduler_module
 
 
-class SeoulBatchSchedulerTests(TestCase):
+class RegionBatchSchedulerTests(TestCase):
     def tearDown(self):
         scheduler_module._scheduler = None
 
     @override_settings(
         TIME_ZONE="Asia/Seoul",
-        SEOUL_BATCH_SCHEDULE={"day_of_week": "sun", "hour": 0, "minute": 0},
+        BATCH_REGION_KEY="seoul",
+        BATCH_SCHEDULE={"day_of_week": "sun", "hour": 0, "minute": 0},
     )
     @patch.object(scheduler_module, "CronTrigger")
     @patch.object(scheduler_module, "BackgroundScheduler")
@@ -28,9 +29,9 @@ class SeoulBatchSchedulerTests(TestCase):
             day_of_week="sun", hour=0, minute=0, timezone="Asia/Seoul"
         )
         instance.add_job.assert_called_once_with(
-            scheduler_module._run_seoul_batch,
+            scheduler_module._run_region_batch,
             trigger=trigger,
-            id="seoul_csv_batch",
+            id="regional_data_batch",
             replace_existing=True,
             coalesce=True,
             max_instances=1,

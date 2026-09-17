@@ -85,7 +85,8 @@ class DesignInteractionTests(SimpleTestCase):
         from urllib.parse import parse_qs
         filters = parse_qs(response.context['export_query'])
         self.assertEqual(filters['sport'], ['수영'])
-        self.assertEqual(filters['region'], ['서울'])
+        self.assertNotIn('region', filters)
+        self.assertEqual(response.context['params']['region'], '')
         self.assertEqual(filters['target'], ['성인'])
         self.assertNotIn('page', filters)
         self.assertContains(response, '21–23 / 23건')

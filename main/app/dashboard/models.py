@@ -8,11 +8,14 @@ no longer in `data/`, so those figures are not computed from another source.
 """
 from collections import Counter
 
+from django.conf import settings
+
 from ..common.data import course_month, read_columns, to_number
 from ..common.sources import USAGE
 from ..common.versioned_csv import VersionedCsvCache
 
-USAGE_FILE = USAGE.final_filename
+# 대시보드도 다른 화면과 같은 배치 출력 파일 설정을 사용한다.
+USAGE_FILE = settings.DATA_FILES['usage']
 
 COLUMNS = ('CTPRVN_CD', 'CTPRVN_NM', 'SIGNGU_CD', 'SIGNGU_NM', 'FCLTY_NM',
            'FCLTY_ADDR', 'FCLTY_DETAIL_ADDR', 'ITEM_NM', 'COURSE_NO',

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -131,10 +132,40 @@ STATICFILES_DIRS = [
 # 웹 화면은 배치가 생성한 서울 전용 CSV만 읽는다.
 DATA_DIR = BASE_DIR.parent / 'data' / 'Batch'
 
+# 대시보드는 서울 전용이므로 현재 서비스 배치 범위의 기본값은 seoul이다.
+# 전국 데이터로 전환할 때 환경변수 BATCH_REGION_KEY=national을 지정한다.
+BATCH_REGION_KEY = os.environ.get('BATCH_REGION_KEY', 'seoul').strip().lower()
+
+# 데이터 반영 대상은 csv 또는 db로 전환할 수 있다.
+# 현재 서비스 저장소는 CSV이므로 기본값은 csv이며, DB 모델이 준비되면
+# 환경변수 BATCH_STORAGE_MODE=db와 BATCH_DB_WRITER의 함수 경로를 지정한다.
+BATCH_STORAGE_MODE = os.environ.get('BATCH_STORAGE_MODE', 'csv').strip().lower()
+BATCH_DB_WRITER = os.environ.get('BATCH_DB_WRITER', '').strip()
+
+DATA_FILES = {
+    'programs': f'public_sports_program_{BATCH_REGION_KEY}.csv',
+    'usage': f'sports_voucher_usage_{BATCH_REGION_KEY}.csv',
+    'facilities': f'sports_facility_status_{BATCH_REGION_KEY}.csv',
+    'transit': f'facility_transit_{BATCH_REGION_KEY}.csv',
+}
+
+# 프로그램 검색의 지역 선택 UI를 fixed 또는 selectable로 전환한다.
+# 현재 서울 전용 CSV에서는 fixed로 지역 선택을 숨기고 시군구만 표시한다.
+# 전국 CSV로 확장할 때 selectable로 바꾸면 기존 시도 선택 기능이 다시 나타난다.
+PROGRAM_REGION_FILTER_MODE = os.environ.get(
+    'PROGRAM_REGION_FILTER_MODE', 'fixed'
+).strip().lower()
+
+# 시설 검색도 서울 전용 자료에서는 지역 항목에 구 목록만 표시한다.
+# 전국 CSV로 전환할 때 selectable로 바꾸면 시도와 시군구 선택을 함께 표시한다.
+FACILITY_REGION_FILTER_MODE = os.environ.get(
+    'FACILITY_REGION_FILTER_MODE', 'fixed'
+).strip().lower()
+
 # APScheduler의 실행 요일과 시각은 이 설정만 바꿔 조정한다.
 # 요일은 mon, tue, wed, thu, fri, sat, sun 중 하나를 사용한다.
 # 시간은 24시간 형식이며, 21시 33분은 hour를 21, minute을 33으로 설정한다.
-SEOUL_BATCH_SCHEDULE = {
+BATCH_SCHEDULE = {
     'day_of_week': 'sun',
     'hour': 0,
     'minute': 0,
