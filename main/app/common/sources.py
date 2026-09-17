@@ -35,10 +35,10 @@ class SourceSpec:
         return f"{Path(self.filename).stem}_seoul_temp.csv"
 
 
-PROGRAM = SourceSpec("공공체육시설 프로그램 정보.csv", "CTPRVN_CD", "CTPRVN_NM")
-USAGE = SourceSpec("스포츠강좌이용권 이용현황 정보.csv", "CTPRVN_CD", "CTPRVN_NM")
-FACILITY = SourceSpec("전국체육시설현황 데이터.csv", "CTPRVN_CD", "CTPRVN_NM")
-TRANSIT = SourceSpec("체육시설 인접 대중교통 정보.csv", "ALSFC_CTPRVN_CD", "ALSFC_CTPRVN_NM")
+PROGRAM = SourceSpec("public_sports_program.csv", "CTPRVN_CD", "CTPRVN_NM")
+USAGE = SourceSpec("sports_voucher_usage.csv", "CTPRVN_CD", "CTPRVN_NM")
+FACILITY = SourceSpec("sports_facility_status.csv", "CTPRVN_CD", "CTPRVN_NM")
+TRANSIT = SourceSpec("facility_transit.csv", "ALSFC_CTPRVN_CD", "ALSFC_CTPRVN_NM")
 
 # 배치는 이 순서대로 네 파일을 처리하고, 각 화면은 이름으로 하나씩 가져간다.
 SOURCE_SPECS = (PROGRAM, USAGE, FACILITY, TRANSIT)
