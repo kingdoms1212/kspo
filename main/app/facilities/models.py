@@ -22,6 +22,7 @@ from collections import namedtuple
 from django.conf import settings
 
 from ..common.data import read_columns, to_number
+from ..common.sources import FACILITY
 from ..common.versioned_csv import VersionedCsvCache
 from .transit import geo_key
 

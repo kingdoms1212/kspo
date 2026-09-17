@@ -18,9 +18,19 @@
 (function () {
   'use strict';
 
-  var ECHARTS_CDN = 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js';
-  var COUNTRY_GEOJSON = 'https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/kostat/2013/json/skorea_provinces_geo_simple.json';
-  var MUNICIPALITY_GEOJSON = 'https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/kostat/2013/json/skorea_municipalities_geo_simple.json';
+  /* ECharts and the boundary files are served from this repository, not a CDN.
+   * The screens are for closed government networks where cdn.jsdelivr.net is
+   * unreachable, and the boundary source was pinned to a moving `@master`
+   * branch, so the map could change shape without a commit here.
+   * Copies live in `static/vendor/`; see README for their versions.
+   *
+   * The folder is derived from this file's own URL rather than hard-coded, so
+   * it follows STATIC_URL wherever the app is deployed. */
+  var VENDOR = (document.currentScript && document.currentScript.src || 'region-map.js')
+    .replace(/[?#].*$/, '').replace(/[^/]*$/, '') + 'vendor/';
+  var ECHARTS_URL = VENDOR + 'echarts.min.js';
+  var COUNTRY_GEOJSON = VENDOR + 'skorea_provinces_geo_simple.json';
+  var MUNICIPALITY_GEOJSON = VENDOR + 'skorea_municipalities_geo_simple.json';
   var COUNTRY_MAP = 'sport-insight-provinces';
   var MUNICIPALITY_MAP_PREFIX = 'sport-insight-municipalities-';
 
@@ -93,7 +103,7 @@
       return Promise.resolve();
     }
     if (!librariesReady) {
-      librariesReady = loadScript(ECHARTS_CDN);
+      librariesReady = loadScript(ECHARTS_URL);
     }
     return librariesReady;
   }

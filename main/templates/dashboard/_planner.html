@@ -1,7 +1,7 @@
 <section id="program-planner" class="planner panel" aria-labelledby="planner-title" data-list-url="{% url 'plan_facilities' %}" data-detail-url="{% url 'plan_facility_detail' %}" data-preview-url="{% url 'plan_preview' %}">
   <div class="planner-heading"><div><h2 id="planner-title">종목과 시설 선택</h2></div><span id="plan-context" class="plan-pill">지역 미선택</span></div>
   <p id="plan-status" role="status" aria-live="polite"></p>
-  <p id="plan-error" class="plan-error" role="alert"></p>
+  <p id="plan-error" class="plan-error" role="alert" tabindex="-1"></p>
   <div id="plan-selection" hidden>
     <label class="plan-field">어떤 종목을 설계할까요?<select id="plan-sport"><option value="">종목 선택</option>{% for sport in planning_sports %}<option>{{ sport }}</option>{% endfor %}</select></label>
     <p class="chart-note">시설 유형이나 업종에 해당 종목이 명시된 정상운영 시설만 표시합니다. 종합체육관처럼 이름만으로는 종목을 추정하지 않으므로, 목록이 비어 있어도 그 지역에 해당 종목 시설이 없다는 뜻은 아닙니다. 지역·종목을 바꾸면 시설 선택이 해제되어 다시 확정해야 합니다.</p>
@@ -23,7 +23,7 @@
       <label class="plan-field">시설별 모집인원 (명)<input name="capacity" type="number" required min="1" max="100000" step="1" inputmode="numeric"></label>
       <label class="plan-field">1인 수강료 (원)<input name="fee" type="number" required min="0" max="100000000" step="1" inputmode="numeric" placeholder="무료는 0"></label>
       <label class="plan-field">수강료 기준<select name="fee_unit"><option value="월">월 기준</option><option value="회">1회 기준</option><option value="과정">전체 과정 기준</option></select></label>
-      <label class="plan-field">대상<input name="target" maxlength="100" placeholder="예: 초등학교 4~6학년"></label><label class="plan-field">운영 시작일<input name="start" type="date"></label><label class="plan-field">운영 종료일<input name="end" type="date"></label>
+      <label class="plan-field">대상<input name="target" maxlength="100" placeholder="예: 초등학교 4~6학년"></label><label class="plan-field">운영 시작일<input id="plan-date-start" name="start" type="date"></label><label class="plan-field">운영 종료일<input id="plan-date-end" name="end" type="date"></label>
       <label class="plan-field plan-wide">프로그램 설명<textarea name="description" required maxlength="2000" rows="4" placeholder="참여 대상, 운영 내용, 일정 등을 입력하세요."></textarea></label>
     </div><p class="chart-note">선택한 모든 시설에 동일한 모집인원과 수강료가 적용됩니다. 시설 정원이나 실제 예약을 확정하는 기능은 아닙니다.</p><div class="plan-actions"><p>계획서는 저장되지 않습니다. 팝업을 닫기 전에 인쇄하세요.</p><button class="button primary" id="plan-generate" type="submit">계획서 완성하기 →</button></div></form>
   </div>

@@ -11,6 +11,7 @@ from collections import Counter
 from django.conf import settings
 
 from ..common.data import course_month, read_columns, to_number
+from ..common.sources import USAGE
 from ..common.versioned_csv import VersionedCsvCache
 
 # 대시보드도 다른 화면과 같은 배치 출력 파일 설정을 사용한다.

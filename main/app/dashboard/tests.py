@@ -428,6 +428,23 @@ class DashboardViewTests(SimpleTestCase):
         for selector in ('#dashboard-region-map-level', '#dashboard-region-map-help', '.map-panel .unit', '.plan-insight', '#plan-start-help'):
             self.assertIsNone(page.select_one(selector))
 
+    def test_planner_carries_the_hooks_that_report_a_refusal(self):
+        """The submit button sits far below the alert region, so a refusal used
+        to scroll out of sight. program-planner.js moves focus there and bounds
+        the two dates against each other; both need these hooks in the markup."""
+        from bs4 import BeautifulSoup
+        with patch('app.dashboard.views.dashboard_data', return_value={}):
+            response = self.client.get('/dashboard')
+        page = BeautifulSoup(response.content, 'html.parser')
+        alert = page.select_one('#plan-error')
+        self.assertEqual(alert['role'], 'alert')
+        self.assertEqual(alert['tabindex'], '-1')
+        for field, identifier in (('start', 'plan-date-start'), ('end', 'plan-date-end')):
+            with self.subTest(field=field):
+                date_input = page.select_one('#plan-form [name="%s"]' % field)
+                self.assertEqual(date_input['type'], 'date')
+                self.assertEqual(date_input['id'], identifier)
+
     def test_seoul_controls_and_policy_order(self):
         context = dict(region_options=['서울'], region_district_options={'서울': ['강남구', '중구']},
                        facilities=2, courses=4, requests=40, sport_count=2)

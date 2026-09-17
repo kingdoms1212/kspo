@@ -11,7 +11,22 @@
   const message = text => { el('plan-status').textContent = text; el('plan-error').textContent = ''; };
   /* A refusal or a failure reads differently from progress, so it gets its own
      alert region rather than sharing the polite status line. */
-  const failure = text => { el('plan-error').textContent = text; el('plan-status').textContent = ''; };
+  const failure = text => {
+    el('plan-error').textContent = text; el('plan-status').textContent = '';
+    /* The submit button sits at the bottom of the wizard while this alert sits
+       at the top, so a refusal used to look like a dead button. Deferred
+       because the submit handler clears `inert` in its `finally`, and
+       focus is ignored while an ancestor is still inert. A timeout, not
+       requestAnimationFrame: a background tab suppresses the frame callback
+       entirely, and this only needs to run after the current task. */
+    if (!text) return;
+    setTimeout(() => {
+      const box = el('plan-error');
+      if (box.textContent !== text) return;
+      box.scrollIntoView({block: 'center', behavior: 'smooth'});
+      box.focus();
+    });
+  };
   function detailNote(text) {
     const box = document.createElement('div');
     box.className = 'plan-detail-content';
@@ -219,6 +234,19 @@
     } catch (error) {failure(error.message);}
     finally {generating = false; root.inert = false; el('dashboard-body').inert = false;}
   });
+  /* Reversed dates are the server's most common refusal (PlanForm.clean).
+     The browser can rule them out up front: each date bounds the other, and
+     an empty value lifts the bound. */
+  const dateStart = el('plan-date-start'), dateEnd = el('plan-date-end');
+  function syncDateBounds() {
+    dateEnd.min = dateStart.value;
+    dateStart.max = dateEnd.value;
+  }
+  dateStart.addEventListener('change', syncDateBounds);
+  dateEnd.addEventListener('change', syncDateBounds);
+  /* `reset` fires before the fields are cleared, so the bounds are recomputed
+     on the next task rather than from the values still on screen. */
+  el('plan-form').addEventListener('reset', () => setTimeout(syncDateBounds));
   el('plan-print').addEventListener('click', () => window.print());
   let printDetails = [];
   window.addEventListener('beforeprint', () => {

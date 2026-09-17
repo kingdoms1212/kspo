@@ -15,6 +15,7 @@ from django.conf import settings
 
 from ..common.calculations import nearest_stop_minutes
 from ..common.data import facility_key, iso_date, read_columns, strip_markup, to_number
+from ..common.sources import PROGRAM
 from ..common.versioned_csv import VersionedCsvCache
 
 PROGRAM_FILE = settings.DATA_FILES['programs']

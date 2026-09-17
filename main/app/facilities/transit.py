@@ -20,6 +20,7 @@ import heapq
 from django.conf import settings
 
 from ..common.data import columns_present, data_path, normalize, read_columns
+from ..common.sources import TRANSIT
 from ..common.versioned_csv import VersionedCsvCache
 
 TRANSIT_FILE = settings.DATA_FILES['transit']
