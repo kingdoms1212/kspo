@@ -19,11 +19,12 @@ def facility_list(request):
     if not form.is_valid():
         return JsonResponse({'errors': form.errors}, status=400)
     rows = candidates(**form.cleaned_data)
+    eligible_count = len(rows)
     query = request.GET.get('q', '').strip()[:100].casefold()
     if query:
         rows = [row for row in rows if query in row.name.casefold() or query in row.address.casefold()]
     page = Paginator(rows, 20).get_page(request.GET.get('page', 1))
-    return JsonResponse({'count': len(rows), 'page': page.number,
+    return JsonResponse({'count': len(rows), 'eligible_count': eligible_count, 'page': page.number,
                          'pages': page.paginator.num_pages,
                          'rows': [{'id': row.id, 'token': facility_token(row),
                                    'name': row.name, 'address': row.address,

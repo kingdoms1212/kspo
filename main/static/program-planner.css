@@ -88,7 +88,7 @@
   gap:24px;
 }
 .plan-candidates {
-  max-height:640px;
+  max-height:850px;
   overflow:auto;
   overscroll-behavior:contain;
   padding:3px;
@@ -381,8 +381,24 @@
 .plan-photo span { background:var(--si-heading);color:white;padding:8px 14px; }
 .detail-select { display:flex;align-items:center;gap:12px;padding:18px;border-radius:12px;background:var(--si-surface-soft);cursor:pointer; }
 .detail-select input { width:26px;height:26px;min-height:26px; }
-#plan-selection>.plan-actions { position:sticky;bottom:12px;z-index:2;background:var(--si-heading);color:white;border-radius:16px;padding:16px 20px;font-size:18px;box-shadow:0 10px 30px var(--si-shadow-color); }
-#plan-back-region { margin-top:20px; }
+.dashboard-screen .db-plan-action,.plan-step-actions { display:flex;justify-content:space-between;gap:12px;width:100%;max-width:none;margin-top:24px; }
+.dashboard-screen .db-plan-action { justify-content:flex-end; }
+.dashboard-screen #plan-start,.plan-step-actions .button { flex:0 1 240px;width:240px;min-width:0;min-height:60px;padding:12px 20px;font-size:17px;border-radius:12px; }
+.plan-step-actions[hidden],.plan-step-one-result[hidden] { display:none; }
+.plan-step-one-result { margin-top:24px; }
+.plan-step-one-result h2 { display:flex;align-items:baseline;gap:18px;margin:0 0 20px;font-size:32px;font-weight:800;color:var(--si-heading); }
+.plan-step-one-result h2 span { font-size:20px;color:var(--si-primary);white-space:nowrap; }
+.plan-region-summary { display:flex;flex-wrap:wrap;gap:10px;padding:20px 24px;border:1px solid var(--si-border);border-radius:16px;background:var(--si-surface); }
+.plan-candidates-title { flex-wrap:wrap;gap:8px 16px; }
+.plan-candidates-title #plan-selected-count { margin-left:auto;text-align:right;font-size:13px;color:var(--si-text-muted); }
+.plan-region-chip { display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--si-primary);border-radius:6px;background:var(--si-primary);color:white; }
+@media(max-width:700px){.plan-step-one-result h2{font-size:25px}.plan-step-one-result h2 span{font-size:16px}}
+.plan-empty { padding:32px 24px;text-align:center;background:var(--si-surface-soft);border:1px solid var(--si-border);border-radius:12px; }
+.plan-empty h4 { margin:0 0 12px;font-size:18px;color:var(--si-heading); }
+.plan-empty p { margin:0;color:var(--si-text-muted); }
+.plan-facility-workspace { position:relative;min-height:260px; }
+.plan-facility-workspace>.plan-loading { position:absolute;z-index:3;border-radius:16px; }
+.plan-loading img { max-width:100%; }
 .plan-info-heading { border-top:1px solid var(--si-border);padding-top:24px;margin-top:24px; }
 #plan-entry .plan-actions { justify-content:flex-end; }
 #plan-generate { min-height:64px;font-size:20px;min-width:280px; }
@@ -462,3 +478,29 @@
   .plan-sport-table th { position:static; }
   .plan-document-facility { break-inside:avoid; }
 }
+
+/* Previous selections shown in steps 02 and 03. */
+.plan-step-one-result { padding:0 16px;border:1px solid var(--si-border);border-radius:16px;background:var(--si-surface); }
+.plan-summary-row { display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);align-items:center;gap:24px;padding:20px 8px; }
+.plan-summary-row + .plan-summary-row { border-top:1px solid var(--si-border); }
+.plan-summary-row h2 { display:block;font-size:32px;font-weight:800;color:var(--si-heading);margin:0; }
+.plan-region-summary { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0;border:0;border-radius:0; }
+.plan-region-chip { justify-content:center;text-align:center;min-height:32px;padding:6px;border-color:var(--si-border-control);background:var(--si-surface);color:var(--si-heading);font-size:13px;overflow-wrap:anywhere; }
+#plan-sport-summary { text-align:right;font-size:14px;overflow-wrap:anywhere; }
+.plan-without-facility { display:flex;align-items:center;gap:10px;margin-top:16px;padding:16px;background:var(--si-surface-soft);border-radius:10px; }
+.plan-without-facility input { min-height:20px;width:20px;flex-shrink:0; }
+@media(max-width:700px){.plan-summary-row{grid-template-columns:1fr;gap:12px}.plan-summary-row h2{font-size:25px}#plan-sport-summary{text-align:left}}
+
+/* Join the previous selections, current heading and form in steps 02 and 03. */
+body:is([data-plan-step="1"],[data-plan-step="2"]) .plan-step-one-result { margin-bottom:0;border-bottom:0;border-radius:16px 16px 0 0; }
+body:is([data-plan-step="1"],[data-plan-step="2"]) .dashboard-screen .planner-steps { margin:0;padding:0 24px 24px;border-left:1px solid var(--si-border);border-right:1px solid var(--si-border);background:var(--si-surface); }
+body:is([data-plan-step="1"],[data-plan-step="2"]) .dashboard-screen .planner-steps li[aria-current] { padding-top:20px;border-top:1px solid var(--si-border); }
+body:is([data-plan-step="1"],[data-plan-step="2"]) #program-planner { margin-top:0;padding-top:0;border-top:0;border-radius:0 0 16px 16px; }
+.plan-summary-row[hidden] { display:none; }
+.plan-region-summary { justify-items:stretch; }
+.plan-facility-grid[data-empty="true"] { display:block;max-width:600px;margin:0 auto; }
+.plan-facility-grid[data-empty="true"] .plan-detail { border:1px solid var(--si-border);border-radius:18px;background:var(--si-surface); }
+.plan-facility-grid[data-empty="true"] .plan-empty { background:var(--si-surface-soft); }
+.plan-facility-grid[data-empty="true"] .plan-without-facility { font-size:13px; }
+#plan-entry .plan-entry-actions { display:flex;flex-direction:row;justify-content:space-between;gap:12px; }
+#plan-entry .plan-entry-actions .button { flex:0 1 280px;min-width:0;width:280px;min-height:60px;padding:12px 16px;font-size:17px;border-radius:12px; }

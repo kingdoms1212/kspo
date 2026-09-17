@@ -69,6 +69,7 @@ class ScopeForm(forms.Form):
 
 
 class PlanForm(ScopeForm):
+    without_facility = forms.BooleanField(required=False)
     target = forms.CharField(required=False, max_length=100)
     start = forms.DateField(required=False)
     end = forms.DateField(required=False)
@@ -83,13 +84,18 @@ class PlanForm(ScopeForm):
         if cleaned.get('start') and cleaned.get('end') and cleaned['start'] > cleaned['end']:
             self.add_error('end', '종료일은 시작일보다 빠를 수 없습니다.')
         tokens = self.data.getlist('facilities')
-        if not 1 <= len(tokens) <= 20 or len(tokens) != len(set(tokens)):
+        if (not tokens and not cleaned.get('without_facility')) or len(tokens) > 20 or len(tokens) != len(set(tokens)):
             self.add_error(None, '시설은 중복 없이 1~20곳 선택해 주세요.')
             return cleaned
         if any(field not in cleaned for field in ('region', 'sport', 'district')):
             return cleaned
         eligible = {row.id: row for row in candidates(cleaned['region'], cleaned['district'], cleaned['sport'])}
         self.selected = []
+        # [SH260917] 동의와 실제 후보 부재를 모두 검증하여 시설 미정 계획을 허용합니다.
+        if not tokens:
+            if eligible:
+                self.add_error(None, '매칭되는 후보 시설이 있습니다. 시설을 선택해 주세요.')
+            return cleaned
         try:
             for token in tokens:
                 identity = signing.loads(token, salt='program-plan', max_age=7200)

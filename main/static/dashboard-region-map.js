@@ -13,11 +13,16 @@
       chart.setOption({series: [{selectedMode: 'multiple', select: {itemStyle: {areaColor: '#FFD54F', borderColor: '#967100', borderWidth: 2}, label: {color: '#172B4D'}}}]}, {silent: true});
       prepared.add(chart);
     }
+    // Compare with the chart itself: ECharts also toggles selection on map clicks.
+    // Reapplying every district restarts selection transitions on unchanged areas.
+    var selectedMap = series.selectedMap || {};
     var names = values();
     var batch = Array.from(document.querySelectorAll('.db-district-picker [data-district]')).filter(function (b) { return b.dataset.district; });
     batch.forEach(function (button) {
       var name = button.dataset.district;
-      chart.dispatchAction({type: names.indexOf(name) >= 0 ? 'mapSelect' : 'mapUnSelect', seriesIndex: 0, name: name}, {silent: true});
+      var selected = names.indexOf(name) >= 0;
+      if (Boolean(selectedMap[name]) === selected) return;
+      chart.dispatchAction({type: selected ? 'mapSelect' : 'mapUnSelect', seriesIndex: 0, name: name}, {silent: true});
     });
     return true;
   }

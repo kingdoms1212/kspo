@@ -1,7 +1,7 @@
 <div id="plan-scope" data-region="{{ selected_region }}" data-district="{{ selected_district }}" hidden></div>
 {% if htmx_fragment %}<div class="heading-copy program-heading-copy" id="dashboard-heading" hx-swap-oob="true"><h1>프로그램 설계</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>{% endif %}
 <p class="sr-only" role="status">{% if selected_region %}{{ selected_region }}{% if selected_district %} {{ selected_district }}{% endif %}{% else %}전국{% endif %} 조회 완료. 시설 {{ facilities|default_if_none:'미제공' }}개, 강좌 {{ courses|default_if_none:'미제공' }}건. 시군구 {% if region_sort == 'asc' %}적은{% else %}많은{% endif %} 순, 종목 {% if sport_sort == 'asc' %}적은{% else %}많은{% endif %} 순.</p>
-<form id="dashboard-filters" class="db-layout" method="get" action="{% url 'dashboard' %}" hx-get="{% url 'dashboard' %}" hx-trigger="submit" hx-target="#dashboard-body" hx-swap="innerHTML show:none" hx-push-url="true" hx-indicator="#dashboard-busy">
+<form id="dashboard-filters" class="db-layout" method="get" action="{% url 'dashboard' %}" hx-get="{% url 'dashboard' %}" hx-trigger="submit" hx-target="#dashboard-body" hx-swap="innerHTML show:none focus-scroll:false" hx-push-url="true" hx-indicator="#dashboard-busy">
 <input type="hidden" name="region_sort" value="{{ region_sort }}">
 <input type="hidden" name="sport_sort" value="{{ sport_sort }}">
 
@@ -26,8 +26,6 @@
     <div class="db-map-actions"><button class="button ghost" type="button" id="dashboard-reset">초기화</button><button class="button primary" type="submit">조회</button></div>
     </div>
   </section>
-<div class="db-right">
-  <div class="db-scope"><h2>시설 이용현황</h2><p class="chart-note">관측 개설월 {{ period|join:', ' }} · 출처 {{ load_report.source }}</p></div>
 <section class="db-metrics" aria-label="상단 통계">
 <article class="db-metric"><div class="metric-icon">{% include 'components/icon.html' with name='building' %}</div><div class="db-metric-label">이용 시설 {% include 'dashboard/_info.html' with label='이용 시설 집계 기준' text='시도·시군구 코드, 시설명, 주소, 상세주소를 조합한 고유 시설 수입니다. 같은 시설의 여러 개설월 기록은 한 번 집계합니다. 시설 식별 정보가 부족한 행은 제외합니다.' %}</div><strong>{% if facilities is not None %}{{ facilities|floatformat:'0g' }} <em>개</em>{% else %}미제공{% endif %}</strong></article>
 <article class="db-metric"><div class="metric-icon">{% include 'components/icon.html' with name='program' %}</div><div class="db-metric-label">개설 강좌 {% include 'dashboard/_info.html' with label='개설 강좌 집계 기준' text='시설 식별 정보와 강좌번호를 조합한 고유 강좌 수입니다. 동일 강좌의 개설월별 기록은 중복 집계하지 않습니다.' %}</div><strong>{% if courses is not None %}{{ courses|floatformat:'0g' }} <em>건</em>{% else %}미제공{% endif %}</strong></article>
@@ -36,11 +34,11 @@
 </section>
 <div class="db-charts">
 <section class="panel db-chart-panel">
-<div class="db-section-title db-chart-heading"><h2>선택구역 신청인원</h2>{% include 'dashboard/_info.html' with label='시군구 그래프 기준' text='선택 지역의 선택구역 신청인원 합계입니다. 막대는 (값−최소값)÷(최대값−최소값)으로 정규화한 상대 위치입니다. 최소값에는 시작점 표시를 남깁니다. 모두 같으면 같은 길이로, 모두 0이면 시작점으로 표시합니다. 누락값은 정렬 마지막에 미제공으로 표시합니다. 오른쪽 숫자는 실제 인원입니다.' %}<a class="db-sort-toggle" data-focus-key="dashboard-region-sort" href="{{ region_sort_url }}" hx-get="{{ region_sort_url }}" hx-params="none" aria-label="선택구역 신청인원: 현재 {% if region_sort == 'asc' %}적은 순{% else %}많은 순{% endif %}, {% if region_sort == 'asc' %}많은 순{% else %}적은 순{% endif %}으로 정렬" title="정렬 방향 전환"><span aria-hidden="true" class="{% if region_sort == 'asc' %}active{% endif %}">↑</span><span aria-hidden="true" class="{% if region_sort == 'desc' %}active{% endif %}">↓</span></a></div>
+<div class="db-section-title db-chart-heading"><h2>선택구역 신청인원</h2>{% include 'dashboard/_info.html' with label='시군구 그래프 기준' text='선택 지역의 선택구역 신청인원 합계입니다. 막대는 (값−최소값)÷(최대값−최소값)으로 정규화한 상대 위치입니다. 최소값에는 시작점 표시를 남깁니다. 모두 같으면 같은 길이로, 모두 0이면 시작점으로 표시합니다. 누락값은 정렬 마지막에 미제공으로 표시합니다. 오른쪽 숫자는 실제 인원입니다.' %}<a class="db-sort-toggle" hx-swap="innerHTML show:none focus-scroll:false" data-focus-key="dashboard-region-sort" href="{{ region_sort_url }}" hx-get="{{ region_sort_url }}" hx-params="none" aria-label="선택구역 신청인원: 현재 {% if region_sort == 'asc' %}적은 순{% else %}많은 순{% endif %}, {% if region_sort == 'asc' %}많은 순{% else %}적은 순{% endif %}으로 정렬" title="정렬 방향 전환"><span aria-hidden="true">⮃</span></a></div>
 {% include 'dashboard/_pie.html' with pie=region_pie label='선택구역 신청인원' %}
 </section>
 <section class="panel db-chart-panel">
-<div class="db-section-title db-chart-heading"><h2>종목별 신청인원</h2>{% include 'dashboard/_info.html' with label='종목별 집계 및 그래프 기준' text='선택 지역의 모든 종목을 표시합니다. 시설·강좌 수는 각 종목 안에서 중복 제거하며 여러 종목을 운영하는 시설은 각 종목에 포함됩니다. 종목별 시설 수의 합은 전체 고유 시설 수와 다를 수 있습니다. 파이차트는 조회한 구들의 종목별 신청인원 합계에 대한 비율입니다. 누락값은 미제공으로 표시합니다.' %}<a class="db-sort-toggle" data-focus-key="dashboard-sport-sort" href="{{ sport_sort_url }}" hx-get="{{ sport_sort_url }}" hx-params="none" aria-label="종목별 신청인원: 현재 {% if sport_sort == 'asc' %}적은 순{% else %}많은 순{% endif %}, {% if sport_sort == 'asc' %}많은 순{% else %}적은 순{% endif %}으로 정렬" title="정렬 방향 전환"><span aria-hidden="true" class="{% if sport_sort == 'asc' %}active{% endif %}">↑</span><span aria-hidden="true" class="{% if sport_sort == 'desc' %}active{% endif %}">↓</span></a></div>
+<div class="db-section-title db-chart-heading"><h2>종목별 신청인원</h2>{% include 'dashboard/_info.html' with label='종목별 집계 및 그래프 기준' text='선택 지역의 모든 종목을 표시합니다. 시설·강좌 수는 각 종목 안에서 중복 제거하며 여러 종목을 운영하는 시설은 각 종목에 포함됩니다. 종목별 시설 수의 합은 전체 고유 시설 수와 다를 수 있습니다. 파이차트는 조회한 구들의 종목별 신청인원 합계에 대한 비율입니다. 누락값은 미제공으로 표시합니다.' %}<a class="db-sort-toggle" hx-swap="innerHTML show:none focus-scroll:false" data-focus-key="dashboard-sport-sort" href="{{ sport_sort_url }}" hx-get="{{ sport_sort_url }}" hx-params="none" aria-label="종목별 신청인원: 현재 {% if sport_sort == 'asc' %}적은 순{% else %}많은 순{% endif %}, {% if sport_sort == 'asc' %}많은 순{% else %}적은 순{% endif %}으로 정렬" title="정렬 방향 전환"><span aria-hidden="true">⮃</span></a></div>
 {% include 'dashboard/_pie.html' with pie=sport_pie label='종목별 신청인원' %}
 
 </section>
@@ -54,6 +52,5 @@
 <div><span class="db-policy-label">{% include 'components/icon.html' with name='chart' %}종목당 신청인원</span><strong>{% if requests_per_sport is not None %}{{ requests_per_sport|floatformat:1 }} <em>명</em>{% else %}미제공{% endif %}</strong></div>
 </div>
 </section>
-<div class="db-plan-action"><button type="button" class="button primary" id="plan-start" {% if not selected_region %}disabled{% endif %}>계획서 생성하기 →</button></div>
-</div>
+<div class="db-plan-action"><button type="button" class="button primary" id="plan-start" {% if not selected_region %}disabled{% endif %}>다음 단계 →</button></div>
 </form>
