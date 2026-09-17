@@ -7,7 +7,7 @@
   const printArea = document.getElementById('plan-print-area');
   const selected = new Map();
   let scope = {}, page = 1, pages = 1, rows = [], listVersion = 0, detailVersion = 0;
-  let confirmed = false, generating = false, lastPlan = null;
+  let confirmed = false, generating = false, lastPlan = null, listLoading = false;
   const message = text => { el('plan-status').textContent = text; el('plan-error').textContent = ''; };
   /* A refusal or a failure reads differently from progress, so it gets its own
      alert region rather than sharing the polite status line. */
@@ -43,7 +43,9 @@
     if (index < 3) {
       el('dashboard-body').hidden = index !== 0;
       root.hidden = index === 0;
-      el('plan-region-again').hidden = index === 0;
+      el('plan-step-one-result').hidden = index === 0;
+      el('plan-step-actions').hidden = index !== 1;
+      el('plan-sport-summary-row').hidden = index !== 2;
     }
     document.querySelectorAll('.planner-steps li').forEach((item, i) => {
       const visibleStep = Math.min(index, 2);
@@ -55,13 +57,33 @@
   }
   function updateCount() {
     el('plan-selected-count').textContent = `선택 ${selected.size}곳 / 최대 20곳`;
-    el('plan-confirm').disabled = !selected.size;
+    el('plan-confirm').disabled = listLoading || (!selected.size && !withoutFacility());
+    el('plan-sport-summary').textContent = el('plan-sport').value
+      ? `${el('plan-sport').value} · ${selected.size ? Array.from(selected.values(), row => row.name).join(', ') : withoutFacility() ? '시설 미정' : '시설 선택 전'}`
+      : '아직 선택하지 않았습니다.';
+  }
+  function withoutFacility() {
+    return !el('plan-without-facility').hidden && el('plan-without-facility-check').checked;
+  }
+  function resetWithoutFacility() {
+    el('plan-without-facility').hidden = true;
+    el('plan-without-facility-check').checked = false;
+    el('plan-pagination').hidden = true;
+  }
+  function setListLoading(loading) {
+    listLoading = loading;
+    el('plan-loading').hidden = !loading;
+    el('plan-facility-grid').inert = loading;
+    el('plan-facility-grid').setAttribute('aria-busy', String(loading));
+    updateCount();
   }
   function resetSelection() {
     listVersion++; detailVersion++;
+    resetWithoutFacility();
+    setListLoading(false);
     selected.clear(); confirmed = false; rows = []; page = 1;
     el('plan-candidates').replaceChildren();
-    detailNote('시설의 상세보기를 눌러 정보를 확인하세요.');
+    detailEmpty('종목과 시설을 선택해 주세요.', '종목을 선택하면 해당 지역의 후보 시설을 확인할 수 있습니다.');
     el('plan-count').textContent = ''; el('plan-page').textContent = '';
     el('plan-prev').disabled = true; el('plan-next').disabled = true;
     el('plan-entry').hidden = true;
@@ -78,9 +100,15 @@
       message('');
     }
     scope = next;
-    el('plan-context').textContent = scope.region
-      ? `${scope.region} ${scope.district || '전체'}`
-      : '지역 미선택';
+    const regions = el('plan-context');
+    regions.replaceChildren();
+    const districts = scope.district ? scope.district.split(',').filter(Boolean) : ['전체'];
+    districts.forEach(district => {
+      const chip = document.createElement('span');
+      chip.className = 'plan-region-chip';
+      chip.textContent = scope.region ? `${scope.region} ${district}` : '지역 미선택';
+      regions.append(chip);
+    });
     el('plan-start').disabled = !scope.region;
   }
   function params() {
@@ -146,28 +174,66 @@
       label.prepend(check); card.append(button, label); el('plan-candidates').append(card);
     });
   }
+  function detailEmpty(title, description) {
+    el('plan-candidates-section').hidden = true;
+    el('plan-facility-grid').dataset.empty = 'true';
+    const content = document.createElement('div');
+    content.className = 'plan-detail-content';
+    const box = document.createElement('div');
+    box.className = 'plan-empty';
+    const heading = document.createElement('h4'); heading.textContent = title;
+    const copy = document.createElement('p'); copy.textContent = description;
+    box.append(heading, copy);
+    content.append(box);
+    el('plan-detail').replaceChildren(content);
+    delete el('plan-detail').dataset.facility;
+  }
   async function load() {
-    if (!el('plan-sport').value) return;
+    if (!el('plan-sport').value) {
+      detailEmpty('종목과 시설을 선택해 주세요.', '종목을 선택하면 해당 지역의 후보 시설을 확인할 수 있습니다.');
+      return;
+    }
     const version = ++listVersion; detailVersion++;
+    resetWithoutFacility();
+    setListLoading(true);
     const query = params(); query.set('page', page); query.set('q', el('plan-query').value);
     message('조건에 맞는 시설을 불러오는 중입니다…');
     el('plan-candidates').replaceChildren();
+    el('plan-count').textContent = ''; el('plan-page').textContent = '';
     detailNote('시설 목록을 불러오는 중입니다…');
     el('plan-prev').disabled = true; el('plan-next').disabled = true;
     try {
       const data = await (await response(root.dataset.listUrl + '?' + query)).json();
       if (version !== listVersion) return;
       rows = data.rows; page = data.page; pages = data.pages;
+      el('plan-candidates-section').hidden = !rows.length;
+      el('plan-facility-grid').dataset.empty = String(!rows.length);
+      el('plan-pagination').hidden = !rows.length;
       // Refresh signed identities for already selected rows on the current page.
       rows.forEach(row => {if (selected.has(row.id)) selected.set(row.id, row);});
       renderRows();
       el('plan-count').textContent = `${data.count.toLocaleString()}곳`;
-      el('plan-page').textContent = `${page} / ${pages}`;
-      el('plan-prev').disabled = page <= 1; el('plan-next').disabled = page >= pages;
-      if (data.count) message('상세 정보를 확인한 후 이용할 시설을 체크하세요.');
-      else failure('자료에 이 종목이 명시된 정상운영 시설이 없습니다. 종목·지역이나 검색어를 바꿔 보세요. 해당 지역에 그 종목 시설이 실제로 없다는 뜻은 아닙니다.');
-      if (rows.length) inspect(rows[0]); else detailNote('조회된 시설이 없습니다.');
-    } catch (error) {if (version === listVersion) {failure(error.message); detailNote('시설 검색을 눌러 다시 시도하세요.');}}
+      el('plan-page').textContent = rows.length ? `${page} / ${pages}` : '';
+      el('plan-prev').disabled = !rows.length || page <= 1; el('plan-next').disabled = !rows.length || page >= pages;
+      if (rows.length) message('상세 정보를 확인한 후 이용할 시설을 체크하세요.');
+      else {
+        // [SH260917] 검색어로 인한 빈 결과와 실제 매칭 후보 부재를 구분합니다.
+        // 후보 자체가 없을 때만 체크 동의 후 시설 미정으로 다음 단계를 허용합니다.
+        el('plan-without-facility').hidden = data.eligible_count !== 0 || selected.size > 0;
+        const searched = Boolean(query.get('q').trim());
+        const title = searched ? '검색 결과가 없습니다.' : '매칭되는 후보 시설이 없습니다.';
+        detailEmpty(title, searched
+          ? '시설명이나 주소 검색어를 바꾸거나 지운 뒤 다시 검색해 주세요.'
+          : '선택한 지역·종목에 해당하는 시설이 자료에 없습니다. 종목을 변경하거나 이전 단계에서 지역을 다시 선택해 주세요. 실제 시설이 없다는 의미는 아닙니다.');
+        message(title);
+      }
+      if (rows.length) inspect(rows[0]);
+    } catch (error) {if (version === listVersion) {
+      rows = [];
+      detailEmpty('시설 목록을 불러오지 못했습니다.', '잠시 후 시설 검색 버튼을 눌러 다시 시도해 주세요.');
+      failure(error.message);
+    }}
+    finally {if (version === listVersion) setListLoading(false);}
   }
   document.addEventListener('click', event => {
     if (!event.target.closest('#plan-start')) return;
@@ -176,19 +242,24 @@
     if (el('plan-sport').value) load();
   });
   function backToRegion() {
+    listVersion++; detailVersion++; setListLoading(false);
     stage(0); el('plan-start').hidden = false;
     el('dashboard-region').scrollIntoView({behavior: 'smooth', block: 'center'}); el('dashboard-region').focus();
   }
-  el('plan-region-again').addEventListener('click', backToRegion);
   el('plan-back-region').addEventListener('click', backToRegion);
+  el('plan-without-facility-check').addEventListener('change', updateCount);
   el('plan-sport').addEventListener('change', () => {resetSelection(); stage(1); el('plan-query').value = ''; load();});
   el('plan-search').addEventListener('submit', event => {event.preventDefault(); page = 1; load();});
   el('plan-prev').addEventListener('click', () => {page--; load();});
   el('plan-next').addEventListener('click', () => {page++; load();});
   el('plan-confirm').addEventListener('click', () => {
-    if (!selected.size) return;
+    if (listLoading || (!selected.size && !withoutFacility())) return;
     confirmed = true; el('plan-selection').hidden = true; el('plan-entry').hidden = false;
     el('plan-confirmed').replaceChildren();
+    if (!selected.size) {
+      const note = document.createElement('li'); note.textContent = '매칭 후보 시설 없음 · 시설 미정으로 진행';
+      el('plan-confirmed').append(note);
+    }
     selected.forEach(row => {
       const li = document.createElement('li'); li.className = 'plan-confirmed-row';
       const photo = document.createElement('img'); photo.src = row.photo; photo.alt = ''; photo.loading = 'lazy';
@@ -199,16 +270,20 @@
     });
     stage(2); message('시설을 확정했습니다. 프로그램 내용을 입력하세요.'); el('plan-form').elements.name.focus();
   });
-  el('plan-reselect').addEventListener('click', () => {
+  function backToSelection() {
     confirmed = false; el('plan-entry').hidden = true; el('plan-selection').hidden = false; stage(1); load();
-  });
+    el('plan-sport').focus();
+  }
+  el('plan-reselect').addEventListener('click', backToSelection);
+  el('plan-back-selection').addEventListener('click', backToSelection);
   el('plan-form').addEventListener('submit', async event => {
     event.preventDefault();
-    if (generating || !confirmed || !selected.size) return;
+    if (generating || !confirmed || (!selected.size && !withoutFacility())) return;
     generating = true; root.inert = true; el('dashboard-body').inert = true;
     const data = new FormData(event.target);
     data.set('region', scope.region); data.set('district', scope.district); data.set('sport', el('plan-sport').value);
     selected.forEach(row => data.append('facilities', row.token));
+    if (!selected.size && withoutFacility()) data.set('without_facility', 'on');
     message('입력 내용을 확인하고 계획서를 만드는 중입니다…');
     /* Captured before the reset below clears the wizard, and kept short: a
        message carries a summary, not the whole document. */

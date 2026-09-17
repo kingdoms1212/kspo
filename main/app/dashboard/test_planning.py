@@ -8,6 +8,15 @@ from .planning import candidates, facility_token
 
 
 class PlanningTests(SimpleTestCase):
+    def test_without_facility_requires_consent_and_no_eligible_candidates(self):
+        payload = dict(self.payload, facilities=[], without_facility='on')
+        self.assertEqual(self.client.post('/dashboard/plan/preview', payload).status_code, 400)
+        with patch('app.dashboard.planning.candidates', return_value=[]):
+            self.assertEqual(self.client.post('/dashboard/plan/preview', dict(payload, without_facility='')).status_code, 400)
+            response = self.client.post('/dashboard/plan/preview', payload)
+        self.assertContains(response, '시설 미정으로 작성한 계획서')
+        self.assertContains(response, '전체 모집인원 미정')
+
     def setUp(self):
         self.row = facility(id='facility-1', name='농구센터', region='서울특별시',
                             district='중구', facility_type='농구장', state='정상운영')

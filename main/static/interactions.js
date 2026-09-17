@@ -12,6 +12,7 @@
   'use strict';
 
   var pending = null;
+  var dashboardScroll = null;
 
   function keyOf(element) {
     return element && element.dataset ? element.dataset.focusKey || null : null;
@@ -19,6 +20,18 @@
 
   document.body.addEventListener('htmx:beforeRequest', function (event) {
     pending = keyOf(event.detail.elt) || keyOf(document.activeElement);
+    if (event.detail.elt.closest && event.detail.elt.closest('#dashboard-filters')) {
+      dashboardScroll = {x: window.scrollX, y: window.scrollY};
+    }
+  });
+
+  document.body.addEventListener('htmx:afterSettle', function (event) {
+    if (!dashboardScroll || event.detail.target.id !== 'dashboard-body') return;
+    window.scrollTo({left: dashboardScroll.x, top: dashboardScroll.y, behavior: 'instant'});
+    dashboardScroll = null;
+  });
+  document.body.addEventListener('htmx:afterRequest', function (event) {
+    if (event.detail.failed) dashboardScroll = null;
   });
 
   document.body.addEventListener('htmx:afterSettle', function (event) {

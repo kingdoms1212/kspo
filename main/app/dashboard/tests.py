@@ -422,7 +422,7 @@ class DashboardViewTests(SimpleTestCase):
         steps = page.select('.planner-steps li')
         self.assertEqual(len(steps), 3)
         self.assertEqual(steps[0].get_text(' ', strip=True), 'STEP 01 지역 선택')
-        self.assertEqual(page.select_one('.db-scope h2').text, '시설 이용현황')
+        self.assertIsNone(page.select_one('.db-scope'))
         self.assertEqual(page.select_one('.db-selection-all').text, '행정구역을 선택해주세요')
         self.assertIsNotNone(page.select_one('.db-region-map-column .section-title h2 + .db-helper'))
         for selector in ('#dashboard-region-map-level', '#dashboard-region-map-help', '.map-panel .unit', '.plan-insight', '#plan-start-help'):

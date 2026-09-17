@@ -21,11 +21,12 @@
 </div>
 <div class="plan-document-block">
 <h3>선택 시설 · {{ selected|length }}곳</h3>
+{% if not selected %}<p>매칭 후보 시설 없음 · 시설 미정으로 작성한 계획서입니다.</p>{% endif %}
 <div class="plan-document-facilities">{% for row in selected %}<section class="plan-document-facility"><img src="{% centre_photo row.id %}" alt="" loading="lazy"><div><h4>{{ row.name }}</h4><p>{{ row.address }}</p><p class="chart-note">{{ row.facility_type }} · {{ row.state }} · 연락처 {{ row.phone }}</p></div></section>{% endfor %}</div>
 <p class="chart-note">시설 이미지는 대표 이미지이며 해당 시설의 실제 사진이 아닙니다.</p>
 </div>
 <div class="plan-document-block">
-<h3>프로그램 운영안</h3><dl class="plan-summary"><dt>대상</dt><dd>{{ plan.target|default:"미정" }}</dd><dt>운영기간</dt><dd>{{ plan.start|date:"Y-m-d"|default:"미정" }} ~ {{ plan.end|date:"Y-m-d"|default:"미정" }}</dd><dt>모집인원</dt><dd>시설당 {{ plan.capacity|floatformat:'0g' }}명 · 전체 {{ total_capacity|floatformat:'0g' }}명</dd><dt>수강료</dt><dd>{% if plan.fee %}{{ plan.fee|floatformat:'0g' }}원 / 1인 / {{ plan.fee_unit }} 기준{% else %}무료{% endif %}</dd></dl>
+<h3>프로그램 운영안</h3><dl class="plan-summary"><dt>대상</dt><dd>{{ plan.target|default:"미정" }}</dd><dt>운영기간</dt><dd>{{ plan.start|date:"Y-m-d"|default:"미정" }} ~ {{ plan.end|date:"Y-m-d"|default:"미정" }}</dd><dt>모집인원</dt><dd>시설당 {{ plan.capacity|floatformat:'0g' }}명 · {% if selected %}전체 {{ total_capacity|floatformat:'0g' }}명{% else %}전체 모집인원 미정{% endif %}</dd><dt>수강료</dt><dd>{% if plan.fee %}{{ plan.fee|floatformat:'0g' }}원 / 1인 / {{ plan.fee_unit }} 기준{% else %}무료{% endif %}</dd></dl>
 <p class="plan-description">{{ plan.description }}</p>
 </div>
 <p class="chart-note">검토용 계획서이며 시설 예약·강좌 등록이 아닙니다. 이 계획서는 저장되지 않으며 창을 닫으면 사라집니다.</p>

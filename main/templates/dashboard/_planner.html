@@ -1,20 +1,31 @@
-<section id="program-planner" class="planner panel" aria-labelledby="planner-title" data-list-url="{% url 'plan_facilities' %}" data-detail-url="{% url 'plan_facility_detail' %}" data-preview-url="{% url 'plan_preview' %}">
-  <div class="planner-heading"><div><h2 id="planner-title">종목과 시설 선택</h2></div><span id="plan-context" class="plan-pill">지역 미선택</span></div>
-  <p id="plan-status" role="status" aria-live="polite"></p>
+{% load static %}
+<section id="program-planner" class="planner panel" aria-label="프로그램 설계 입력" data-list-url="{% url 'plan_facilities' %}" data-detail-url="{% url 'plan_facility_detail' %}" data-preview-url="{% url 'plan_preview' %}">
+  <p id="plan-status" class="sr-only" role="status" aria-live="polite"></p>
   <p id="plan-error" class="plan-error" role="alert" tabindex="-1"></p>
   <div id="plan-selection" hidden>
     <label class="plan-field">어떤 종목을 설계할까요?<select id="plan-sport"><option value="">종목 선택</option>{% for sport in planning_sports %}<option>{{ sport }}</option>{% endfor %}</select></label>
-    <p class="chart-note">시설 유형이나 업종에 해당 종목이 명시된 정상운영 시설만 표시합니다. 종합체육관처럼 이름만으로는 종목을 추정하지 않으므로, 목록이 비어 있어도 그 지역에 해당 종목 시설이 없다는 뜻은 아닙니다. 지역·종목을 바꾸면 시설 선택이 해제되어 다시 확정해야 합니다.</p>
     <form id="plan-search" class="plan-search"><label for="plan-query" class="sr-only">시설명 또는 주소 검색</label><input id="plan-query" maxlength="100" placeholder="시설명 또는 주소"><button class="button ghost" type="submit">시설 검색</button></form>
-    <div class="plan-facility-grid">
-      <section aria-labelledby="plan-candidates-heading">
-        <div class="section-title"><h3 id="plan-candidates-heading">설계 후보 시설 <span id="plan-count" class="count"></span></h3><span class="unit">시설을 눌러 상세정보를 확인하세요</span></div>
-        <div id="plan-candidates" class="plan-candidates"></div>
-        <div class="plan-pagination"><button id="plan-prev" type="button" class="button ghost">이전</button><span id="plan-page"></span><button id="plan-next" type="button" class="button ghost">다음</button></div>
-      </section>
-      <aside id="plan-detail" class="plan-detail" aria-label="선택한 시설 상세" tabindex="-1"><div class="plan-detail-content"><p>시설의 상세보기를 눌러 정보를 확인하세요.</p></div></aside>
+    <div class="plan-facility-workspace">
+    <div id="plan-loading" class="app-splash plan-loading" hidden>
+      <div class="app-splash-inner">
+        <img src="{% static 'image/logo/logo.svg' %}" alt="" width="946" height="122">
+        <p class="app-splash-text" role="status">선택한 종목의 시설을 불러오는 중입니다. 잠시만 기다려 주세요.</p>
+        <span class="app-splash-bar" aria-hidden="true"><i></i></span>
+      </div>
     </div>
-    <div class="plan-actions"><span id="plan-selected-count">선택 0곳 / 최대 20곳</span><button type="button" class="button primary" id="plan-confirm" disabled>시설 확정하기</button></div>
+    <div class="plan-detail-content">
+    <div id="plan-facility-grid" class="plan-facility-grid" aria-busy="false">
+      <section id="plan-candidates-section" aria-labelledby="plan-candidates-heading">
+        <div class="section-title plan-candidates-title"><h3 id="plan-candidates-heading">설계 후보 시설 <span id="plan-count" class="count"></span></h3><span id="plan-selected-count">선택 0곳 / 최대 20곳</span></div>
+        <div id="plan-candidates" class="plan-candidates"></div>
+        <div id="plan-pagination" class="plan-pagination" hidden><button id="plan-prev" type="button" class="button ghost">이전</button><span id="plan-page"></span><button id="plan-next" type="button" class="button ghost">다음</button></div>
+      </section>
+      <div><aside id="plan-detail" class="plan-detail" aria-label="선택한 시설 상세" tabindex="-1"><div class="plan-detail-content"></div></aside>
+      <!-- [SH260917] 매칭 후보 시설이 없을 때만 동의 후 시설 미정으로 진행합니다. -->
+      <label id="plan-without-facility" class="plan-without-facility" hidden><input id="plan-without-facility-check" type="checkbox">매칭되는 시설이 없어도 시설 미정으로 진행하겠습니다.</label></div>
+    </div>
+    </div>
+    </div>
   </div>
   <div id="plan-entry" hidden>
     <div class="planner-heading"><h3>확정한 시설</h3><button type="button" class="button ghost" id="plan-reselect">시설 다시 선택</button></div><ul id="plan-confirmed"></ul>
@@ -25,10 +36,13 @@
       <label class="plan-field">수강료 기준<select name="fee_unit"><option value="월">월 기준</option><option value="회">1회 기준</option><option value="과정">전체 과정 기준</option></select></label>
       <label class="plan-field">대상<input name="target" maxlength="100" placeholder="예: 초등학교 4~6학년"></label><label class="plan-field">운영 시작일<input id="plan-date-start" name="start" type="date"></label><label class="plan-field">운영 종료일<input id="plan-date-end" name="end" type="date"></label>
       <label class="plan-field plan-wide">프로그램 설명<textarea name="description" required maxlength="2000" rows="4" placeholder="참여 대상, 운영 내용, 일정 등을 입력하세요."></textarea></label>
-    </div><p class="chart-note">선택한 모든 시설에 동일한 모집인원과 수강료가 적용됩니다. 시설 정원이나 실제 예약을 확정하는 기능은 아닙니다.</p><div class="plan-actions"><p>계획서는 저장되지 않습니다. 팝업을 닫기 전에 인쇄하세요.</p><button class="button primary" id="plan-generate" type="submit">계획서 완성하기 →</button></div></form>
+    </div><p class="chart-note">선택한 모든 시설에 동일한 모집인원과 수강료가 적용됩니다. 시설 정원이나 실제 예약을 확정하는 기능은 아닙니다.</p><p class="chart-note">계획서는 저장되지 않습니다. 팝업을 닫기 전에 인쇄하세요.</p><div class="plan-actions plan-entry-actions"><button class="button ghost" id="plan-back-selection" type="button">이전 단계</button><button class="button primary" id="plan-generate" type="submit">계획서 완성하기 →</button></div></form>
   </div>
-<button type="button" class="button ghost" id="plan-back-region">← 지역 현황으로</button>
 </section>
+<div id="plan-step-actions" class="plan-step-actions" hidden>
+  <button type="button" class="button ghost" id="plan-back-region">이전 단계</button>
+  <button type="button" class="button primary" id="plan-confirm" disabled>다음 단계 →</button>
+</div>
 <dialog id="plan-result" class="plan-result" aria-labelledby="plan-result-title">
   <div class="plan-result-head"><span class="plan-pill">생성 완료 · 저장되지 않는 검토용 계획서</span><button type="button" class="button ghost plan-close-icon" id="plan-close-top" aria-label="계획서 닫기">×</button></div>
   <div id="plan-result-content"></div>
