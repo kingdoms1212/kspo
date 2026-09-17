@@ -12,7 +12,20 @@ PowerShell에서 `C:\kspo`를 작업 디렉터리로 사용합니다. 기존 `co
 
 브라우저에서 <http://127.0.0.1:8000/>에 접속합니다. `/`는 `/dashboard`로 이동하며, 메뉴는 `/dashboard`, `/programs`, `/facilities` 세 개입니다. 상단의 `체육정책` 버튼은 문화체육관광부 체육정책 목록 최신 10건을 팝업으로 보여줍니다. 이 목록만 외부 사이트를 실시간으로 읽으며, 수집기는 `main/app/common/crawler.py`(beautifulsoup4)이고, 주소와 수집 규칙은 `main/main/settings.py`의 `POLICY_SOURCE`에 있습니다. 성공은 15분, 실패는 60초 캐시하며 팝업을 열 때만 요청합니다.
 
-화면은 htmx로 부분 렌더링합니다. 페이지 이동·필터·시설 선택은 전체 문서를 다시 그리지 않고 해당 영역만 교체하므로 스크롤 위치가 유지됩니다. `main/static/vendor/htmx.min.js`를 저장소에 포함했으며 CDN이나 빌드 도구는 쓰지 않습니다. JS를 끈 브라우저에서는 모든 링크가 일반 이동으로 동작합니다. 뒤로·앞으로 가기는 해당 URL을 다시 요청해 전체 페이지를 받습니다.
+화면은 htmx로 부분 렌더링합니다. 페이지 이동·필터·시설 선택은 전체 문서를 다시 그리지 않고 해당 영역만 교체하므로 스크롤 위치가 유지됩니다. 외부 라이브러리는 모두 `main/static/vendor/`에 포함했으며 CDN이나 빌드 도구는 쓰지 않습니다(아래 [외부 자산](#외부-자산) 참조). JS를 끈 브라우저에서는 모든 링크가 일반 이동으로 동작합니다. 뒤로·앞으로 가기는 해당 URL을 다시 요청해 전체 페이지를 받습니다.
+
+## 외부 자산
+
+런타임에 외부 호스트를 호출하지 않습니다. 화면은 폐쇄망에서도 동작해야 하고, 경계 자료를 `@master` 브랜치로 참조하면 이 저장소의 커밋 없이 지도 모양이 바뀔 수 있기 때문입니다. 아래 사본을 `main/static/vendor/`에 둡니다.
+
+| 파일 | 버전·출처 | 라이선스 |
+|---|---|---|
+| `htmx.min.js` | htmx | BSD-2-Clause |
+| `echarts.min.js` | Apache ECharts 5.6.0 (`npm/echarts@5.6.0/dist`) | Apache-2.0 |
+| `skorea_provinces_geo_simple.json` | southkorea-maps `kostat/2013` · 시·도 17개 | 원자료 KOSTAT |
+| `skorea_municipalities_geo_simple.json` | southkorea-maps `kostat/2013` · 시군구 251개 | 원자료 KOSTAT |
+
+`region-map.js`는 이 폴더를 자기 `src`에서 유도하므로 `STATIC_URL`을 바꿔도 따라갑니다. 두 경계 파일은 KOSTAT 코드 앞 두 자리로 시·도와 시군구를 잇습니다. 회귀 테스트는 `app/common/test_staticfiles.py`의 `OfflineMapAssetTests`이며, 정적 자산 200 응답·`region-map.js` 내 외부 URL 부재·두 파일의 코드 일치를 확인합니다.
 
 ## 검증 명령
 
@@ -47,6 +60,6 @@ PowerShell에서 `C:\kspo`를 작업 디렉터리로 사용합니다. 기존 `co
 - 수강료의 월/회/과정 단위는 미확인이며 원본 기재 그대로 표시합니다. `FCLTY_STATE_CD`도 의미가 확인되지 않아 해석 없이 값만 보여줍니다.
 - 엑셀 내보내기는 한 번에 5만 행까지입니다. 초과하면 잘라내지 않고 거절하며 조건을 좁히도록 안내합니다.
 - 현재 화면은 실제 자료 모드이며 시연 데이터 생성이나 누락값 대체가 없습니다.
-- 행정경계 지도는 여전히 미연결입니다.
+- 행정경계 지도는 시·도에서 시군구로 드릴다운하며, 경계 자료는 저장소에 포함한 KOSTAT 2013 기준 GeoJSON을 씁니다.
 
 [작업 상태](docs/WORK-STATUS.md)와 [결정 기록](docs/DECISIONS.md)을 참고하세요. 원본 압축파일은 `_handoff/sport-insight-dev-handoff`에 별도로 풀었으며 기존 `_prompt`와 가상환경을 보존했습니다.

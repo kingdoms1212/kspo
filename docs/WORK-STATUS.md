@@ -1,5 +1,16 @@
 # SPORT INSIGHT 작업 상태
 
+## 최신 작업 — 계획서 거절 안내 + 지도 자산 로컬화 (2026-09-17, 11차)
+
+`POST /dashboard/plan/preview` 400의 원인을 특정하고, 그 원인이 화면에 전달되지 않던 문제와 지도의 외부 CDN 의존을 함께 고쳤다.
+
+- 원인 규명: 로그의 `400 126`에서 응답 **126바이트**가 단서. `JsonResponse`는 한글을 `\uXXXX`로 이스케이프하므로 메시지마다 크기가 고유하다. 발생 가능한 폼 에러 조합을 전수 계산해 126을 만드는 것이 `end`의 `종료일은 시작일보다 빠를 수 없습니다.` 하나임을 확인했고(다른 후보 `fee`+`end` 동시 required는 `end`가 `required=False`라 불가), 문제 조건(15개 구·태권도) 그대로 재현해 날짜만 바로잡으면 200임을 확인했다. **선택한 구 개수와는 무관하다.**
+- 구멍 ①: `#plan-error`는 패널 최상단, `계획서 완성하기` 버튼은 최하단이라 거절 문구가 화면 밖에 그려졌다 → `failure()`가 알림으로 스크롤하고 포커스를 옮긴다. `requestAnimationFrame`이 아닌 `setTimeout`을 쓴다. 백그라운드 탭은 프레임 콜백을 억제하고, 필요한 것은 제출 핸들러의 `finally`가 `inert`를 푼 **다음 태스크**뿐이다.
+- 구멍 ②: 두 날짜 입력에 상호 경계가 없어 역전 입력이 서버까지 갔다 → 시작일이 종료일의 `min`을, 종료일이 시작일의 `max`를 설정한다. `reset`은 값이 지워진 뒤 다시 계산한다.
+- 구멍 ③: `region-map.js`가 ECharts와 행정경계 GeoJSON을 `cdn.jsdelivr.net`에서 실시간으로 받고 있었다. 폐쇄망에서 지도 전체가 죽고, 경계는 `@master` 참조라 이 저장소의 커밋 없이 모양이 바뀔 수 있었다 → 세 파일을 `static/vendor/`에 포함하고, 폴더는 스크립트 자기 `src`에서 유도해 `STATIC_URL` 변경을 따라가게 했다.
+- 변경 파일: `static/program-planner.js`, `static/region-map.js`, `templates/dashboard/_planner.html`, `app/common/test_staticfiles.py`, `app/dashboard/tests.py`, `README.md`. 신규 자산 `static/vendor/echarts.min.js`·`skorea_provinces_geo_simple.json`·`skorea_municipalities_geo_simple.json`.
+- 검증: 테스트 **179개**(신규 4개) 통과, `manage.py check`·`compileall`·`node --check`·`node test_region_selection.js` 정상. 실제 브라우저에서 외부 요청 **0건**·vendor 4개만 로드·지도 캔버스 렌더링을 확인했고, 위저드를 끝까지 태워 역전 날짜 제출 시 문구가 보이며 포커스가 알림으로 이동함을 확인했다(스크롤 726→0).
+
 ## 최신 작업 — [SG001] 시설 현황 데이터 예외처리 보완 (2026-09-15, 10차)
 
 인접 대중교통이 비어 보이는 네 가지 사유를 구분하고, 파이썬 쪽 구멍 둘을 막았다. [결정 기록](DECISIONS.md) 참조.
