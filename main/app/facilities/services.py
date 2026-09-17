@@ -4,10 +4,14 @@ import threading
 from . import models, transit
 
 
-def filter_facilities(rows, region='', industry='', flag='', state='', owner='', query=''):
+def filter_facilities(
+    rows, region='', district='', industry='', flag='', state='', owner='', query=''
+):
     """Apply the filters shared by the facilities page and its Excel export."""
     if region:
         rows = [row for row in rows if row.region == region]
+    if district:
+        rows = [row for row in rows if row.district == district]
     if industry:
         rows = [row for row in rows if row.industry == industry]
     if flag:
@@ -24,6 +28,20 @@ def filter_facilities(rows, region='', industry='', flag='', state='', owner='',
 
 def facility_regions(rows):
     return sorted({row.region for row in rows if row.region != '지역 미제공'})
+
+
+def facility_region_district_map(rows):
+    """시설 자료에 실제 존재하는 시도별 시군구 목록을 반환한다."""
+    region_districts = {}
+    for row in rows:
+        if row.region == '지역 미제공' or row.district == '시군구 미제공':
+            continue
+        if row.region and row.district:
+            region_districts.setdefault(row.region, set()).add(row.district)
+    return {
+        region: sorted(districts)
+        for region, districts in sorted(region_districts.items())
+    }
 
 
 def facility_industries(rows):

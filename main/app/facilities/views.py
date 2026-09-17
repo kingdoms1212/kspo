@@ -5,11 +5,13 @@ from django.http import HttpResponseNotFound
 from ..common.exports import EXPORT_ROW_LIMIT, excel_response, over_export_limit
 from ..common.partials import render_screen
 from . import models
+from .region_scope import get_facility_region_scope
 from .services import (facility_flags, facility_industries, facility_owners,
-                       facility_regions, facility_states, facility_transit,
+                       facility_region_district_map, facility_regions,
+                       facility_states, facility_transit,
                        filter_facilities)
 
-SEARCH_KEYS = ('region', 'industry', 'flag', 'state', 'owner', 'query')
+SEARCH_KEYS = ('region', 'district', 'industry', 'flag', 'state', 'owner', 'query')
 
 
 def _search_params(request):
@@ -21,6 +23,7 @@ def _search_params(request):
     reader can widen it rather than being silently shown a subset.
     """
     params = {key: request.GET.get(key, '') for key in SEARCH_KEYS}
+    params = get_facility_region_scope().normalize_params(params)
     if 'state' not in request.GET:
         params['state'] = models.OPERATING
     return params
@@ -37,6 +40,8 @@ def _selection(request):
 
 def facilities(request):
     catalogue, params, rows, selected_id, selected = _selection(request)
+    region_scope = get_facility_region_scope()
+    region_district_map = facility_region_district_map(catalogue)
     context = {
         'page': 'facilities',
         'rows': rows,
@@ -45,6 +50,11 @@ def facilities(request):
         'filter_query': urlencode(params),
         'selected': selected,
         'regions': facility_regions(catalogue),
+        'region_filter_enabled': region_scope.selectable,
+        'region_district_map': region_district_map,
+        'districts': region_scope.district_options(
+            region_district_map, params['region']
+        ),
         'industries': facility_industries(catalogue),
         'flags': facility_flags(catalogue),
         'states': facility_states(catalogue),

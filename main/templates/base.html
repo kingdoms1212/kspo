@@ -1,5 +1,6 @@
 {% load static %}
 {% load assets %}
+{% load batch_tools %}
 <!doctype html>
 <html lang="ko">
 <head>
@@ -28,6 +29,8 @@
       <a class="nav-link {% if page == 'programs' %}active{% endif %}" {% if page == 'programs' %}aria-current="page"{% endif %} href="{% url 'programs' %}">{% include 'components/icon.html' with name='program' %} 프로그램 현황</a>
       <a class="nav-link {% if page == 'facilities' %}active{% endif %}" {% if page == 'facilities' %}aria-current="page"{% endif %} href="{% url 'facilities' %}">{% include 'components/icon.html' with name='building' %} 시설 현황</a>
     </nav>
+    {# 아래 함수 호출을 주석 처리하면 배치 테스트 버튼과 모달이 표시되지 않는다. #}
+    {% show_batch_test_button %}
     <div class="sidebar-foot"><strong>SPORT INSIGHT</strong><span>공공 체육복지 데이터</span><span>조회 · 비교 · 검토</span></div>
   </aside>
   <main id="main-content" class="main-content" tabindex="-1">

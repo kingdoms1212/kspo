@@ -13,7 +13,9 @@ from openpyxl import load_workbook
 from django.test import SimpleTestCase, override_settings
 from django.urls import resolve
 
-from .services import facility_flags, facility_owners, facility_states
+from .services import (
+    facility_flags, facility_owners, facility_region_district_map, facility_states,
+)
 from . import models, services, transit, views
 
 
@@ -139,6 +141,20 @@ class FacilityScopeFilterTests(SimpleTestCase):
         self.assertEqual([r.id for r in services.filter_facilities(self.rows, state='폐업')], ['facility-2'])
         self.assertEqual([r.id for r in services.filter_facilities(self.rows, flag='신고', state='정상운영')],
                          ['facility-1'])
+
+    def test_district_filter_narrows_the_list(self):
+        rows = [
+            facility(id='facility-0', district='강남구'),
+            facility(id='facility-1', district='종로구'),
+        ]
+        self.assertEqual(
+            [row.id for row in services.filter_facilities(rows, district='강남구')],
+            ['facility-0'],
+        )
+        self.assertEqual(
+            facility_region_district_map(rows),
+            {'서울특별시': ['강남구', '종로구']},
+        )
 
     def test_closed_facilities_are_hidden_by_default_and_the_select_says_so(self):
         """A default that narrows must be visible, not silent."""
@@ -369,6 +385,7 @@ class FacilityViewTests(SimpleTestCase):
         self.rows = [facility(id='facility-0', name='=1+1', region='서울특별시'),
                      facility(id='facility-1', name='부산센터', region='부산광역시', industry='체육관')]
 
+    @override_settings(FACILITY_REGION_FILTER_MODE='selectable')
     def test_module_routes_and_export_escaping(self):
         self.assertIs(resolve('/facilities').func, views.facilities)
         self.assertIs(resolve('/export/facilities.xlsx').func, views.export_facilities)
@@ -390,6 +407,29 @@ class FacilityViewTests(SimpleTestCase):
         self.assertEqual(workbook.active.auto_filter.ref, 'A1:T2')
         self.assertIn('SPORT_INSIGHT_facilities.xlsx', export['Content-Disposition'])
         self.assertEqual(len(list(load_workbook(BytesIO(empty.content)).active.values)), 1)
+
+    @override_settings(FACILITY_REGION_FILTER_MODE='fixed')
+    def test_fixed_region_mode_shows_districts_as_region_filter(self):
+        rows = [
+            facility(id='facility-0', district='강남구'),
+            facility(id='facility-1', district='종로구'),
+        ]
+        with patch('app.facilities.views.models.facilities', return_value=rows), \
+             patch('app.facilities.views.models.load_report', return_value=REPORT), \
+             patch('app.facilities.views.facility_transit', return_value=None):
+            page = self.client.get('/facilities', {
+                'region': '부산광역시',
+                'district': '강남구',
+            })
+            export = self.client.get('/export/facilities.xlsx', {'district': '강남구'})
+
+        self.assertNotContains(page, '<label for="region">시도</label>')
+        self.assertContains(page, '<label for="district">지역</label>')
+        self.assertContains(page, '<option value="">전체</option>')
+        self.assertEqual(page.context['params']['region'], '')
+        self.assertEqual(page.context['districts'], ['강남구', '종로구'])
+        self.assertEqual([row.id for row in page.context['rows']], ['facility-0'])
+        self.assertEqual(len(list(load_workbook(BytesIO(export.content)).active.values)), 2)
 
     def test_export_button_is_disabled_with_a_reason_over_the_limit(self):
         with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None),              patch('app.common.exports.EXPORT_ROW_LIMIT', 1),              patch('app.facilities.views.EXPORT_ROW_LIMIT', 1):

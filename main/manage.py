@@ -6,24 +6,36 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-def refresh_seoul_data_for_runserver():
-    """개발 웹 서비스의 최초 기동에서만 서울 전용 CSV를 갱신한다."""
+def refresh_region_data_for_runserver():
+    """개발 웹 서비스의 최초 기동에서만 설정 지역 데이터를 갱신한다."""
     command = sys.argv[1] if len(sys.argv) > 1 else ''
     if command != 'runserver' or os.environ.get('RUN_MAIN') == 'true':
         return
 
-    from app.Batch.seoul_csv_batch import refresh_seoul_csvs
+    # DB 저장기가 ORM을 사용해도 앱 등록 전 오류가 나지 않도록 먼저 초기화한다.
+    import django
 
-    print('[서울 CSV 배치] 원본 CSV에서 서울 데이터를 갱신합니다.')
-    results = refresh_seoul_csvs()
-    for result in results:
-        print(
-            f'[서울 CSV 배치] {result.output.name}: '
-            f'{result.seoul_rows:,}행 반영 완료'
-        )
+    django.setup()
+
+    from django.conf import settings
+
+    from app.Batch.data_refresh import get_storage_mode, refresh_region_data
+    from app.common.regions import get_region_profile
+
+    profile = get_region_profile(settings.BATCH_REGION_KEY)
+    mode = get_storage_mode()
+    print(f'[지역 데이터 배치] {profile.display_name} 데이터를 {mode} 방식으로 갱신합니다.')
+    results = refresh_region_data(profile)
+    # CSV 저장기는 파일별 결과를 반환하며 DB 저장기는 자체 결과 형식을 사용할 수 있다.
+    for result in results or ():
+        if hasattr(result, 'output') and hasattr(result, 'matched_rows'):
+            print(
+                f'[지역 데이터 배치] {result.output.name}: '
+                f'{result.matched_rows:,}행 반영 완료'
+            )
 
 
-def start_seoul_scheduler_for_runserver():
+def start_region_scheduler_for_runserver():
     """자동 재로더의 실제 서버 프로세스에서만 예약을 시작한다."""
     command = sys.argv[1] if len(sys.argv) > 1 else ''
     is_server_process = (
@@ -40,8 +52,8 @@ def start_seoul_scheduler_for_runserver():
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
-    refresh_seoul_data_for_runserver()
-    start_seoul_scheduler_for_runserver()
+    refresh_region_data_for_runserver()
+    start_region_scheduler_for_runserver()
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

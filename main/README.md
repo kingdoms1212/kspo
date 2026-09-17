@@ -90,20 +90,48 @@ config\Scripts\python.exe main\manage.py makemigrations --check --dry-run
 
 모듈만 검사하려면 `test app.programs`처럼 지정한다.
 
-## 서울 CSV 배치와 자동 캐시 갱신
+## 지역 CSV 배치와 자동 캐시 갱신
 
-웹서비스 시작 시 `app/Batch/seoul_csv_batch.py`를 실행하고, 서버가 실행 중이면
-APScheduler가 매주 일요일 00시에 같은 배치를 실행한다. 배치는 서울 전용 CSV
-네 개를 교체한 뒤 `batch_manifest.json`의 세대를 갱신한다. 각 웹 프로세스는
-작은 manifest 변경만 확인하고, 세대가 바뀐 경우 자신의 프로그램·이용현황·
-시설·교통 캐시를 자동으로 다시 만든다.
+웹서비스 시작 시 `app/Batch/regional_csv_batch.py`를 실행하고, 서버가 실행
+중이면 APScheduler가 매주 일요일 00시에 같은 배치를 실행한다. 기본 지역은
+서울이며, 배치는 지역 CSV 네 개를 교체한 뒤 `batch_manifest.json`의 세대를
+갱신한다. 각 웹 프로세스는 작은 manifest 변경만 확인하고, 세대가 바뀐 경우
+자신의 프로그램·이용현황·시설·교통 캐시를 자동으로 다시 만든다.
+새 파일은 `.part` 준비본에서 전수 검증한 후 최종 파일로 교체하며,
+직전 파일을 `*_temp.csv`로 별도 보관하지 않는다.
 
-실행 요일과 시각은 `main/settings.py`의 `SEOUL_BATCH_SCHEDULE`에서 변경한다.
+배치 범위는 `main/settings.py`의 `BATCH_REGION_KEY`, 실행 요일과 시각은
+`BATCH_SCHEDULE`에서 변경한다. 현재 지원 프로필은 `seoul`, `national`이다.
+프로그램, 시설, 교통 화면의 입력 파일은 같은 파일의 `DATA_FILES`에서 관리한다.
+대시보드의 서울 전용 조회 로직은 이번 지역 배치 모듈화 범위에서 변경하지 않았다.
 개발 서버 자동 재로더의 실제 서버 프로세스에서만 스케줄러가 한 번 시작된다.
 서버가 종료되어 있으면 예약 실행도 동작하지 않지만, 다음 서버 시작 시 시작
 배치가 최신 CSV를 다시 생성한다.
 
-배치 실행 기록은 `data/Batch/logs/seoul_batch.log`에 남는다.
+배치 반영 방식은 환경변수 `BATCH_STORAGE_MODE`로 선택하며 기본값은 `csv`다.
+추후 DB 모델이 확정되면 값을 `db`로 바꾸고 `BATCH_DB_WRITER`에 DB 저장 함수의
+Django import 경로를 지정한다. 예약 실행, 서버 시작 실행, 수동 실행은 모두
+`app/Batch/data_refresh.py`를 통하므로 저장 방식이 바뀌어도 각 실행 코드는
+수정하지 않는다. DB 저장 함수는 지역 프로필, 원본·출력 경로, 파일 명세,
+진행률 콜백을 받아야 한다. 아직 DB 모델과 저장 함수는 없으므로 지금 `db`만
+선택하면 잘못 실행되는 대신 필요한 설정을 알려주는 오류가 발생한다.
+
+이 설정은 배치 결과의 저장 대상을 전환하기 위한 것이다. 화면 조회까지 DB로
+전환하려면 프로그램·시설·이용현황·교통 저장소의 ORM 구현도 함께 연결해야 한다.
+CSV 정제 규칙과 배치 실행 구조는 DB 저장 함수에서도 재사용할 수 있도록 분리했다.
+
+배치 실행 기록은 `data/Batch/logs/regional_batch.log`에 남는다. manifest에는
+원본의 시군구 코드 누락, 숫자 형식 오류, 시도·시군구 코드 앞자리 불일치
+건수도 `source_quality`로 기록한다.
+
+프로그램 검색은 기본적으로 `PROGRAM_REGION_FILTER_MODE=fixed`를 사용해 서울
+전용 자료에서 지역 선택을 숨기고 시군구만 표시한다. 추후 전국 검색으로 전환할
+때는 환경변수 `BATCH_REGION_KEY=national`과
+`PROGRAM_REGION_FILTER_MODE=selectable`을 함께 지정한다. 프로그램 화면의 지역
+선택, 종속 시군구 목록, 지도 검색 연동은 이 모드에 따라 다시 활성화된다.
+시설 검색도 기본적으로 `FACILITY_REGION_FILTER_MODE=fixed`를 사용해 `지역`에
+서울의 구 목록을 표시한다. 전국 전환 시에는 이 값을 `selectable`로 바꾸면
+시도와 시군구 선택 항목이 함께 표시된다.
 
 ## 프로그램 설계 (2026-09-16)
 

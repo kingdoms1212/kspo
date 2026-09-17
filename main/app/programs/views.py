@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from ..common.partials import render_screen
 from ..common.exports import EXPORT_ROW_LIMIT, excel_response, over_export_limit
 from . import models
+from .region_scope import get_program_region_scope
 from .services import (SORT_LABELS, WEEKDAYS, filter_programs, program_budget_plan,
                        program_district_distribution, program_districts,
                        program_facility_types, program_regions,
@@ -18,7 +19,8 @@ SEARCH_KEYS = ('region', 'district', 'facility_type', 'sport', 'target', 'weekda
 
 def _search_params(request):
     """Use one query contract for both the page and its export."""
-    return {key: request.GET.get(key, '') for key in SEARCH_KEYS}
+    params = {key: request.GET.get(key, '') for key in SEARCH_KEYS}
+    return get_program_region_scope().normalize_params(params)
 
 
 def _scroll_position(request):
@@ -27,6 +29,7 @@ def _scroll_position(request):
     return value if value.isdigit() else ''
 
 def programs(request):
+    region_scope = get_program_region_scope()
     params = _search_params(request)
     budget_plan = program_budget_plan(params)
     results = filter_programs(params, budget_plan)
@@ -37,14 +40,23 @@ def programs(request):
     jump_next_page = min(page_obj.paginator.num_pages, page_obj.number + 10) if page_obj.has_next() else None
     # One pass over the catalogue feeds both the cascading select and its JSON copy.
     region_district_map = program_region_district_map(catalogue)
+    regions = program_regions(catalogue)
+    fixed_region = regions[0] if not region_scope.selectable and len(regions) == 1 else ''
     context = {
         'page': 'programs',
         'results': results,
         'result_count': len(results),
-        'regions': program_regions(catalogue),
+        'regions': regions,
+        'region_filter_enabled': region_scope.selectable,
+        'fixed_region': fixed_region,
+        'program_heading_help': (
+            '지역과 종목별로 등록 강좌를 조회하고 비교합니다.'
+            if region_scope.selectable
+            else '서울의 시군구와 종목별로 등록 강좌를 조회하고 비교합니다.'
+        ),
         'facility_types': program_facility_types(catalogue),
         'region_district_map': region_district_map,
-        'districts': program_districts(region_district_map, params['region']),
+        'districts': region_scope.district_options(region_district_map, params['region']),
         # 현재 검색 결과를 시군구 지도에 표시할 프로그램 건수로 집계한다.
         'district_distribution': program_district_distribution(results),
         'budget_plan': budget_plan,

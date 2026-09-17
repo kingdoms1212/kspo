@@ -16,16 +16,22 @@
     var regionSelect = document.getElementById('region');
     var districtSelect = document.getElementById('district');
     var map = window.SportInsightRegionMap;
-    if (!form || !regionSelect || !districtSelect || !map) return;
+    if (!form || !districtSelect || !map) return;
 
-    var region = Array.from(regionSelect.options).find(function (option) {
-      return map.shortName(option.value) === map.shortName(event.detail.region);
-    });
-    if (!region) return;
+    if (regionSelect) {
+      var region = Array.from(regionSelect.options).find(function (option) {
+        return map.shortName(option.value) === map.shortName(event.detail.region);
+      });
+      if (!region) return;
 
-    regionSelect.value = region.value;
-    // 지역에 맞는 시군구 선택 항목을 먼저 구성한다.
-    regionSelect.dispatchEvent(new Event('change'));
+      regionSelect.value = region.value;
+      // 전국 선택 모드에서는 지역에 맞는 시군구 항목을 먼저 구성한다.
+      regionSelect.dispatchEvent(new Event('change'));
+    } else if (form.dataset.fixedRegion &&
+               map.shortName(form.dataset.fixedRegion) !== map.shortName(event.detail.region)) {
+      return;
+    }
+
     if (!Array.from(districtSelect.options).some(function (option) {
       return option.value === event.detail.name;
     })) return;

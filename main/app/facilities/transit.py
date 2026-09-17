@@ -17,10 +17,12 @@ at start-up: only a reader who opens a facility detail pays for it, once.
 import csv
 import heapq
 
+from django.conf import settings
+
 from ..common.data import columns_present, data_path, normalize, read_columns
 from ..common.versioned_csv import VersionedCsvCache
 
-TRANSIT_FILE = '체육시설 인접 대중교통 정보_seoul.csv'
+TRANSIT_FILE = settings.DATA_FILES['transit']
 
 COLUMNS = ('ALSFC_NM', 'ALSFC_LA', 'ALSFC_LO', 'PBTRNSP_FCLTY_SDIV_NM',
            'STRT_DSTNC_VALUE', 'WLKG_DSTNC_VALUE', 'WLKG_MVMN_TIME', 'BSTP_SUBWAYST_NM')

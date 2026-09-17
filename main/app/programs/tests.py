@@ -115,6 +115,18 @@ class ProgramServiceTests(SimpleTestCase):
             )
         self.assertEqual(selected_weekdays('금월월'), ('월', '금'))
 
+    def test_single_weekday_filter_matches_programs_containing_that_day(self):
+        rows = [
+            program(id='a', weekday='월'),
+            program(id='b', weekday='월수금'),
+            program(id='c', weekday='화목'),
+        ]
+        with patch('app.programs.services.models.programs', return_value=rows):
+            self.assertEqual(
+                [row.id for row in filter_programs({'weekday': '월'})],
+                ['a', 'b'],
+            )
+
     def test_visible_duplicate_programs_keep_only_the_first_sorted_row(self):
         rows = [
             program(id='b', period='2026-08-01 ~ 2026-08-31', time='20:00~20:50'),
@@ -197,6 +209,7 @@ class ProgramViewTests(SimpleTestCase):
                      program(id='a', name='A', region='부산', sport='수영', weekday='월',
                              fee=2000, target='유아')]
 
+    @override_settings(PROGRAM_REGION_FILTER_MODE='selectable')
     def test_page_and_export_use_same_filters(self):
         with patch('app.programs.models.programs', return_value=self.rows), \
              patch('app.programs.models.load_report', return_value=REPORT):
@@ -263,6 +276,7 @@ class ProgramViewTests(SimpleTestCase):
         )[1].split('</nav>', 1)[0]
         self.assertIn('page=1#program-comparison', page_eleven_pagination)
 
+    @override_settings(PROGRAM_REGION_FILTER_MODE='selectable')
     def test_oversized_export_is_refused_instead_of_truncated(self):
         rows = [program(id=str(i), name=f'강좌 {i}') for i in range(3)]
         with patch('app.programs.models.programs', return_value=rows),              patch('app.programs.models.load_report', return_value=REPORT),              patch('app.common.exports.EXPORT_ROW_LIMIT', 2),              patch('app.programs.views.EXPORT_ROW_LIMIT', 2):
@@ -287,6 +301,7 @@ class ProgramViewTests(SimpleTestCase):
         self.assertNotContains(page, 'type="button" disabled')
         self.assertNotContains(page, 'id="programs-export-limit"')
 
+    @override_settings(PROGRAM_REGION_FILTER_MODE='selectable')
     def test_program_page_exposes_dependent_district_options(self):
         rows = [
             program(id='1', name='수영', region='서울특별시', district='관악구', sport='수영'),
@@ -304,6 +319,25 @@ class ProgramViewTests(SimpleTestCase):
         self.assertEqual(response.context['region_district_map']['경기도'], ['수원시'])
         self.assertContains(response, 'id="district"')
         self.assertContains(response, 'id="region-district-map"')
+
+    @override_settings(PROGRAM_REGION_FILTER_MODE='fixed')
+    def test_fixed_region_mode_hides_region_and_keeps_all_districts(self):
+        rows = [
+            program(id='1', region='서울특별시', district='관악구'),
+            program(id='2', region='서울특별시', district='금천구'),
+        ]
+        with patch('app.programs.models.programs', return_value=rows):
+            response = self.client.get(reverse('programs'), {
+                'region': '부산광역시',
+                'district': '관악구',
+            })
+
+        self.assertNotContains(response, '<label for="region">지역</label>')
+        self.assertContains(response, '<label for="district">지역</label>')
+        self.assertContains(response, '<option value="">전체</option>')
+        self.assertEqual(response.context['params']['region'], '')
+        self.assertEqual(response.context['districts'], ['관악구', '금천구'])
+        self.assertEqual(response.context['result_count'], 1)
 
     def test_weekday_picker_includes_monday_and_updates_the_weekday_field(self):
         with patch('app.programs.models.programs', return_value=self.rows):
@@ -366,7 +400,7 @@ class ProgramViewTests(SimpleTestCase):
         self.assertContains(response, 'class="heading-help"')
         self.assertContains(response, 'aria-describedby="program-heading-tooltip"')
         self.assertContains(response, 'id="program-heading-tooltip" class="heading-tooltip" role="tooltip"')
-        self.assertContains(response, '지역과 종목별로 등록 강좌를 조회하고 비교합니다.')
+        self.assertContains(response, '서울의 시군구와 종목별로 등록 강좌를 조회하고 비교합니다.')
         self.assertContains(response, 'href="#i-alert"')
 
     def test_comparison_source_note_uses_accessible_tooltip(self):

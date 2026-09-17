@@ -75,9 +75,9 @@ class FragmentRenderingTests(SimpleTestCase):
         body = response.content.decode()
         self.assertIn('hx-target="#facility-workspace"', body)
         self.assertIn('hx-swap="innerHTML show:none"', body)
-        self.assertIn('hx-get="?region=&amp;industry=', body)
+        self.assertIn('hx-get="?region=&amp;district=&amp;industry=', body)
         # Every htmx link keeps a real href so the page still works without JS.
-        self.assertIn('href="?region=&amp;industry=', body)
+        self.assertIn('href="?region=&amp;district=&amp;industry=', body)
 
     def test_the_programs_screen_reloads_in_full_and_restores_scroll(self):
         """Programs opted out of swapping: its map initialises once per page load."""
@@ -194,7 +194,7 @@ class HeadingHelpTests(SimpleTestCase):
 
     HEADINGS = (
         ('/dashboard', 'dashboard-heading', '스포츠강좌이용권 이용현황 자료에서'),
-        ('/programs', 'program-heading', '지역과 종목별로 등록 강좌를'),
+        ('/programs', 'program-heading', '서울의 시군구와 종목별로 등록 강좌를'),
         ('/facilities', 'facility-heading', '전국체육시설현황 자료에서'),
     )
 

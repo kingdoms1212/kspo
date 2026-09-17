@@ -11,11 +11,13 @@ resolve `item.name` through attribute access, so the page code is unchanged.
 """
 from collections import namedtuple
 
+from django.conf import settings
+
 from ..common.calculations import nearest_stop_minutes
 from ..common.data import facility_key, iso_date, read_columns, strip_markup, to_number
 from ..common.versioned_csv import VersionedCsvCache
 
-PROGRAM_FILE = '공공체육시설 프로그램 정보_seoul.csv'
+PROGRAM_FILE = settings.DATA_FILES['programs']
 
 WALK_COLUMNS = tuple(f'WLKG_MVMN_{rank}R_TIME' for rank in range(1, 6))
 COLUMNS = ('CTPRVN_CD', 'CTPRVN_NM', 'SIGNGU_CD', 'SIGNGU_NM', 'FCLTY_NM', 'FCLTY_ADDR',
