@@ -1,11 +1,16 @@
 import csv
 import json
+import os
+import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from unittest import TestCase
+from django.test import override_settings
 
 from app.common.regions import get_region_profile
+from app.common.versioned_csv import VersionedCsvCache
+from app.common.file_digest import sha256_file
 
 from .regional_csv_batch import (
     LOCK_FILE, MANIFEST_FILE, SOURCE_SPECS, SourceSpec,
@@ -51,6 +56,22 @@ class SeoulCsvBatchTests(TestCase):
                 "transit": "facility_transit.csv",
             },
         )
+
+    def test_published_csv_can_be_read_after_deployment_changes_timestamp(self):
+        self._write_source([("11", "서울", "11110", "종로구", "deployed")])
+        result = refresh_seoul_csvs(self.data_dir, self.output_dir, (self.spec,))[0]
+        deployed = self.data_dir / 'deployed'
+        deployed.mkdir()
+        target = deployed / result.output.name
+        shutil.copyfile(result.output, target)
+        shutil.copyfile(self.output_dir / MANIFEST_FILE, deployed / MANIFEST_FILE)
+        original = result.output.stat()
+        os.utime(target, ns=(original.st_atime_ns, original.st_mtime_ns + 2_000_000_000))
+        manifest = json.loads((deployed / MANIFEST_FILE).read_text(encoding='utf-8'))
+        self.assertEqual(manifest['files'][target.name]['sha256'], sha256_file(target))
+        cache = VersionedCsvCache(target.name, lambda: self._read_values(target))
+        with override_settings(DATA_DIR=deployed):
+            self.assertEqual(cache.get(), ['deployed'])
 
     def test_first_run_creates_final_without_temp_file(self):
         self._write_source(

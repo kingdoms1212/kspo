@@ -558,6 +558,7 @@ tbody tr:hover { background:var(--si-surface-hover); }
 .region-map-level { color:var(--si-primary); font-size:11px; font-weight:700; }
 .region-map-back { min-height:30px; padding:5px 9px; font-size:11px; }
 .region-map-back[hidden] { display:none; }
+.region-map-back-suppressed { display:none !important; }
 .region-map { width:100%; height:300px; border-radius:4px; background:var(--si-bg); }
 .region-map-status { display:grid; height:100%; margin:0; place-items:center; color:var(--si-text-muted); font-size:11px; }
 .region-map-help { margin-top:8px; }
