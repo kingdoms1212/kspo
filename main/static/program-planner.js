@@ -168,7 +168,7 @@
       const copy = document.createElement('span');
       const title = document.createElement('b'); title.textContent = row.name;
       copy.append(title, address);
-      const hint = document.createElement('small'); hint.textContent = row.type + ' · 상세정보 보기 →'; copy.append(hint);
+      const hint = document.createElement('small'); hint.textContent = '상세정보 보기 →'; copy.append(hint);
       button.append(photo, copy);
       button.dataset.inspect = row.id; button.setAttribute('aria-label', row.name + ' 상세보기');
       button.setAttribute('aria-pressed', String(el('plan-detail').dataset.facility === row.id));

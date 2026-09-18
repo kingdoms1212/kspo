@@ -3,6 +3,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.venv-render/
+.render-check/
+main/staticfiles/
+.env
+data/*.csv
+data/origin/
 
 main/docs/
 
