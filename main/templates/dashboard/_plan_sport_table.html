@@ -1,0 +1,4 @@
+<table class="report-sport-table">
+  <thead><tr>{% for col in '123' %}<th scope="col">No</th><th scope="col">종목</th><th scope="col">시설 수</th><th scope="col">신청인원 비율</th>{% endfor %}</tr></thead>
+  <tbody>{% for row in table_rows %}<tr>{% for item in row %}{% if item %}<td>{% if item.number <= 5 %}<span class="report-rank" style="--rank-color:var({{ item.color }})">{{ item.number }}</span>{% else %}{{ item.number }}{% endif %}</td><td>{{ item.name }}</td><td>{{ item.facilities|floatformat:'0g'|default:'미제공' }}</td><td>{% if item.requests is not None %}{{ item.share|floatformat:1 }}%{% else %}미제공{% endif %}</td>{% else %}<td></td><td></td><td></td><td></td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
+</table>
