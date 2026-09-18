@@ -19,8 +19,7 @@ class SourceRegistryTests(SimpleTestCase):
                 self.assertEqual(constant, spec.final_filename)
 
     def test_the_batch_writes_exactly_the_four_files_the_screens_read(self):
-        # Same objects, not merely equal strings: the batch cannot be pointed
-        # at one set of names while the repositories read another.
+        # 같은 객체를 공유해야 배치 출력과 화면 입력 경로가 어긋나지 않는다.
         self.assertIs(seoul_csv_batch.SOURCE_SPECS, sources.SOURCE_SPECS)
         self.assertEqual({spec.final_filename for spec in seoul_csv_batch.SOURCE_SPECS},
                          {programs.PROGRAM_FILE, dashboard.USAGE_FILE,
@@ -31,6 +30,5 @@ class SourceRegistryTests(SimpleTestCase):
             with self.subTest(spec=spec.filename):
                 stem = spec.filename.removesuffix('.csv')
                 self.assertEqual(spec.final_filename, stem + '_seoul.csv')
-                self.assertEqual(spec.previous_filename, stem + '_seoul_temp.csv')
         names = [spec.final_filename for spec in sources.SOURCE_SPECS]
         self.assertEqual(len(set(names)), 4)

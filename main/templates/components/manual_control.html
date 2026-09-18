@@ -1,0 +1,94 @@
+{% load assets %}
+<div class="manual-control">
+  <button type="button" class="manual-launch" data-manual-open aria-haspopup="dialog" aria-controls="manual-dialog">
+    {% include 'components/icon.html' with name='book' %}
+    <span>이용 가이드</span>
+  </button>
+  <dialog id="manual-dialog" class="manual-dialog" aria-labelledby="manual-dialog-title" data-default-section="{{ page|default:'overview' }}">
+    <div class="manual-panel">
+      <header class="manual-head">
+        <div>
+          <p>SPORT INSIGHT GUIDE</p>
+          <h2 id="manual-dialog-title">서비스 이용 가이드</h2>
+        </div>
+        <span>화면별 사용 방법과 데이터 기준을 한 곳에서 확인하세요.</span>
+      </header>
+      <div class="manual-layout">
+        <nav class="manual-nav" role="tablist" aria-label="가이드 목차">
+          <button type="button" role="tab" id="manual-tab-overview" aria-controls="manual-panel-overview" aria-selected="true" data-manual-tab="overview">시작하기</button>
+          <button type="button" role="tab" id="manual-tab-dashboard" aria-controls="manual-panel-dashboard" aria-selected="false" tabindex="-1" data-manual-tab="dashboard">프로그램 설계</button>
+          <button type="button" role="tab" id="manual-tab-programs" aria-controls="manual-panel-programs" aria-selected="false" tabindex="-1" data-manual-tab="programs">프로그램 현황</button>
+          <button type="button" role="tab" id="manual-tab-facilities" aria-controls="manual-panel-facilities" aria-selected="false" tabindex="-1" data-manual-tab="facilities">시설 현황</button>
+          <button type="button" role="tab" id="manual-tab-refresh" aria-controls="manual-panel-refresh" aria-selected="false" tabindex="-1" data-manual-tab="refresh">데이터 최신화</button>
+          <button type="button" role="tab" id="manual-tab-data" aria-controls="manual-panel-data" aria-selected="false" tabindex="-1" data-manual-tab="data">데이터 기준</button>
+        </nav>
+        <div class="manual-body">
+          <section role="tabpanel" id="manual-panel-overview" aria-labelledby="manual-tab-overview" data-manual-panel="overview">
+            <div class="manual-section-head"><span>01</span><div><h3>SPORT INSIGHT 시작하기</h3><p>서울의 공공 체육복지 데이터를 조회하고, 비교하고, 프로그램 설계에 활용하는 서비스입니다.</p></div></div>
+            <div class="manual-quick-grid">
+              <article><span>STEP 1</span><h4>목적에 맞는 화면 선택</h4><p>새 프로그램을 구성하려면 프로그램 설계, 등록 강좌를 찾으려면 프로그램 현황, 시설 정보를 확인하려면 시설 현황을 선택합니다.</p></article>
+              <article><span>STEP 2</span><h4>검색 조건 적용</h4><p>지역과 필요한 조건을 선택한 뒤 조회 버튼을 누릅니다. 초기화를 누르면 해당 화면의 기본 조건으로 돌아갑니다.</p></article>
+              <article><span>STEP 3</span><h4>결과 확인과 활용</h4><p>지도, 요약 수치, 비교표와 상세 정보를 함께 확인하고 필요한 결과는 엑셀로 내려받습니다.</p></article>
+            </div>
+            <div class="manual-note">제목 옆 느낌표 아이콘에 마우스를 올리거나 초점을 이동하면 해당 지표와 집계 기준을 확인할 수 있습니다.</div>
+          </section>
+
+          <section role="tabpanel" id="manual-panel-dashboard" aria-labelledby="manual-tab-dashboard" data-manual-panel="dashboard" hidden>
+            <div class="manual-section-head"><span>02</span><div><h3>프로그램 설계</h3><p>지역 이용현황을 확인하고 종목, 시설, 운영 조건을 순서대로 구성합니다.</p></div></div>
+            <ol class="manual-steps">
+              <li><b>지역 선택</b><p>지도에서 서울의 자치구를 선택하고 시설 수, 강좌 수, 신청 인원과 종목 현황을 확인합니다.</p></li>
+              <li><b>종목과 시설 선택</b><p>선택 지역의 수요와 시설 정보를 비교해 운영할 종목과 후보 시설을 정합니다.</p></li>
+              <li><b>프로그램 정보 입력</b><p>프로그램명, 운영 기간과 시간, 모집 정보 등 필요한 항목을 입력하고 설계 결과를 확인합니다.</p></li>
+            </ol>
+            <div class="manual-actions"><a class="button primary" href="{% url 'dashboard' %}">프로그램 설계 열기</a></div>
+          </section>
+
+          <section role="tabpanel" id="manual-panel-programs" aria-labelledby="manual-tab-programs" data-manual-panel="programs" hidden>
+            <div class="manual-section-head"><span>03</span><div><h3>프로그램 현황</h3><p>서울의 자치구와 종목별 등록 강좌를 검색하고 비교합니다.</p></div></div>
+            <div class="manual-guide-grid">
+              <article><h4>검색 조건</h4><p>지역, 종목, 요일, 강좌명, 시설명, 정렬 기준과 예산 범위를 조합해 조회합니다.</p></article>
+              <article><h4>요일 선택 기준</h4><p>요일 하나를 선택하면 그 요일이 포함된 강좌를 찾고, 둘 이상 선택하면 선택한 요일 구성과 일치하는 강좌를 찾습니다.</p></article>
+              <article><h4>추천과 지도</h4><p>조건에 맞는 상위 프로그램과 자치구별 프로그램 건수를 확인합니다. 지도 색상은 프로그램 건수이며 시설 수가 아닙니다.</p></article>
+              <article><h4>비교표와 내보내기</h4><p>중복 제거된 강좌를 페이지별로 비교합니다. 엑셀 내보내기는 현재 검색 조건이 적용된 전체 결과를 저장합니다.</p></article>
+            </div>
+            <div class="manual-actions"><a class="button primary" href="{% url 'programs' %}">프로그램 현황 열기</a></div>
+          </section>
+
+          <section role="tabpanel" id="manual-panel-facilities" aria-labelledby="manual-tab-facilities" data-manual-panel="facilities" hidden>
+            <div class="manual-section-head"><span>04</span><div><h3>시설 현황</h3><p>서울 자치구별 체육시설을 검색하고 시설 상세 정보와 인접 교통을 확인합니다.</p></div></div>
+            <div class="manual-guide-grid">
+              <article><h4>시설 검색</h4><p>지역, 종목 및 시설 유형, 시설구분, 운영상태, 보유주체, 시설명과 주소를 조건으로 조회합니다.</p></article>
+              <article><h4>운영상태</h4><p>기본 조회는 정상 운영 시설을 대상으로 합니다. 운영상태를 변경하면 휴업 또는 폐업 자료도 확인할 수 있습니다.</p></article>
+              <article><h4>시설 상세</h4><p>목록에서 시설명을 선택하면 주소, 연락처, 담당부서, 규모와 연결된 프로그램 정보를 확인할 수 있습니다.</p></article>
+              <article><h4>인접 대중교통</h4><p>시설 좌표와 교통 자료가 연결된 경우 가까운 버스정류장과 지하철역, 도보 정보를 확인할 수 있습니다.</p></article>
+            </div>
+            <div class="manual-actions"><a class="button primary" href="{% url 'facilities' %}">시설 현황 열기</a></div>
+          </section>
+
+          <section role="tabpanel" id="manual-panel-refresh" aria-labelledby="manual-tab-refresh" data-manual-panel="refresh" hidden>
+            <div class="manual-section-head"><span>05</span><div><h3>데이터 최신화 관리</h3><p>원본 CSV에서 서울 운영 데이터를 다시 만들고 서비스 반영 상태를 확인합니다.</p></div></div>
+            <ol class="manual-steps">
+              <li><b>최신화 실행</b><p>지금 최신화를 누르면 별도 배치 프로세스가 시작됩니다. 진행률이 100%가 될 때까지 상태를 자동으로 확인합니다.</p></li>
+              <li><b>변경 사항 확인</b><p>데이터 세대, 생성 시각, 원본 및 반영 행과 지역 코드 품질 검증 결과를 표에서 확인합니다.</p></li>
+              <li><b>캐시 반영</b><p>배치 성공 후 각 화면의 다음 요청에서 새 데이터 세대를 감지하고 새 CSV로 캐시를 교체합니다.</p></li>
+            </ol>
+            <div class="manual-note warning">로그 초기화는 최근 로그만 비웁니다. 생성된 CSV, 변경 사항 내역과 실행 상태는 삭제하지 않습니다.</div>
+          </section>
+
+          <section role="tabpanel" id="manual-panel-data" aria-labelledby="manual-tab-data" data-manual-panel="data" hidden>
+            <div class="manual-section-head"><span>06</span><div><h3>데이터를 읽는 기준</h3><p>화면 수치는 원본 자료의 제공 범위와 정제 기준에 따라 해석해야 합니다.</p></div></div>
+            <dl class="manual-definitions">
+              <div><dt>원본 행</dt><dd>전국 단위 원본 CSV에서 읽은 전체 데이터 행입니다.</dd></div>
+              <div><dt>반영 행</dt><dd>지역 코드 품질 검사를 통과하고 서울 데이터로 판정되어 서비스 CSV에 저장된 행입니다.</dd></div>
+              <div><dt>제외 행</dt><dd>코드 누락, 형식 오류, 시도와 시군구 코드 불일치로 정제 과정에서 제외된 행입니다.</dd></div>
+              <div><dt>프로그램 중복</dt><dd>프로그램명, 시설, 지역, 종목, 요일과 수강료가 모두 같은 결과는 비교표에서 한 건으로 표시합니다.</dd></div>
+              <div><dt>지도 색상</dt><dd>검색된 데이터의 지역별 건수를 표현합니다. 실제 이용 가능 여부나 시설의 실시간 운영 상태를 의미하지 않습니다.</dd></div>
+            </dl>
+          </section>
+        </div>
+      </div>
+      <footer class="manual-footer"><button type="button" class="button primary" data-manual-close>확인</button></footer>
+    </div>
+  </dialog>
+</div>
+<script src="{% asset 'manual.js' %}" defer></script>
