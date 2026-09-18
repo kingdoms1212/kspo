@@ -44,7 +44,21 @@ def start_region_scheduler_for_runserver():
     if command != 'runserver' or not is_server_process:
         return
 
-    from app.Batch.scheduler import start_scheduler
+    # 주간 예약은 부가 기능이다. APScheduler가 없다고 개발 서버까지 못 뜨면,
+    # 방금 끝난 기동 배치의 결과조차 화면에서 볼 수 없다. 의존성이 빠진 경우만
+    # 경고로 낮추고 서버는 띄운다 -- 설정 오류 같은 나머지 실패는 그대로 드러낸다.
+    try:
+        from app.Batch.scheduler import start_scheduler
+    except ImportError as error:
+        print(
+            f'[지역 데이터 배치] 주간 예약을 시작하지 못했습니다: {error}\n'
+            '[지역 데이터 배치] 서버는 예약 없이 계속 진행합니다. '
+            '기동 시 갱신은 이미 끝났고, 주간 자동 갱신만 동작하지 않습니다.\n'
+            '[지역 데이터 배치] 프로젝트 가상환경으로 실행하면 해결됩니다: '
+            r'config\Scripts\python.exe main\manage.py runserver',
+            file=sys.stderr,
+        )
+        return
 
     start_scheduler()
 
