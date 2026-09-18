@@ -132,7 +132,7 @@ button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 h1,h2,h3,p { margin:0; }
 h1 { font-size:26px; line-height:1.25; letter-spacing:-.055em; color:var(--si-heading); font-weight:800; }
 .heading-copy p { font-size:11px; color:var(--si-text-secondary); }
-h2 { font-size:15px; line-height:1.4; font-weight:800; letter-spacing:-.035em; color:var(--si-heading); }
+h2 { font-size:15px; line-height:1.4; font-weight:800; letter-spacing:-.035em; color:var(--si-text); }
 h3 { font-size:14px; line-height:1.5; color:var(--si-heading); }
 .panel { min-width:0; background:var(--si-surface); border:1px solid var(--si-border); border-radius:var(--radius); padding:15px; }
 .section-title { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; }

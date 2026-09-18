@@ -20,10 +20,10 @@
         <div id="plan-candidates" class="plan-candidates"></div>
         <div id="plan-pagination" class="plan-pagination" hidden><button id="plan-prev" type="button" class="button ghost">이전</button><span id="plan-page"></span><button id="plan-next" type="button" class="button ghost">다음</button></div>
       </section>
-      <div><aside id="plan-detail" class="plan-detail" aria-label="선택한 시설 상세" tabindex="-1"><div class="plan-detail-content"></div></aside>
-      <!-- [SH260917] 매칭 후보 시설이 없을 때만 동의 후 시설 미정으로 진행합니다. -->
-      <label id="plan-without-facility" class="plan-without-facility" hidden><input id="plan-without-facility-check" type="checkbox">매칭되는 시설이 없어도 시설 미정으로 진행하겠습니다.</label></div>
+      <aside id="plan-detail" class="plan-detail" aria-label="선택한 시설 상세" tabindex="-1"><div class="plan-detail-content"></div></aside>
     </div>
+      <!-- [SH260917] 매칭 후보 시설이 없을 때만 동의 후 시설 미정으로 진행합니다. -->
+      <label id="plan-without-facility" class="plan-without-facility" hidden><input id="plan-without-facility-check" type="checkbox">매칭되는 시설이 없어도 시설 미정으로 진행하겠습니다.</label>
     </div>
     </div>
   </div>
@@ -35,9 +35,13 @@
       <label class="plan-field">수강료 기준<select name="fee_unit"><option value="월">월 기준</option><option value="회">1회 기준</option><option value="과정">전체 과정 기준</option></select></label>
       <label class="plan-field">대상<input name="target" maxlength="100" placeholder="예: 초등학교 4~6학년"></label><label class="plan-field">운영 시작일<input id="plan-date-start" name="start" type="date"></label><label class="plan-field">운영 종료일<input id="plan-date-end" name="end" type="date"></label>
       <label class="plan-field plan-wide">프로그램 설명<textarea name="description" required maxlength="2000" rows="4" placeholder="참여 대상, 운영 내용, 일정 등을 입력하세요."></textarea></label>
-    </div><p class="chart-note">선택한 모든 시설에 동일한 모집인원과 수강료가 적용됩니다. 시설 정원이나 실제 예약을 확정하는 기능은 아닙니다.</p><p class="chart-note">계획서는 저장되지 않습니다. 팝업을 닫기 전에 인쇄하세요.</p><div class="plan-actions plan-entry-actions"><button class="button ghost" id="plan-back-selection" type="button">이전 단계</button><button class="button primary" id="plan-generate" type="submit">계획서 완성하기</button></div></form>
+    </div></form>
   </div>
 </section>
+<div id="plan-entry-actions" class="plan-step-actions plan-entry-actions" hidden>
+  <button class="button ghost" id="plan-back-selection" type="button">이전 단계</button>
+  <button class="button primary" id="plan-generate" type="submit" form="plan-form">계획서 완성하기</button>
+</div>
 <div id="plan-step-actions" class="plan-step-actions" hidden>
   <button type="button" class="button ghost" id="plan-back-region">이전 단계</button>
   <button type="button" class="button primary" id="plan-confirm" disabled>다음 단계</button>
@@ -46,7 +50,7 @@
   <div class="plan-result-head"><span class="plan-pill">생성 완료 · 저장되지 않는 검토용 계획서</span><button type="button" class="button ghost plan-close-icon" id="plan-close-top" aria-label="계획서 닫기">×</button></div>
   <div id="plan-result-content"></div>
   <p id="plan-share-status" role="status"></p>
-  <div class="plan-result-actions"><button type="button" class="button primary" id="plan-print">{% include 'components/icon.html' with name='print' %}프린트</button><button type="button" class="button ghost" id="plan-sms">{% include 'components/icon.html' with name='message' %}문자보내기</button><button type="button" class="button ghost" id="plan-kakao">{% include 'components/icon.html' with name='chat' %}카카오톡 보내기</button><button type="button" class="button ghost" id="plan-close">닫기</button></div>
+  <div class="plan-result-actions"><button type="button" class="button primary" id="plan-print">{% include 'components/icon.html' with name='print' %}프린트</button><button type="button" class="button ghost" id="plan-sms">{% include 'components/icon.html' with name='message' %}문자보내기</button><button type="button" class="button ghost" id="plan-kakao">{% include 'components/icon.html' with name='kakao' %}카카오톡 보내기</button><button type="button" class="button ghost" id="plan-close">닫기</button></div>
 </dialog>
 <div id="plan-print-area" class="plan-print-area" aria-hidden="true"></div>
 <dialog id="plan-share-dialog" class="plan-result" aria-labelledby="plan-share-title"><div class="planner-heading"><h2 id="plan-share-title">공유 내용 확인</h2><button id="plan-share-close" class="button ghost" type="button">공유 닫기</button></div><div class="plan-share-body"><label id="plan-recipient-label" class="plan-field">받는 사람 연락처<input id="plan-recipient" type="tel" placeholder="010-0000-0000" autocomplete="off"></label><label class="plan-field">전달 내용<textarea id="plan-share-message" rows="9" readonly></textarea></label><p id="plan-share-help" class="chart-note"></p><button class="button primary" type="button" disabled>외부 서비스 연동 후 발송 가능</button></div></dialog>

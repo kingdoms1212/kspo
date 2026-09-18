@@ -45,6 +45,7 @@
       root.hidden = index === 0;
       el('plan-step-one-result').hidden = index === 0;
       el('plan-step-actions').hidden = index !== 1;
+      el('plan-entry-actions').hidden = index !== 2;
       el('plan-sport-summary-row').hidden = index !== 2;
     }
     document.querySelectorAll('.planner-steps li').forEach((item, i) => {
@@ -58,9 +59,6 @@
   function updateCount() {
     el('plan-selected-count').textContent = `선택 ${selected.size}곳 / 최대 20곳`;
     el('plan-confirm').disabled = listLoading || (!selected.size && !withoutFacility());
-    el('plan-sport-summary').textContent = el('plan-sport').value
-      ? `${el('plan-sport').value} · ${selected.size ? Array.from(selected.values(), row => row.name).join(', ') : withoutFacility() ? '시설 미정' : '시설 선택 전'}`
-      : '아직 선택하지 않았습니다.';
   }
   function withoutFacility() {
     return !el('plan-without-facility').hidden && el('plan-without-facility-check').checked;
@@ -285,6 +283,7 @@
     event.preventDefault();
     if (generating || !confirmed || (!selected.size && !withoutFacility())) return;
     generating = true; root.inert = true; el('dashboard-body').inert = true;
+    el('plan-entry-actions').inert = true;
     const data = new FormData(event.target);
     data.set('region', scope.region); data.set('district', scope.district); data.set('sport', el('plan-sport').value);
     selected.forEach(row => data.append('facilities', row.token));
@@ -312,7 +311,7 @@
         history.replaceState(null, '', '/dashboard');
       }).catch(() => failure('계획서는 생성되었습니다. 지역 초기화 조회에 실패하여 기존 현황이 남아 있습니다.'));
     } catch (error) {failure(error.message);}
-    finally {generating = false; root.inert = false; el('dashboard-body').inert = false;}
+    finally {generating = false; root.inert = false; el('dashboard-body').inert = false; el('plan-entry-actions').inert = false;}
   });
   /* Reversed dates are the server's most common refusal (PlanForm.clean).
      The browser can rule them out up front: each date bounds the other, and

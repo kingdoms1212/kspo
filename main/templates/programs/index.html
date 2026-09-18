@@ -15,7 +15,7 @@
 <section class="page-head"><div class="heading-copy program-heading-copy"><h1>프로그램 현황</h1>{% include 'components/heading_help.html' with id='program-heading' label='프로그램 현황 안내' text=program_heading_help %}</div></section>
 <div class="program-workspace">
   <form id="program-search-form" class="panel search-panel" method="get" data-region-filter-enabled="{{ region_filter_enabled|yesno:'true,false' }}" data-fixed-region="{{ fixed_region }}">
-    <input id="program-scroll-position" name="_scroll" type="hidden" value="{{ scroll_position }}">
+    <input id="program-scroll-position" name="_scroll" type="hidden" value="{{ position }}">
     <div class="section-title"><h2>{% include 'components/icon.html' with name='search' %} 검색 조건</h2></div>
     {% if region_filter_enabled %}<div class="field"><label for="region">지역</label><select id="region" name="region"><option value="">전체 지역</option>{% for item in regions %}<option value="{{ item }}" {% if item == params.region %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>{% endif %}
     <div class="field"><label for="district">지역</label><select id="district" name="district" data-selected="{{ params.district }}" {% if region_filter_enabled and not params.region %}disabled{% endif %}><option value="">{% if region_filter_enabled and not params.region %}지역을 먼저 선택하세요{% else %}전체{% endif %}</option>{% for item in districts %}<option value="{{ item }}" {% if item == params.district %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
