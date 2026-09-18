@@ -5,6 +5,7 @@ import threading
 from pathlib import Path
 
 from django.conf import settings
+from .file_digest import sha256_file
 
 
 MANIFEST_FILE = 'batch_manifest.json'
@@ -17,6 +18,25 @@ class DataGenerationPending(RuntimeError):
 
 _manifest_lock = threading.Lock()
 _manifest_cache = {}
+_content_lock = threading.Lock()
+_content_cache = {}
+
+
+def _content_matches(path, signature, expected):
+    """Deployment may change mtimes; verify bytes once per local file version."""
+    digest = expected.get('sha256')
+    if not digest or signature[1] != expected.get('size'):
+        return False
+    key = str(path.resolve())
+    with _content_lock:
+        cached = _content_cache.get(key)
+        if not cached or cached[0] != signature:
+            actual = sha256_file(path)
+            if _signature(path) != signature:
+                return False  # A batch replaced the file while it was hashed.
+            cached = signature, actual
+            _content_cache[key] = cached
+        return cached[1] == digest
 
 
 def _signature(path):
@@ -64,7 +84,7 @@ def source_version(filename):
         raise DataGenerationPending(f'manifest에 파일 정보가 없습니다: {filename}')
     current = _signature(path)
     recorded = expected.get('mtime_ns'), expected.get('size')
-    if current != recorded:
+    if current != recorded and not _content_matches(path, current, expected):
         raise DataGenerationPending(f'CSV 교체가 진행 중입니다: {filename}')
     return 'manifest', manifest['generation']
 

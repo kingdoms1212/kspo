@@ -51,6 +51,14 @@ Gunicorn은 `0.0.0.0:$PORT`에서 worker 1개, thread 4개로 실행하며 worke
 
 ### 500 오류 로그 확인
 
+`DataGenerationPending: CSV 교체가 진행 중입니다`가 배포 직후 계속 발생했던 문제는
+빌드와 실행 환경에서 CSV 수정시각이 달라지면 manifest 비교가 실패하는 데서 발생했다.
+배치는 이제 CSV의 SHA-256도 manifest에 기록하며, 읽는 쪽은 수정시각이 달라도 크기와
+해시가 일치하면 동일한 데이터로 인정한다. 해시는 파일이 바뀔 때만 다시 계산한다.
+내용이 다른 파일은 계속 거부하므로 배치 교체 중 불완전한 데이터 적재를 방지한다.
+이 수정 적용 시 기존 서버 재시작만 하지 말고 새 빌드를 포함해 재배포해야 한다.
+기존 manifest에는 해시가 없으므로 `python scripts/build_render.py`로 다시 생성해야 한다.
+
 `DEBUG=false`에서도 Django의 요청 오류와 Traceback은 stderr로 출력되어 Render의 Logs에 표시된다.
 로그에는 시각, 수준, 로거 이름, 프로세스 ID, 오류 메시지와 예외 스택이 포함된다.
 배치 및 APScheduler 로그도 같은 출력으로 모은다. 요청 헤더·쿠키·본문을 별도로 덤프하지 않는다.
