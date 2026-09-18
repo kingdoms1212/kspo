@@ -374,12 +374,13 @@ class ProgramViewTests(SimpleTestCase):
         with patch('app.programs.models.programs', return_value=self.rows):
             response = self.client.get(reverse('programs'))
 
-        self.assertContains(response, '추천 시설 및 지역 분포')
+        self.assertContains(response, '지역 분포')
         self.assertContains(response, 'data-region-map')
         self.assertContains(response, 'id="program-region-map"')
         self.assertContains(response, 'id="program-region-map-region-data"')
         self.assertContains(response, 'id="program-region-map-district-data"')
         self.assertContains(response, 'id="program-region-map-back"')
+        self.assertContains(response, 'data-region-map-back-suppressed')
         self.assertContains(response, 'data-region-click="drilldown"')
         self.assertContains(response, 'region-map.js')
         self.assertContains(response, 'programs-region-map.js')
@@ -420,7 +421,7 @@ class ProgramViewTests(SimpleTestCase):
         body = response.content.decode()
         self.assertNotIn('조건에 맞는 프로그램', body)
         self.assertNotIn('class="program-cards"', body)
-        self.assertLess(body.index('추천 시설 및 지역 분포'), body.index('프로그램 비교표'))
+        self.assertLess(body.index('지역 분포'), body.index('프로그램 비교표'))
 
     def test_comparison_table_hides_target_and_formats_fee(self):
         with patch('app.programs.models.programs', return_value=self.rows):
