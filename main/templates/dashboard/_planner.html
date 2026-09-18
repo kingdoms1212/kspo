@@ -3,7 +3,7 @@
   <p id="plan-status" class="sr-only" role="status" aria-live="polite"></p>
   <p id="plan-error" class="plan-error" role="alert" tabindex="-1"></p>
   <div id="plan-selection" hidden>
-    <label class="plan-field">어떤 종목을 설계할까요?<select id="plan-sport"><option value="">종목 선택</option>{% for sport in planning_sports %}<option>{{ sport }}</option>{% endfor %}</select></label>
+    <label class="plan-field"><select id="plan-sport"><option value="">종목 선택</option>{% for sport in planning_sports %}<option>{{ sport }}</option>{% endfor %}</select></label>
     <form id="plan-search" class="plan-search"><label for="plan-query" class="sr-only">시설명 또는 주소 검색</label><input id="plan-query" maxlength="100" placeholder="시설명 또는 주소"><button class="button ghost" type="submit">시설 검색</button></form>
     <div class="plan-facility-workspace">
     <div id="plan-loading" class="app-splash plan-loading" hidden>

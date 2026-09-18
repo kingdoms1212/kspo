@@ -4,14 +4,13 @@
   <span class="planner-eyebrow">FACILITY DETAILS</span>
   <h3>{{ selected.name }}</h3>
   <div class="detail-tags"><span class="tag">{{ selected.state }}</span><span class="tag neutral">{{ selected.facility_type }}</span><span class="tag neutral">{{ selected.flag }}</span></div>
-  <dl class="plan-detail-list"><dt>주소</dt><dd>{{ selected.address }}</dd><dt>업종</dt><dd>{{ selected.industry }}</dd><dt>보유주체</dt><dd>{{ selected.owner }}</dd><dt>운영형태</dt><dd>{{ selected.operation }}</dd><dt>실내·실외</dt><dd>{{ selected.indoor }}</dd><dt>연락처</dt><dd>{{ selected.phone }}</dd><dt>담당부서</dt><dd>{{ selected.department }}</dd><dt>면적</dt><dd>{{ selected.area|default_if_none:'미제공' }}{% if selected.area is not None %}㎡{% endif %}</dd><dt>시설 수용인원</dt><dd>{{ selected.capacity|default_if_none:'미제공' }}{% if selected.capacity is not None %}명{% endif %} <small>(강좌 모집인원과 다릅니다)</small></dd></dl>
+  <dl class="plan-detail-list"><dt>주소</dt><dd>{{ selected.address }}</dd><dt>업종</dt><dd>{{ selected.industry }}</dd><dt>보유주체</dt><dd>{{ selected.owner }}</dd><dt>운영형태</dt><dd>{{ selected.operation }}</dd><dt>실내·실외</dt><dd>{{ selected.indoor }}</dd><dt>연락처</dt><dd>{{ selected.phone }}</dd><dt>담당부서</dt><dd>{{ selected.department }}</dd><dt>면적</dt><dd>{{ selected.area|default_if_none:'미제공' }}{% if selected.area is not None %}㎡{% endif %}</dd><dt>시설 수용인원</dt><dd>{{ selected.capacity|default_if_none:'미제공' }}{% if selected.capacity is not None %}명{% endif %}</dd></dl>
   <div class="plan-transit-box">
     <h4>인접 대중교통</h4>
-    {% if transit.error %}<p>{{ transit.error }}</p><p class="chart-note">인근에 정류장이 없다는 뜻이 아닙니다.</p>
-    {% elif transit.has_records %}<ul class="plan-transit">{% for stop in transit.stops %}<li>{{ stop.name }} · {{ stop.mode }}<small>직선 {{ stop.metres|default_if_none:'미제공' }}m · 도보 {% if stop.minutes is not None %}{{ stop.minutes }}분{% else %}시간 미제공{% endif %}</small></li>{% endfor %}</ul><p class="chart-note">{{ transit.total }}곳 중 직선거리가 가까운 {{ transit.shown }}곳입니다. 시설명과 좌표로 연결했으며 실제 이동 시간과 다를 수 있습니다.</p>
-    {% elif transit.reason == 'not_public' %}<p>이 자료의 수록 대상이 아닙니다. <b>{{ selected.flag }}</b> 시설이며, 인접 대중교통 자료는 공공체육시설만 수록합니다.</p><p class="chart-note">인근에 정류장이 없다는 뜻이 아닙니다.</p>
-    {% else %}<p>공공체육시설이지만 이 자료에 수록되어 있지 않습니다. 자료가 담고 있는 시설은 {{ transit.listed|floatformat:'0g' }}곳입니다.</p><p class="chart-note">시설명과 좌표가 모두 일치해야 연결하며, 인근에 정류장이 없다는 뜻이 아닙니다.</p>{% endif %}
+    {% if transit.error %}<p>{{ transit.error }}</p>
+    {% elif transit.has_records %}<ul class="plan-transit">{% for stop in transit.stops %}<li>{{ stop.name }} · {{ stop.mode }}<small>직선 {{ stop.metres|default_if_none:'미제공' }}m · 도보 {% if stop.minutes is not None %}{{ stop.minutes }}분{% else %}시간 미제공{% endif %}</small></li>{% endfor %}</ul>
+    {% elif transit.reason == 'not_public' %}<p>이 자료의 수록 대상이 아닙니다. <b>{{ selected.flag }}</b> 시설이며, 인접 대중교통 자료는 공공체육시설만 수록합니다.</p>
+    {% else %}<p>공공체육시설이지만 이 자료에 수록되어 있지 않습니다. 자료가 담고 있는 시설은 {{ transit.listed|floatformat:'0g' }}곳입니다.</p>{% endif %}
   </div>
-  <p class="chart-note">자료상 등록 정보입니다. 운영시간과 대관 가능 여부는 시설에 확인해야 합니다.</p>
   <label class="detail-select"><input id="plan-detail-check" type="checkbox"><span>이 시설을 계획서에 포함하기</span></label>
 </div>

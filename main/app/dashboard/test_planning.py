@@ -113,7 +113,7 @@ class PlanningTests(SimpleTestCase):
         self.assertContains(response, '무료')
         self.assertNotContains(response, '0원')
         self.assertContains(response, '120명')
-        self.assertContains(response, '작성')
+        self.assertContains(response, '<h2 id="plan-result-title">프로그램 정보</h2>', html=True)
         self.assertIn('no-store', response['Cache-Control'])
         self.assertNotIn('sessionid', response.cookies)
 

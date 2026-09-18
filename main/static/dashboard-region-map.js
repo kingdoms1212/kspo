@@ -22,7 +22,11 @@
       var name = button.dataset.district;
       var selected = names.indexOf(name) >= 0;
       if (Boolean(selectedMap[name]) === selected) return;
-      chart.dispatchAction({type: selected ? 'mapSelect' : 'mapUnSelect', seriesIndex: 0, name: name}, {silent: true});
+      var dataIndex = (series.data || []).findIndex(function (item) { return item.name === name; });
+      if (dataIndex < 0) return;
+      // Legacy mapSelect/mapUnSelect redraw the map. Generic selection actions
+      // update the changed area's state without restarting other transitions.
+      chart.dispatchAction({type: selected ? 'select' : 'unselect', seriesIndex: 0, dataIndex: dataIndex}, {silent: true});
     });
     return true;
   }
