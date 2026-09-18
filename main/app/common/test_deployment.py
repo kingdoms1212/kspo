@@ -64,7 +64,7 @@ class DeploymentTests(SimpleTestCase):
                 for spec in SOURCE_SPECS:
                     archive.writestr(f'origin/{spec.filename}', 'header\nnew\n')
                 archive.writestr('../unexpected.txt', 'do not extract')
-            unpack_sources(archive_path, output)
+            unpack_sources(archive_path, output, overwrite=True)
             self.assertFalse((root / 'unexpected.txt').exists())
             for spec in SOURCE_SPECS:
                 self.assertEqual((output / spec.filename).read_text(), 'header\nnew\n')
@@ -78,3 +78,27 @@ class DeploymentTests(SimpleTestCase):
             with self.assertRaises(CommandError):
                 unpack_sources(archive_path, root / 'data')
             self.assertFalse((root / 'data').exists())
+
+    def test_existing_sources_need_no_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for spec in SOURCE_SPECS:
+                (root / spec.filename).write_text('keep')
+            self.assertEqual(unpack_sources(root / 'missing.zip', root), [])
+            for spec in SOURCE_SPECS:
+                self.assertEqual((root / spec.filename).read_text(), 'keep')
+
+    def test_only_missing_or_empty_csvs_are_extracted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / SOURCE_SPECS[0].filename).write_text('keep')
+            (root / SOURCE_SPECS[1].filename).write_text('')
+            archive_path = root / 'origin.zip'
+            with ZipFile(archive_path, 'w') as archive:
+                for spec in SOURCE_SPECS[1:]:
+                    archive.writestr(f'origin/{spec.filename}', 'restored')
+            extracted = unpack_sources(archive_path, root)
+            self.assertEqual(len(extracted), 3)
+            self.assertEqual((root / SOURCE_SPECS[0].filename).read_text(), 'keep')
+            for spec in SOURCE_SPECS[1:]:
+                self.assertEqual((root / spec.filename).read_text(), 'restored')
