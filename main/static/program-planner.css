@@ -488,7 +488,7 @@
 .plan-step-one-result { padding:0 16px;border:1px solid var(--si-border);border-radius:16px;background:var(--si-surface); }
 .plan-summary-row { display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);align-items:center;gap:24px;padding:20px 8px; align-items: start; }
 .plan-summary-row + .plan-summary-row { border-top:1px solid var(--si-border); }
-.plan-summary-row h2 { display:flex;align-items:center;gap:14px;margin:0;color:var(--si-heading);font-size:32px;font-weight:800; align-items: end; }
+.plan-summary-row h2 { display:flex;align-items:center;gap:14px;margin:0;color:var(--si-heading);font-size:28px;font-weight:800; align-items: end; }
 .planner-steps li>span,.plan-summary-row h2>span { flex:none;color:inherit;font-size:20px;font-weight:700;letter-spacing:normal;line-height:1.4;white-space:nowrap; }
 .plan-region-summary { --plan-region-columns:4;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));direction:rtl;gap:8px;padding:0;border:0;border-radius:0; }
 .plan-region-summary > * { direction:ltr; }
