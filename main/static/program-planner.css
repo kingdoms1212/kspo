@@ -130,7 +130,7 @@
 .plan-candidate button {
   border:0;
   background:transparent;
-  color:#2858d9;
+  /* color:#2858d9; */
   font:inherit;
   min-height:48px;
   cursor:pointer;
@@ -240,7 +240,9 @@
   bottom:-32px;
   background:white;
   padding:18px 0;
+
 }
+
 .plan-result .button {
   min-height:54px;
 }
@@ -387,6 +389,7 @@
 .dashboard-screen .db-plan-action,.plan-step-actions { display:flex;justify-content:space-between;gap:12px;width:100%;max-width:none;margin-top:24px; }
 .dashboard-screen .db-plan-action { justify-content:flex-end; }
 .dashboard-screen #plan-start,.plan-step-actions .button { flex:0 1 240px;width:240px;min-width:0;min-height:60px;padding:12px 20px;font-size:17px;border-radius:12px; }
+.dashboard-screen #plan-start,.plan-step-actions .button:disabled { border:0px; }
 .plan-step-actions[hidden],.plan-step-one-result[hidden] { display:none; }
 .plan-step-one-result { margin-top:24px; }
 .plan-step-one-result h2 { display:flex;align-items:baseline;gap:18px;margin:0 0 20px;font-size:32px;font-weight:800;color:var(--si-heading); }
@@ -404,13 +407,12 @@
 .plan-loading img { max-width:100%; }
 .plan-info-heading { border-top:1px solid var(--si-border);padding-top:24px; }
 #plan-entry .plan-actions { justify-content:flex-end; }
-#plan-generate { min-height:64px;font-size:20px;min-width:280px; }
 #plan-kakao { background:#fee500;color:#191919;border-color:#fee500; }
 .plan-result-actions .button { flex:none;min-height:42px;padding:9px 16px;font-size:14px;gap:7px; }
 .plan-result-actions #plan-close { margin-left:auto; }
 @media(max-width:1250px){.dashboard-screen .db-metric{padding:16px}.dashboard-screen .db-metric strong{font-size:24px}.dashboard-screen .db-chart-panel,.dashboard-screen .map-panel{padding:18px}}
 @media(max-width:1050px){.dashboard-screen .db-layout{grid-template-columns:1fr}.dashboard-screen .db-metrics{grid-template-columns:1fr 1fr}.dashboard-screen .map-panel,.dashboard-screen .db-chart-panel,.dashboard-screen .db-chart-panel:first-child,.dashboard-screen .db-chart-panel:last-child,.dashboard-screen .db-scope,.dashboard-screen .db-policy{grid-column:1;grid-row:auto}.plan-facility-grid{grid-template-columns:1fr}.plan-candidates{max-height:380px}}
-@media(max-width:700px){.plan-result-actions #plan-close{margin-left:0}.review-intro h1{font-size:25px}.review-intro p{font-size:15px}.planner-steps{grid-template-columns:1fr}.dashboard-screen .db-metrics{grid-template-columns:1fr}.plan-facility-grid{grid-template-columns:minmax(0,1fr)}.plan-candidate>button{flex-wrap:wrap}.planner{padding:18px}#plan-generate{min-width:0;width:100%}.plan-result-actions .button{flex:1 1 auto}}
+@media(max-width:700px){.plan-result-actions #plan-close{margin-left:0}.review-intro h1{font-size:25px}.review-intro p{font-size:15px}.planner-steps{grid-template-columns:1fr}.dashboard-screen .db-metrics{grid-template-columns:1fr}.plan-facility-grid{grid-template-columns:minmax(0,1fr)}.plan-candidate>button{flex-wrap:wrap}.planner{padding:18px}.plan-result-actions .button{flex:1 1 auto}}
 .plan-share-body{display:grid;gap:22px;padding:24px 0}.plan-share-body input,.plan-share-body textarea{font:inherit}.plan-share-body>.button{min-height:58px}
 
 /* Review mock-up parity: scope line, alert tone, detail card, plan document. */
@@ -488,21 +490,18 @@
 .plan-summary-row + .plan-summary-row { border-top:1px solid var(--si-border); }
 .plan-summary-row h2 { display:flex;align-items:center;gap:14px;margin:0;color:var(--si-heading);font-size:32px;font-weight:800; align-items: end; }
 .planner-steps li>span,.plan-summary-row h2>span { flex:none;color:inherit;font-size:20px;font-weight:700;letter-spacing:normal;line-height:1.4;white-space:nowrap; }
-.plan-region-summary { --plan-region-columns:1;display:grid;grid-template-columns:repeat(var(--plan-region-columns),minmax(0,1fr));gap:8px;padding:0;border:0;border-radius:0; }
-.plan-region-summary:has(> :nth-child(2)) { --plan-region-columns:2; }
-.plan-region-summary:has(> :nth-child(3)) { --plan-region-columns:3; }
-.plan-region-summary:has(> :nth-child(4)) { --plan-region-columns:4; }
+.plan-region-summary { --plan-region-columns:4;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));direction:rtl;gap:8px;padding:0;border:0;border-radius:0; }
+.plan-region-summary > * { direction:ltr; }
 .plan-region-chip { justify-content:center;width:100%;max-width:150px;text-align:center;min-height:32px;padding:6px;border-color:var(--si-border-control);background:var(--si-surface);color:var(--si-heading);font-size:13px;overflow-wrap:anywhere; }
-#plan-sport-summary { text-align:right;font-size:14px;overflow-wrap:anywhere; }
 #plan-sport-summary-row { grid-template-columns:minmax(0,1fr); }
 #plan-sport-summary-row > h2 { flex-direction:row;width:100%;min-width:0;box-sizing:border-box; }
 .plan-facility-summary { width:100%;min-width:0;box-sizing:border-box;overflow-wrap:anywhere; }
 .plan-facility-summary .planner-heading { margin-top:16px; }
 .plan-facility-summary .planner-heading,
-.plan-facility-summary #plan-confirmed-heading { width:100%;min-width:0;box-sizing:border-box; }
-.plan-without-facility { display:flex;align-items:center;gap:10px;margin-top:16px;padding:16px;background:var(--si-surface-soft);border-radius:10px; }
+.plan-facility-summary #plan-confirmed-heading { width:100%;min-width:0;box-sizing:border-box; color:var(--si-text); }
+.plan-without-facility { display:flex;align-items:center;gap:10px;width:fit-content;max-width:100%;box-sizing:border-box;margin:16px 0 0 auto;padding:16px;border-radius:10px;font-size:13px; }
 .plan-without-facility input { min-height:20px;width:20px;flex-shrink:0; }
-@media(max-width:700px){.plan-summary-row{grid-template-columns:1fr;gap:12px}.plan-summary-row h2{font-size:25px}#plan-sport-summary{text-align:left}}
+@media(max-width:700px){.plan-summary-row{grid-template-columns:1fr;gap:12px}.plan-summary-row h2{font-size:25px}}
 
 /* Join the previous selections, current heading and form in steps 02 and 03. */
 body:is([data-plan-step="1"],[data-plan-step="2"]) .plan-step-one-result { margin-bottom:0;border-bottom:0;border-radius:16px 16px 0 0; }
@@ -515,6 +514,55 @@ body:is([data-plan-step="1"],[data-plan-step="2"]) #program-planner { margin-top
 .plan-facility-grid[data-empty="true"] { display:block;width:100%;max-width:none;margin:0; }
 .plan-facility-grid[data-empty="true"] .plan-detail { border:1px solid var(--si-border);border-radius:18px;background:var(--si-surface); }
 .plan-facility-grid[data-empty="true"] .plan-empty { background:var(--si-surface-soft); }
-.plan-facility-grid[data-empty="true"] .plan-without-facility { font-size:13px; }
-#plan-entry .plan-entry-actions { display:flex;flex-direction:row;justify-content:space-between;gap:12px; }
-#plan-entry .plan-entry-actions .button { flex:0 1 280px;min-width:0;width:280px;min-height:60px;padding:12px 16px;font-size:17px;border-radius:12px; }
+
+/* Report preview: the document scrolls inside the viewport, controls stay visible. */
+#plan-result[open] { display:flex;flex-direction:column;width:min(1100px,96vw);height:94dvh;max-height:94dvh;box-sizing:border-box;padding:20px;overflow:hidden; }
+#plan-result .plan-result-head { position:static;flex:none;margin:0;padding:0 0 12px; }
+#plan-result-content { flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable;padding:16px;background:var(--si-bg); }
+#plan-result .plan-result-actions { flex:none;margin:0;padding-top:12px; }
+#plan-share-status:empty { display:none; }
+.report-overview,.report-continuation,.report-plan { box-sizing:border-box;background:white;padding:28px;margin:0 auto 20px;width:100%;color:var(--si-heading); }
+.report-heading h2 { font-size:26px;margin:8px 0; }
+.report-heading p { font-size:12px; }
+.plan-document .report-metrics { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:20px 0; }
+.plan-document .report-metrics .db-metric { display:grid;grid-template-columns:36px minmax(0,1fr);gap:6px 8px;padding:12px;border:1px solid var(--si-border);border-radius:8px;background:var(--si-surface-soft); }
+.report-metrics .metric-icon { width:36px;height:36px;grid-row:1/3; }
+.report-metrics .metric-icon .icon { width:24px;height:24px; }
+.report-metrics .db-metric-label { font-size:11px; }
+.plan-document .report-metrics strong { grid-column:2;font-size:18px;margin:0; }
+.report-metrics em { font-size:11px;font-style:normal; }
+.plan-document .report-chart { display:grid;grid-template-columns:1.2fr 1fr;gap:20px;padding:16px;border:1px solid var(--si-border);border-radius:8px; }
+.plan-document .report-chart h3,.report-details h3 { margin:0 0 12px;font-size:17px; }
+.plan-document .report-chart .db-pie { width:240px;height:240px;max-width:100%;margin:8px auto; }
+.plan-document .report-chart .db-pie-legend { margin:0;max-height:none;overflow:visible; }
+.plan-document .report-chart .db-pie-legend li { align-items:center;font-size:12px; }
+.report-chart .db-pie-legend strong { flex:1; }
+.report-chart .db-pie-legend li>span:last-child { text-align:right; }
+.report-details { margin-top:16px;padding:14px;border:1px solid var(--si-border);border-radius:8px; }
+.report-details h3 small { font-size:11px;font-weight:400; }
+.report-sport-table { width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px; }
+.report-sport-table th,.report-sport-table td { border:1px solid var(--si-border);padding:5px 3px;overflow-wrap:anywhere; }
+.report-sport-table th { background:var(--si-surface-soft);font-size:9px; }
+.report-sport-table th:nth-child(4n+1),.report-sport-table td:nth-child(4n+1) { width:4%;text-align:center;font-weight:700; }
+.report-sport-table th:nth-child(4n+2) { width:12%; }
+.report-sport-table th:nth-child(4n+3) { width:6%; }
+.report-sport-table th:nth-child(4n) { width:11.333%; }
+.report-rank { display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:20px;height:20px;border:2px solid var(--rank-color);border-radius:50%;font-weight:700;background:white;color:var(--si-heading); }
+.report-chart .report-rank { flex:none;margin-right:4px; }
+#plan-kakao .icon { fill:none;stroke:none; }
+.report-sport-table td:nth-child(4n+3),.report-sport-table td:nth-child(4n) { text-align:right; }
+.report-footnote { font-size:10px;color:var(--si-text-muted); }
+@media print {
+  @page { size:A4 portrait;margin:12mm; }
+  .plan-document { print-color-adjust:exact;-webkit-print-color-adjust:exact; }
+  .report-overview,.report-continuation,.report-plan { padding:0;margin:0;width:100%; }
+  .report-continuation,.report-plan { break-before:page; }
+  .report-heading h2 { font-size:22px; }
+  .plan-document .report-metrics { margin:12px 0; }
+  .plan-document .report-metrics .db-metric { padding:8px; }
+  .plan-document .report-chart .db-pie { width:200px;height:200px; }
+  .report-sport-table { font-size:9px; }
+  .report-sport-table td,.report-sport-table th { padding:4px 2px; }
+  .report-sport-table thead { display:table-header-group; }
+  .report-sport-table tr,.report-chart,.report-metrics { break-inside:avoid; }
+}

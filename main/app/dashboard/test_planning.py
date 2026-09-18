@@ -8,6 +8,28 @@ from .planning import candidates, facility_token
 
 
 class PlanningTests(SimpleTestCase):
+    def test_report_first_page_has_metrics_top_five_and_complete_three_column_table(self):
+        from bs4 import BeautifulSoup
+        sports = [dict(name=f'종목{i:02}', requests=100-i, facilities=i+1, courses=2)
+                  for i in range(40)]
+        stats = dict(region_options=['서울'], region_district_options={'서울': ['중구']},
+                     sports=[(row['name'], row['requests']) for row in sports],
+                     sport_rows=sports, facilities=50, courses=80, requests=3220, period=[])
+        with patch('app.dashboard.planning.dashboard_data', return_value=stats):
+            response = self.client.post('/dashboard/plan/preview', self.payload)
+        self.assertEqual(response.status_code, 200)
+        page = BeautifulSoup(response.content, 'html.parser')
+        overview = page.select_one('.report-overview')
+        self.assertEqual(len(overview.select('.db-metric')), 4)
+        self.assertEqual([node.text for node in overview.select('.db-pie-legend strong')],
+                         [row['name'] for row in sports[:5]] + ['기타'])
+        self.assertEqual(response.context['report_pie']['total'], sum(row['requests'] for row in sports))
+        table_names = [cell.text for cell in page.select('.report-sport-table td:nth-child(4n+2)') if cell.text]
+        self.assertCountEqual(table_names, [row['name'] for row in sports])
+        self.assertEqual(len(page.select('.report-continuation')), 1)
+        self.assertEqual(len(overview.select('.report-sport-table th')), 12)
+        self.assertIsNone(overview.select_one('details'))
+
     def test_without_facility_requires_consent_and_no_eligible_candidates(self):
         payload = dict(self.payload, facilities=[], without_facility='on')
         self.assertEqual(self.client.post('/dashboard/plan/preview', payload).status_code, 400)
@@ -50,9 +72,9 @@ class PlanningTests(SimpleTestCase):
             response = self.client.post('/dashboard/plan/preview', dict(self.payload, district='강남구,중구'))
             invalid = self.client.get('/dashboard/plan/facilities', dict(self.scope, district='강남구,해운대구'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '선택구역 신청인원')
+        self.assertContains(response, '종목별 신청인원 비율')
         self.assertContains(response, '<svg class="db-pie"')
-        self.assertContains(response, '<path d=')
+        self.assertContains(response, '<circle cx=')
         self.assertEqual(response.context['region_pie']['total'], 40)
         self.assertEqual(invalid.status_code, 400)
         self.assertEqual(len(candidates('서울', '강남구,중구', '농구')), 2)
