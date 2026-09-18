@@ -42,10 +42,11 @@ button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 .manual-dialog::backdrop { background:color-mix(in srgb,var(--si-heading) 48%,transparent); backdrop-filter:blur(3px); }
 .manual-dialog[open],.manual-panel { display:flex; flex-direction:column; }
 .manual-panel { max-height:calc(100dvh - 50px); min-height:0; }
-.manual-head { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px 24px; border-bottom:1px solid var(--si-border); background:linear-gradient(120deg,var(--si-surface-soft),var(--si-surface)); }
+.manual-head { display:flex; align-items:center; gap:20px; padding:20px 24px; border-bottom:1px solid var(--si-border); background:linear-gradient(120deg,var(--si-surface-soft),var(--si-surface)); }
+.manual-brand { display:flex; align-items:center; gap:16px; }
+.manual-logo { display:block; width:116px; height:auto; }
 .manual-head p { margin-bottom:3px; color:var(--si-primary-hover); font-size:11px; font-weight:700; letter-spacing:.05em; }
 .manual-head h2 { font-size:21px; }
-.manual-head > span { max-width:380px; color:var(--si-text-secondary); font-size:11px; text-align:right; }
 .manual-layout { display:grid; grid-template-columns:190px minmax(0,1fr); flex:1 1 auto; min-height:0; }
 .manual-nav { display:flex; flex-direction:column; gap:5px; padding:18px 14px; border-right:1px solid var(--si-border); background:var(--si-bg); }
 .manual-nav button { min-height:40px; padding:9px 12px; border:0; border-radius:5px; background:transparent; color:var(--si-text-secondary); font-size:12px; font-weight:650; text-align:left; cursor:pointer; }
@@ -69,7 +70,6 @@ button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 .manual-steps p { margin-top:3px; color:var(--si-text-secondary); font-size:11px; }
 .manual-note { margin-top:16px; padding:11px 13px; border-left:3px solid var(--si-primary); border-radius:0 5px 5px 0; background:var(--si-info-bg); color:var(--si-info); font-size:11px; }
 .manual-note.warning { border-left-color:var(--si-warning); background:var(--si-warning-bg); color:var(--si-text-secondary); }
-.manual-actions { display:flex; justify-content:flex-end; margin-top:18px; }
 .manual-definitions { display:grid; gap:0; margin:18px 0 0; border:1px solid var(--si-border); border-radius:6px; overflow:hidden; }
 .manual-definitions > div { display:grid; grid-template-columns:140px minmax(0,1fr); border-bottom:1px solid var(--si-border); }
 .manual-definitions > div:last-child { border-bottom:0; }
@@ -120,6 +120,14 @@ button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 .batch-change-table tbody td { color:var(--si-text-secondary); font-variant-numeric:tabular-nums; white-space:nowrap; }
 .batch-change-empty { padding:24px; border:1px solid var(--si-border); border-radius:5px; color:var(--si-text-muted); text-align:center; }
 .batch-test-footer { display:flex; justify-content:flex-end; gap:8px; padding:14px 24px; border-top:1px solid var(--si-border); background:var(--si-bg); }
+/* 배치 실행 중 비활성화된 하단 버튼의 테두리를 표시하지 않는다. */
+.batch-test-footer [data-batch-run]:disabled,
+.batch-test-footer [data-batch-clear-log]:disabled,
+.batch-test-footer [data-batch-dialog-close]:disabled {
+  border:0;
+  outline:0;
+  box-shadow:none;
+}
 .main-content { margin-left:calc(var(--sidebar-width) + 16px); padding:0 20px 20px; min-height:calc(100vh - var(--header-height)); min-width:0; }
 .page-head { min-height:82px; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px 0; }
 .heading-copy { display:flex; align-items:baseline; flex-wrap:wrap; gap:5px 12px; min-width:0; }
@@ -411,7 +419,7 @@ tbody tr:hover { background:var(--si-surface-hover); }
   .manual-dialog { width:calc(100vw - 20px); max-height:calc(100dvh - 20px); }
   .manual-panel { max-height:calc(100dvh - 22px); }
   .manual-head { align-items:flex-start; padding:16px; }
-  .manual-head > span { max-width:150px; }
+  .manual-logo { width:100px; }
   .manual-layout { grid-template-columns:minmax(0,1fr); }
   .manual-nav { flex-direction:row; padding:10px; overflow-x:auto; border-right:0; border-bottom:1px solid var(--si-border); }
   .manual-nav button { flex:0 0 auto; min-height:34px; padding:7px 10px; }

@@ -15,6 +15,7 @@
   var statusBody = document.getElementById('batch-test-status-body');
   var progressBadge = dialog.querySelector('[data-batch-progress]');
   var pollTimer = null;
+  var batchRunning = false;
 
   function stopPolling() {
     window.clearTimeout(pollTimer);
@@ -34,8 +35,13 @@
     message.className = 'batch-test-error';
     message.textContent = '배치 상태를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
     statusBody.appendChild(message);
+    if (batchRunning) {
+      pollTimer = window.setTimeout(loadStatus, 3000);
+      return;
+    }
     runButton.disabled = false;
     clearLogButton.disabled = false;
+    closeButton.disabled = false;
   }
 
   function syncControls() {
@@ -43,9 +49,11 @@
     var status = statusBody.querySelector('[data-batch-running]');
     var running = status && status.dataset.batchRunning === 'true';
     var progress = status ? status.dataset.batchProgress : '0';
+    batchRunning = Boolean(running);
     progressBadge.textContent = progress + '%';
-    runButton.disabled = Boolean(running);
-    clearLogButton.disabled = Boolean(running);
+    runButton.disabled = batchRunning;
+    clearLogButton.disabled = batchRunning;
+    closeButton.disabled = batchRunning;
     runButton.textContent = running ? '배치 실행 중' : '최신화 실행';
     if (running && dialog.open) {
       pollTimer = window.setTimeout(loadStatus, 1500);
@@ -81,13 +89,18 @@
   });
 
   closeButton.addEventListener('click', function () {
-    dialog.close();
+    if (!batchRunning) dialog.close();
   });
 
   dialog.addEventListener('click', function (event) {
-    if (event.target === dialog) {
+    if (event.target === dialog && !batchRunning) {
       dialog.close();
     }
+  });
+
+  // 실행 중에는 Escape 키로 모달이 닫혀 진행 상태를 놓치지 않게 한다.
+  dialog.addEventListener('cancel', function (event) {
+    if (batchRunning) event.preventDefault();
   });
 
   dialog.addEventListener('close', stopPolling);
@@ -98,7 +111,10 @@
       return;
     }
 
+    batchRunning = true;
     runButton.disabled = true;
+    clearLogButton.disabled = true;
+    closeButton.disabled = true;
     runButton.textContent = '실행 요청 중';
     try {
       var response = await fetch(runForm.action, {
