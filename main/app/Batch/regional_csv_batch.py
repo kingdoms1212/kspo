@@ -25,6 +25,7 @@ if str(MAIN_ROOT) not in sys.path:
     sys.path.insert(0, str(MAIN_ROOT))
 
 from app.common.regions import REGION_PROFILES, RegionProfile, get_region_profile
+from app.common.file_digest import sha256_file
 
 
 DEFAULT_DATA_DIR = PROJECT_ROOT / "data"
@@ -427,6 +428,7 @@ def _publish_manifest(
         manifest["files"][result.output.name] = {
             "mtime_ns": stat.st_mtime_ns,
             "size": stat.st_size,
+            "sha256": sha256_file(result.output),
             "rows": result.matched_rows,
             "source_rows": result.source_rows,
             "source_quality": {
