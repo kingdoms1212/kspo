@@ -92,7 +92,11 @@
   function readScope() {
     const node = el('plan-scope');
     if (!node) return;
-    const next = {region: node.dataset.region, district: node.dataset.district};
+    // The picker changes these fields before statistics are refreshed by HTMX.
+    const next = {
+      region: el('dashboard-region')?.value ?? node.dataset.region,
+      district: el('dashboard-district')?.value ?? node.dataset.district,
+    };
     if (next.region !== scope.region || next.district !== scope.district) {
       resetSelection(); el('plan-sport').value = ''; el('plan-query').value = '';
       el('plan-selection').hidden = true; el('plan-start').hidden = false;
@@ -237,6 +241,8 @@
   }
   document.addEventListener('click', event => {
     if (!event.target.closest('#plan-start')) return;
+    readScope();
+    if (!scope.region) return;
     confirmed = false; el('plan-entry').hidden = true;
     el('plan-start').hidden = true; el('plan-selection').hidden = false; stage(1); el('plan-sport').focus();
     if (el('plan-sport').value) load();
@@ -274,7 +280,6 @@
     confirmed = false; el('plan-entry').hidden = true; el('plan-selection').hidden = false; stage(1); load();
     el('plan-sport').focus();
   }
-  el('plan-reselect').addEventListener('click', backToSelection);
   el('plan-back-selection').addEventListener('click', backToSelection);
   el('plan-form').addEventListener('submit', async event => {
     event.preventDefault();

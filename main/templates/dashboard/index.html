@@ -10,7 +10,14 @@
 <p>지역의 이용현황을 살펴보고, 시설과 운영 조건을 담은 프로그램을 설계하세요.</p></div></header>
 <section id="plan-step-one-result" class="plan-step-one-result" aria-label="이전 단계 선택 결과" hidden>
   <div class="plan-summary-row"><h2><span>STEP 01</span>선택한 행정구역</h2><div id="plan-context" class="plan-region-summary" aria-label="선택한 지역"></div></div>
-  <div id="plan-sport-summary-row" class="plan-summary-row" hidden><h2><span>STEP 02</span>선택 종목과 시설</h2><div id="plan-sport-summary">아직 선택하지 않았습니다.</div></div>
+  <div id="plan-sport-summary-row" class="plan-summary-row" hidden>
+    <h2><span>STEP 02</span>선택 종목과 시설</h2>
+    <div class="plan-facility-summary">
+      <div id="plan-sport-summary">아직 선택하지 않았습니다.</div>
+      <div class="planner-heading"><h3 id="plan-confirmed-heading">확정한 시설</h3></div>
+      <ul id="plan-confirmed" aria-labelledby="plan-confirmed-heading"></ul>
+    </div>
+  </div>
 </section>
 <ol class="planner-steps" aria-label="설계 순서"><li aria-current="step"><span>STEP 01</span> 지역 선택</li><li><span>STEP 02</span> 종목·시설 선택</li><li><span>STEP 03</span> 프로그램 정보</li></ol>
 <div id="dashboard-body" hx-sync="#dashboard-body:replace">{% include 'dashboard/_body.html' %}</div>

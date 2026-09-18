@@ -28,7 +28,6 @@
     </div>
   </div>
   <div id="plan-entry" hidden>
-    <div class="planner-heading"><h3>확정한 시설</h3></div><ul id="plan-confirmed"></ul>
     <div class="plan-info-heading"><h2>프로그램 정보 입력</h2></div><form id="plan-form">{% csrf_token %}<div class="plan-fields">
       <label class="plan-field plan-wide">프로그램명<input name="name" required maxlength="100" placeholder="예: 우리 동네 청소년 농구 교실"></label>
       <label class="plan-field">시설별 모집인원 (명)<input name="capacity" type="number" required min="1" max="100000" step="1" inputmode="numeric"></label>

@@ -402,7 +402,7 @@
 .plan-facility-workspace { position:relative;min-height:260px; }
 .plan-facility-workspace>.plan-loading { position:absolute;z-index:3;border-radius:16px; }
 .plan-loading img { max-width:100%; }
-.plan-info-heading { border-top:1px solid var(--si-border);padding-top:24px;margin-top:24px; }
+.plan-info-heading { border-top:1px solid var(--si-border);padding-top:24px; }
 #plan-entry .plan-actions { justify-content:flex-end; }
 #plan-generate { min-height:64px;font-size:20px;min-width:280px; }
 #plan-kakao { background:#fee500;color:#191919;border-color:#fee500; }
@@ -488,9 +488,18 @@
 .plan-summary-row + .plan-summary-row { border-top:1px solid var(--si-border); }
 .plan-summary-row h2 { display:flex;align-items:center;gap:14px;margin:0;color:var(--si-heading);font-size:32px;font-weight:800; align-items: end; }
 .planner-steps li>span,.plan-summary-row h2>span { flex:none;color:inherit;font-size:20px;font-weight:700;letter-spacing:normal;line-height:1.4;white-space:nowrap; }
-.plan-region-summary { display:grid;grid-template-columns:repeat(var(--plan-region-columns,1),minmax(0,150px));gap:8px;padding:0;border:0;border-radius:0; }
+.plan-region-summary { --plan-region-columns:1;display:grid;grid-template-columns:repeat(var(--plan-region-columns),minmax(0,1fr));gap:8px;padding:0;border:0;border-radius:0; }
+.plan-region-summary:has(> :nth-child(2)) { --plan-region-columns:2; }
+.plan-region-summary:has(> :nth-child(3)) { --plan-region-columns:3; }
+.plan-region-summary:has(> :nth-child(4)) { --plan-region-columns:4; }
 .plan-region-chip { justify-content:center;width:100%;max-width:150px;text-align:center;min-height:32px;padding:6px;border-color:var(--si-border-control);background:var(--si-surface);color:var(--si-heading);font-size:13px;overflow-wrap:anywhere; }
 #plan-sport-summary { text-align:right;font-size:14px;overflow-wrap:anywhere; }
+#plan-sport-summary-row { grid-template-columns:minmax(0,1fr); }
+#plan-sport-summary-row > h2 { flex-direction:row;width:100%;min-width:0;box-sizing:border-box; }
+.plan-facility-summary { width:100%;min-width:0;box-sizing:border-box;overflow-wrap:anywhere; }
+.plan-facility-summary .planner-heading { margin-top:16px; }
+.plan-facility-summary .planner-heading,
+.plan-facility-summary #plan-confirmed-heading { width:100%;min-width:0;box-sizing:border-box; }
 .plan-without-facility { display:flex;align-items:center;gap:10px;margin-top:16px;padding:16px;background:var(--si-surface-soft);border-radius:10px; }
 .plan-without-facility input { min-height:20px;width:20px;flex-shrink:0; }
 @media(max-width:700px){.plan-summary-row{grid-template-columns:1fr;gap:12px}.plan-summary-row h2{font-size:25px}#plan-sport-summary{text-align:left}}
@@ -501,7 +510,7 @@ body:is([data-plan-step="1"],[data-plan-step="2"]) .dashboard-screen .planner-st
 body:is([data-plan-step="1"],[data-plan-step="2"]) .dashboard-screen .planner-steps li[aria-current] { padding-top:20px;border-top:1px solid var(--si-border); }
 body:is([data-plan-step="1"],[data-plan-step="2"]) #program-planner { margin-top:0;padding-top:0;border-top:0;border-radius:0 0 16px 16px; }
 .plan-summary-row[hidden] { display:none; }
-.plan-region-summary { justify-self:end;justify-content:end;justify-items:stretch;width:100%; }
+.plan-region-summary { justify-self:end;justify-content:end;justify-items:stretch;width:calc(var(--plan-region-columns) * 150px + (var(--plan-region-columns) - 1) * 8px);max-width:100%; }
 .plan-detail-content[data-empty="true"],.plan-detail-content:has(.plan-candidates:empty) { width:100%; }
 .plan-facility-grid[data-empty="true"] { display:block;width:100%;max-width:none;margin:0; }
 .plan-facility-grid[data-empty="true"] .plan-detail { border:1px solid var(--si-border);border-radius:18px;background:var(--si-surface); }
