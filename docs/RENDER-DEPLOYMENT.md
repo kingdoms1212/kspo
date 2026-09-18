@@ -49,6 +49,17 @@ Gunicorn은 `0.0.0.0:$PORT`에서 worker 1개, thread 4개로 실행하며 worke
 
 ## 검증
 
+### 500 오류 로그 확인
+
+`DEBUG=false`에서도 Django의 요청 오류와 Traceback은 stderr로 출력되어 Render의 Logs에 표시된다.
+로그에는 시각, 수준, 로거 이름, 프로세스 ID, 오류 메시지와 예외 스택이 포함된다.
+배치 및 APScheduler 로그도 같은 출력으로 모은다. 요청 헤더·쿠키·본문을 별도로 덤프하지 않는다.
+예외 메시지 자체에는 데이터가 포함될 수 있으므로 로그 공유 전 민감한 값은 가린다.
+브라우저에는 일반 500 화면을 유지하며, 원인을 보기 위해 DEBUG를 켤 필요가 없다.
+
+배포 후 오류 페이지를 다시 열고 `ERROR django.request` 및 바로 뒤의 `Traceback`부터
+마지막 예외 줄까지 확인한다. 접근 로그의 `GET ... 500` 한 줄은 원인 로그가 아니다.
+
 ```text
 python main/manage.py check
 python main/manage.py test app

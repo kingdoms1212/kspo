@@ -10,6 +10,7 @@ threads = 4
 timeout = 180
 accesslog = '-'
 errorlog = '-'
+capture_output = True
 preload_app = False
 
 

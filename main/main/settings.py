@@ -230,3 +230,39 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# Render collects stderr. Django's default console handler is disabled when
+# DEBUG=False, so explicitly route server errors (including exc_info) here.
+# Do not format request objects, headers, cookies, or form bodies into logs.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'server': {
+            'format': '{asctime} {levelname} {name} pid={process} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stderr',
+            'formatter': 'server',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'], 'level': 'INFO', 'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['console'], 'level': 'INFO', 'propagate': False,
+        },
+        'app': {
+            'handlers': ['console'], 'level': 'INFO', 'propagate': False,
+        },
+        'apscheduler': {
+            'handlers': ['console'], 'level': 'INFO', 'propagate': False,
+        },
+    },
+    'root': {'handlers': ['console'], 'level': 'WARNING'},
+}
