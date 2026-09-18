@@ -20,7 +20,7 @@ region-map.js가 담당하고, 선택 이후 동작은 각 화면 전용 JS가 �
 {% with region_data_id=id|add:"-region-data" district_data_id=id|add:"-district-data" %}
 <div class="region-map-head">
   <span id="{{ id }}-level" class="region-map-level">{{ country_level|default:'전국 시·도' }}</span>
-  <button id="{{ id }}-back" class="button ghost region-map-back" type="button" hidden>전국 보기</button>
+  <button id="{{ id }}-back" class="button ghost region-map-back{% if hide_back %} region-map-back-suppressed{% endif %}" type="button"{% if hide_back %} data-region-map-back-suppressed{% endif %} hidden>전국 보기</button>
 </div>
 <div id="{{ id }}" class="region-map" role="img"
      aria-label="{{ country_description|default:'시도별 분포 지도' }}"
