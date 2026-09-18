@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +22,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3cj0*y(o5fmg)exfayfci1j2_pd0nw*r^tzqelsm-6r7-(043f'
+ON_RENDER = os.environ.get('RENDER', '').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'false' if ON_RENDER else 'true').lower() == 'true'
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
+if not SECRET_KEY:
+    if ON_RENDER or not DEBUG:
+        raise ImproperlyConfigured('운영 환경에는 SECRET_KEY 환경변수가 필요합니다.')
+    SECRET_KEY = 'django-insecure-local-development-only'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
+    'ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver' if DEBUG else ''
+).split(',') if host.strip()]
+RENDER_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '').strip()
+if RENDER_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_HOSTNAME)
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get(
+    'CSRF_TRUSTED_ORIGINS', ''
+).split(',') if origin.strip()]
+if RENDER_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_HOSTNAME}')
+if ON_RENDER:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = ON_RENDER and not DEBUG
+SECURE_REDIRECT_EXEMPT = [r'^healthz/$']
+BATCH_SCHEDULER_ENABLED = os.environ.get('BATCH_SCHEDULER_ENABLED', 'true').lower() == 'true'
 
 
 # Application definition
@@ -43,6 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,7 +100,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.environ.get('SQLITE_PATH', BASE_DIR / 'db.sqlite3'),
     }
 }
 
@@ -116,7 +139,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Keep stable filenames: map scripts resolve adjacent GeoJSON files by URL.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+}
 STATICFILES_FINDERS = [
     'app.common.staticfiles.PortableFileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',

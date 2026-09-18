@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: kspo
+    runtime: python
+    buildCommand: python scripts/build_render.py
+    startCommand: python scripts/start_render.py
+    healthCheckPath: /healthz/
+    numInstances: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.15
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "false"
+      - key: BATCH_REGION_KEY
+        value: seoul
+      - key: BATCH_STORAGE_MODE
+        value: csv
