@@ -97,6 +97,15 @@ def usage_snapshot():
 usage_snapshot.cache_clear = _usage_cache.clear
 
 
+def refresh_snapshot():
+    """웹 실행 관리용 공개 진입점. 집계 조회 API와 캐시 구현을 분리한다."""
+    return _usage_cache.refresh()
+
+
+def set_background_refresh(enabled):
+    _usage_cache.set_background_refresh(enabled)
+
+
 def _finish(region, district, area):
     observed = sorted(area['months'])
     return {

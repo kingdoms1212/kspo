@@ -2,6 +2,7 @@
 from collections import Counter
 
 from . import models
+from ..shared.regions import region_district_map
 
 SORT_LABELS = {
     'name': '강좌명순',
@@ -188,18 +189,7 @@ def program_facility_types(programs_rows):
 
 def program_region_district_map(programs_rows):
     """Return sorted district options grouped by region from the loaded CSV rows."""
-    region_districts = {}
-    for item in programs_rows:
-        region, district = item.region, item.district
-        if region == '지역 미제공' or district == '시군구 미제공':
-            continue
-        if not region or not district:
-            continue
-        region_districts.setdefault(region, set()).add(district)
-    return {
-        region: sorted(districts)
-        for region, districts in sorted(region_districts.items())
-    }
+    return region_district_map(programs_rows)
 
 def program_districts(region_district_map, region):
     """District options for one selected region, from an already built map."""

@@ -2,6 +2,7 @@
 import threading
 
 from . import models, transit
+from ..shared.regions import region_district_map
 
 
 def filter_facilities(
@@ -32,16 +33,7 @@ def facility_regions(rows):
 
 def facility_region_district_map(rows):
     """시설 자료에 실제 존재하는 시도별 시군구 목록을 반환한다."""
-    region_districts = {}
-    for row in rows:
-        if row.region == '지역 미제공' or row.district == '시군구 미제공':
-            continue
-        if row.region and row.district:
-            region_districts.setdefault(row.region, set()).add(row.district)
-    return {
-        region: sorted(districts)
-        for region, districts in sorted(region_districts.items())
-    }
+    return region_district_map(rows)
 
 
 def facility_industries(rows):

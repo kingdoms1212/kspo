@@ -1,5 +1,7 @@
 # SPORT INSIGHT 구조 검토
 
+최근 패키지 분리 범위와 호환성·제외 사항은 [패키지 구성 문서](../docs/package-structure.md)를 참고한다.
+
 현재 구현은 **Django 서버 렌더링 MVC/MTV** 구조다. React 소스나 REST API는 현재 `main`에 없다.
 CSV 스냅샷을 직접 읽으며, 도메인 데이터는 Django ORM 모델에 저장하지 않는다.
 

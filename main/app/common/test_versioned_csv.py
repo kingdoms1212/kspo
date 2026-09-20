@@ -12,6 +12,20 @@ from .file_digest import sha256_file
 
 
 class VersionedCsvCacheTests(SimpleTestCase):
+    def test_public_refresh_reports_changes_without_exposing_cached_rows(self):
+        self._write_manifest('one')
+        cache = VersionedCsvCache(self.csv_path.name, self._loader)
+        with override_settings(DATA_DIR=self.data_dir):
+            self.assertTrue(cache.refresh())
+            cache.set_background_refresh(True)
+            self.assertFalse(cache.refresh())
+            self.csv_path.write_text('new', encoding='utf-8')
+            self._write_manifest('two')
+            self.assertEqual(cache.get(), 'old')
+            self.assertTrue(cache.refresh())
+            self.assertEqual(cache.get(), 'new')
+            cache.set_background_refresh(False)
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
@@ -188,12 +202,12 @@ class VersionedCsvCacheTests(SimpleTestCase):
             self.assertEqual(cache.get(refresh=True), 'new')
 
     def test_external_manifest_publish_reloads_each_web_worker_without_request(self):
-        from . import csv_warmup
+        from ..runtime import csv_warmup
         self._write_manifest('one')
         first = VersionedCsvCache(self.csv_path.name, self._loader)
         second = VersionedCsvCache(self.csv_path.name, self._loader)
         with override_settings(DATA_DIR=self.data_dir), \
-                patch.object(csv_warmup, '_caches', return_value=(first, second)):
+                patch.object(csv_warmup, 'csv_warmup_targets', return_value=(first, second)):
             csv_warmup.warm_csv_caches()
             first.background_refresh = second.background_refresh = True
             self.csv_path.write_text('new', encoding='utf-8')

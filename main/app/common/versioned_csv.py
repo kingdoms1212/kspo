@@ -160,6 +160,16 @@ class VersionedCsvCache:
             self._loaded = True
             return value
 
+    def refresh(self, *arguments):
+        """현재 세대를 확인하고 메모리가 교체되었는지 반환한다."""
+        previous = self._value
+        value = self.get(*arguments, refresh=True)
+        return value is not previous
+
+    def set_background_refresh(self, enabled):
+        """실행 관리자가 내부 캐시 상태에 접근하지 않고 갱신 방식을 선택한다."""
+        self.background_refresh = enabled
+
     def clear(self):
         """테스트와 수동 점검을 위해 현재 프로세스 캐시만 비운다."""
         with self._lock:

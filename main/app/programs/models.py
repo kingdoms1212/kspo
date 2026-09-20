@@ -107,6 +107,15 @@ def _snapshot():
 _snapshot.cache_clear = _snapshot_cache.clear
 
 
+def refresh_snapshot():
+    """웹 실행 관리용 공개 진입점. 목록 조회 API와 캐시 구현을 분리한다."""
+    return _snapshot_cache.refresh()
+
+
+def set_background_refresh(enabled):
+    _snapshot_cache.set_background_refresh(enabled)
+
+
 def programs():
     """Every distinct offering in the register, not a leading slice of the file."""
     return _snapshot()[0]

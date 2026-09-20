@@ -18,5 +18,5 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
 
 application = get_wsgi_application()
 
-from app.common.csv_warmup import start_csv_warmup
+from app.runtime.csv_warmup import start_csv_warmup
 start_csv_warmup()
