@@ -7,7 +7,17 @@
 <div class="dashboard-screen">
 <header class="page-head db-heading"><div class="review-intro"><span class="planner-eyebrow">SPORTS PROGRAM PLANNING</span>
 <div class="heading-copy program-heading-copy" id="dashboard-heading"><h1>프로그램 설계</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>
-<p>지역의 이용현황을 살펴보고, 시설과 운영 조건을 담은 프로그램을 설계하세요.</p></div></header>
+<p>지역의 이용현황을 살펴보고, 시설과 운영 조건을 담은 프로그램을 설계하세요.</p></div>
+<button id="plan-history-open" class="button ghost plan-history-trigger" type="button" aria-label="최근 생성 목록" title="최근 생성 목록" aria-haspopup="dialog" aria-controls="plan-history">{% include 'components/icon.html' with name='history' %}</button>
+</header>
+<dialog id="plan-history" class="plan-history" aria-labelledby="plan-history-title">
+  <div class="plan-history-heading"><h2 id="plan-history-title">최근 생성 목록 <span id="plan-history-count" class="count">0 / 5</span></h2><button id="plan-history-close" class="button ghost" type="button" aria-label="최근 생성 목록 닫기">×</button></div>
+  <p class="chart-note">이 브라우저에 최근 5건을 보관합니다. 다시 열면 생성 당시 내용으로 미리보기·인쇄할 수 있습니다.</p>
+  <p id="plan-history-status" role="status" aria-live="polite"></p>
+  <p id="plan-history-empty">최근 생성한 계획서가 없습니다.</p>
+  <ol id="plan-history-list" class="plan-history-list"></ol>
+  <div class="plan-history-footer"><button id="plan-history-clear" class="button ghost" type="button" disabled>전체 삭제</button></div>
+</dialog>
 <section id="plan-step-one-result" class="plan-step-one-result" aria-label="이전 단계 선택 결과" hidden>
   <div class="plan-summary-row"><h2><span>STEP 01</span>행정구역</h2><div id="plan-context" class="plan-region-summary" aria-label="선택한 지역"></div></div>
   <div id="plan-sport-summary-row" class="plan-summary-row" hidden>

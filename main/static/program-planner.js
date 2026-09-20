@@ -1,4 +1,4 @@
-/* In-memory wizard: no localStorage, sessionStorage or saved plan endpoint. */
+/* Wizard inputs stay in memory; the last five signed results stay in this browser. */
 (function () {
   'use strict';
   const root = document.getElementById('program-planner');
@@ -8,6 +8,92 @@
   const selected = new Map();
   let scope = {}, page = 1, pages = 1, rows = [], listVersion = 0, detailVersion = 0;
   let confirmed = false, generating = false, lastPlan = null, listLoading = false;
+  const historyKey = 'sport-insight.plan-history.v1';
+  let historyRows = [], restoring = false, resultOpener = null;
+  function historyNote(text) { el('plan-history-status').textContent = text; }
+  function readHistory() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(historyKey) || '[]');
+      if (!Array.isArray(saved)) throw new Error('Invalid history');
+      return saved.filter(item => item && typeof item.snapshot === 'string'
+        && item.snapshot.length <= 1000000 && typeof item.name === 'string'
+        && typeof item.created === 'string' && Number.isFinite(Date.parse(item.created)))
+        .slice(0, 5);
+    } catch (error) {
+      historyNote('브라우저 보관함을 읽을 수 없습니다. 새 계획서 생성과 인쇄는 계속 사용할 수 있습니다.');
+      return [];
+    }
+  }
+  function writeHistory(next) {
+    try {
+      localStorage.setItem(historyKey, JSON.stringify(next.slice(0, 5)));
+      historyRows = next.slice(0, 5); renderHistory();
+      return true;
+    } catch (error) {
+      historyNote('브라우저 저장 공간 또는 설정 때문에 보관함을 변경하지 못했습니다.');
+      return false;
+    }
+  }
+  function renderHistory() {
+    el('plan-history-list').replaceChildren();
+    el('plan-history-count').textContent = `${historyRows.length} / 5`;
+    el('plan-history-empty').hidden = historyRows.length > 0;
+    el('plan-history-clear').disabled = historyRows.length === 0 || restoring;
+    el('plan-history-close').disabled = restoring;
+    historyRows.forEach(item => {
+      const li = document.createElement('li');
+      const copy = document.createElement('div');
+      const title = document.createElement('b'); title.textContent = item.name;
+      const details = document.createElement('small');
+      details.textContent = `${item.region || ''} ${item.district || ''} · ${item.sport || ''} · ${new Date(item.created).toLocaleString('ko-KR')}`;
+      copy.append(title, details);
+      const actions = document.createElement('div'); actions.className = 'plan-history-actions';
+      const open = document.createElement('button'); open.type = 'button'; open.className = 'button ghost';
+      open.textContent = '다시 열기'; open.disabled = restoring;
+      open.setAttribute('aria-label', `${item.name} 다시 열기`);
+      open.addEventListener('click', () => restoreHistory(item));
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'button ghost';
+      remove.textContent = '삭제'; remove.disabled = restoring;
+      remove.setAttribute('aria-label', `${item.name} 삭제`);
+      remove.addEventListener('click', () => {
+        if (writeHistory(readHistory().filter(row => row.snapshot !== item.snapshot))) historyNote('계획서를 삭제했습니다.');
+      });
+      actions.append(open, remove); li.append(copy, actions); el('plan-history-list').append(li);
+    });
+  }
+  async function restoreHistory(item) {
+    if (restoring || generating) return;
+    restoring = true; renderHistory(); historyNote('저장된 계획서를 불러오는 중입니다…');
+    root.inert = true; el('dashboard-body').inert = true;
+    const data = new FormData();
+    data.set('csrfmiddlewaretoken', el('plan-form').elements.csrfmiddlewaretoken.value);
+    data.set('snapshot', item.snapshot);
+    try {
+      const result = await (await response(root.dataset.restoreUrl, {method: 'POST', body: data})).json();
+      // Only verified server output goes into the preview, never stored HTML.
+      lastPlan = result.summary;
+      el('plan-result-content').innerHTML = result.html;
+      el('plan-share-status').textContent = '최근 생성 목록에서 열었습니다. 생성 당시 자료 기준입니다.';
+      resultOpener = el('plan-history-open');
+      el('plan-history').close();
+      // 과거 결과 조회는 새 설계 흐름의 단계를 변경하지 않는다.
+      el('plan-result').showModal(); historyNote('');
+    } catch (error) {historyNote(error.message);}
+    finally {restoring = false; root.inert = false; el('dashboard-body').inert = false; renderHistory();}
+  }
+  el('plan-history-clear').addEventListener('click', () => {
+    if (writeHistory([])) historyNote('최근 생성 목록을 모두 삭제했습니다.');
+  });
+  el('plan-history-open').addEventListener('click', () => {
+    historyRows = readHistory(); renderHistory();
+    el('plan-history').showModal();
+  });
+  el('plan-history-close').addEventListener('click', () => el('plan-history').close());
+  el('plan-history').addEventListener('cancel', event => { if (restoring) event.preventDefault(); });
+  window.addEventListener('storage', event => {
+    if (event.key === historyKey || event.key === null) {historyRows = readHistory(); renderHistory();}
+  });
+  historyRows = readHistory(); renderHistory();
   const message = text => { el('plan-status').textContent = text; el('plan-error').textContent = ''; };
   /* A refusal or a failure reads differently from progress, so it gets its own
      alert region rather than sharing the polite status line. */
@@ -38,6 +124,7 @@
   }
   function stage(index) {
     document.body.dataset.planStep = index;
+    el('plan-history-open').hidden = index !== 0;
     /* Step 4 marks the finished plan while the result dialog is open. The
        wizard behind it is already reset, so its visibility is left alone. */
     if (index < 3) {
@@ -168,7 +255,6 @@
       const copy = document.createElement('span');
       const title = document.createElement('b'); title.textContent = row.name;
       copy.append(title, address);
-      const hint = document.createElement('small'); hint.textContent = '상세정보 보기 →'; copy.append(hint);
       button.append(photo, copy);
       button.dataset.inspect = row.id; button.setAttribute('aria-label', row.name + ' 상세보기');
       button.setAttribute('aria-pressed', String(el('plan-detail').dataset.facility === row.id));
@@ -289,19 +375,20 @@
     selected.forEach(row => data.append('facilities', row.token));
     if (!selected.size && withoutFacility()) data.set('without_facility', 'on');
     message('입력 내용을 확인하고 계획서를 만드는 중입니다…');
-    /* Captured before the reset below clears the wizard, and kept short: a
-       message carries a summary, not the whole document. */
-    const summary = {
-      name: data.get('name'), region: scope.region, district: scope.district,
-      sport: el('plan-sport').value, capacity: data.get('capacity'),
-      fee: data.get('fee'), unit: data.get('fee_unit'),
-      facilities: Array.from(selected.values(), row => row.name),
-    };
     try {
-      const html = await (await response(root.dataset.previewUrl, {method: 'POST', body: data})).text();
-      lastPlan = summary;
-      el('plan-result-content').innerHTML = html;
-      el('plan-share-status').textContent = '';
+      const result = await (await response(root.dataset.previewUrl, {
+        method: 'POST', body: data, headers: {'Accept': 'application/json'},
+      })).json();
+      lastPlan = result.summary;
+      const saved = result.snapshot && writeHistory([
+        {...result.summary, snapshot: result.snapshot}, ...readHistory(),
+      ]);
+      el('plan-result-content').innerHTML = result.html;
+      el('plan-share-status').textContent = saved
+        ? '이 브라우저의 최근 생성 목록에 보관했습니다. (최대 5건)'
+        : '계획서는 생성되었지만 브라우저에 보관하지 못했습니다. 지금 인쇄할 수 있습니다.';
+      if (saved) historyNote('');
+      resultOpener = el('plan-start');
       el('plan-result').showModal();
       el('plan-form').reset(); resetSelection();
       el('plan-sport').value = ''; el('plan-query').value = ''; el('plan-selection').hidden = true;
@@ -379,8 +466,12 @@
   el('plan-close').addEventListener('click', () => el('plan-result').close());
   el('plan-close-top').addEventListener('click', () => el('plan-result').close());
   el('plan-result').addEventListener('close', () => {
-    lastPlan = null; stage(0);
-    el('plan-result-content').replaceChildren(); el('plan-share-status').textContent = ''; el('plan-start').focus();
+    lastPlan = null;
+    // 새로 생성한 결과만 초기 단계로 돌아간다. 최근 항목 조회는 그대로 유지한다.
+    if (document.body.dataset.planStep === '3') stage(0);
+    el('plan-result-content').replaceChildren(); el('plan-share-status').textContent = '';
+    (resultOpener?.isConnected && !resultOpener.disabled ? resultOpener : el('plan-start')).focus();
+    resultOpener = null;
   });
   document.addEventListener('htmx:beforeRequest', event => {
     if (event.detail.target && event.detail.target.id === 'dashboard-body') root.inert = true;

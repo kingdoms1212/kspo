@@ -1,5 +1,6 @@
-"""Read-only facility selection and validated, unsaved plan previews."""
+"""Validated plan previews and signed browser-held results; no server persistence."""
 from django.core.paginator import Paginator
+from django.core import signing
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
@@ -10,6 +11,27 @@ from django.views.decorators.http import require_GET, require_POST
 from ..facilities.services import facility_transit
 from .planning import ScopeForm, PlanForm, candidates, facility_token
 from .services import pie_chart_data, region_chart_rows
+
+SNAPSHOT_SALT = 'program-plan-result-v1'
+SNAPSHOT_LIMIT = 1_000_000
+
+
+@never_cache
+@require_POST
+def restore(request):
+    """브라우저가 보관한 결과의 서명을 확인한다. CSV 재조회나 DB 저장은 없다."""
+    token = request.POST.get('snapshot', '')
+    if not token or len(token) > SNAPSHOT_LIMIT:
+        return JsonResponse({'error': '저장된 계획서를 읽을 수 없습니다.'}, status=400)
+    try:
+        snapshot = signing.loads(token, salt=SNAPSHOT_SALT)
+        if (not isinstance(snapshot, dict) or snapshot.get('version') != 1
+                or not isinstance(snapshot.get('html'), str)
+                or not isinstance(snapshot.get('summary'), dict)):
+            raise ValueError('Invalid snapshot')
+    except (signing.BadSignature, ValueError, TypeError):
+        return JsonResponse({'error': '저장된 계획서가 손상되었거나 서버 설정이 변경되어 열 수 없습니다.'}, status=400)
+    return JsonResponse({'html': snapshot['html'], 'summary': snapshot['summary']})
 
 
 @never_cache
@@ -78,7 +100,8 @@ def preview(request):
         height = max(1, (len(batch) + 2) // 3)
         sport_pages.append([[batch[i + col * height] if i + col * height < len(batch) else None
                              for col in range(3)] for i in range(height)])
-    return render(request, 'dashboard/_plan_result.html', {
+    created = timezone.localtime()
+    result = render(request, 'dashboard/_plan_result.html', {
         'plan': form.cleaned_data, 'selected': form.selected,
         'statistics': form.statistics,
         'report_pie': report_pie, 'sport_pages': sport_pages,
@@ -86,5 +109,18 @@ def preview(request):
         'region_pie': pie_chart_data(region_chart_rows(form.statistics.get('areas', []))),
         'total_capacity': form.cleaned_data['capacity'] * len(form.selected),
         'sport_requests': sport_requests,
-        'created': timezone.localtime(),
+        'created': created,
     })
+    if request.headers.get('Accept') != 'application/json':
+        return result
+    plan = form.cleaned_data
+    summary = {key: plan[key] for key in ('name', 'region', 'district', 'sport', 'capacity', 'fee')}
+    summary.update(unit=plan['fee_unit'], facilities=[row.name for row in form.selected],
+                   created=created.isoformat())
+    html = result.content.decode(result.charset)
+    # HTML은 서버 템플릿에서 이스케이프된 결과만 서명한다. 복원 시에는
+    # localStorage의 임의 HTML을 신뢰하지 않고 이 서명을 먼저 확인한다.
+    token = signing.dumps({'version': 1, 'html': html, 'summary': summary},
+                          salt=SNAPSHOT_SALT, compress=True)
+    return JsonResponse({'html': html, 'summary': summary,
+                         'snapshot': token if len(token) <= SNAPSHOT_LIMIT else None})

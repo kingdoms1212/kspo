@@ -8,6 +8,35 @@ from .planning import candidates, facility_token
 
 
 class PlanningTests(SimpleTestCase):
+    def test_history_snapshot_restores_original_result_without_csv(self):
+        response = self.client.post('/dashboard/plan/preview', self.payload, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 200)
+        result = response.json()
+        self.assertTrue(result['snapshot'])
+        with patch('app.dashboard.plan_views.PlanForm', side_effect=AssertionError('CSV must not be read')):
+            restored = self.client.post('/dashboard/plan/restore', {'snapshot': result['snapshot']})
+        self.assertEqual(restored.json()['html'], result['html'])
+        self.assertEqual(restored.json()['summary'], result['summary'])
+        self.assertIn('no-store', restored['Cache-Control'])
+
+    def test_history_rejects_tampered_snapshot_and_enforces_csrf(self):
+        result = self.client.post('/dashboard/plan/preview', self.payload, HTTP_ACCEPT='application/json').json()
+        for token in ('', '<script>alert(1)</script>', result['snapshot'] + 'x', 'a' * 1000001):
+            self.assertEqual(self.client.post('/dashboard/plan/restore', {'snapshot': token}).status_code, 400)
+        self.assertEqual(self.client.get('/dashboard/plan/restore').status_code, 405)
+        self.assertEqual(Client(enforce_csrf_checks=True).post('/dashboard/plan/restore',
+                         {'snapshot': result['snapshot']}).status_code, 403)
+
+    def test_history_preserves_escaped_input_and_rejected_form_has_no_snapshot(self):
+        result = self.client.post('/dashboard/plan/preview', dict(self.payload, name='<img onerror=alert(1)>'),
+                                  HTTP_ACCEPT='application/json').json()
+        restored = self.client.post('/dashboard/plan/restore', {'snapshot': result['snapshot']}).json()
+        self.assertIn('&lt;img onerror=alert(1)&gt;', restored['html'])
+        self.assertNotIn('<img onerror=', restored['html'])
+        invalid = self.client.post('/dashboard/plan/preview', dict(self.payload, capacity='0'), HTTP_ACCEPT='application/json')
+        self.assertEqual(invalid.status_code, 400)
+        self.assertNotIn('snapshot', invalid.json())
+
     def test_report_first_page_has_metrics_top_five_and_complete_three_column_table(self):
         from bs4 import BeautifulSoup
         sports = [dict(name=f'종목{i:02}', requests=100-i, facilities=i+1, courses=2)

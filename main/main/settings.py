@@ -49,6 +49,8 @@ CSRF_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = ON_RENDER and not DEBUG
 SECURE_REDIRECT_EXEMPT = [r'^healthz/$']
 BATCH_SCHEDULER_ENABLED = os.environ.get('BATCH_SCHEDULER_ENABLED', 'true').lower() == 'true'
+CSV_WARMUP_ENABLED = os.environ.get('CSV_WARMUP_ENABLED', 'true').lower() == 'true'
+CSV_REFRESH_INTERVAL_SECONDS = float(os.environ.get('CSV_REFRESH_INTERVAL_SECONDS', '5'))
 
 
 # Application definition

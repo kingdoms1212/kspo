@@ -22,5 +22,7 @@ def post_worker_init(worker):
 
 
 def worker_exit(server, worker):
+    from app.common.csv_warmup import stop_csv_warmup
+    stop_csv_warmup()
     from app.Batch.scheduler import stop_scheduler
     stop_scheduler()

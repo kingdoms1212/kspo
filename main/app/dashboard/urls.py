@@ -8,4 +8,5 @@ urlpatterns = [
     path('dashboard/plan/facilities', plan_views.facility_list, name='plan_facilities'),
     path('dashboard/plan/facility', plan_views.facility_detail, name='plan_facility_detail'),
     path('dashboard/plan/preview', plan_views.preview, name='plan_preview'),
+    path('dashboard/plan/restore', plan_views.restore, name='plan_restore'),
 ]

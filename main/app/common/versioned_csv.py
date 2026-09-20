@@ -100,9 +100,14 @@ class VersionedCsvCache:
         self._arguments = None
         self._value = None
         self._loaded = False
+        self.background_refresh = False
 
-    def get(self, *arguments):
+    def get(self, *arguments, refresh=False):
         """같은 세대는 재사용하고 새 세대만 안전하게 다시 적재한다."""
+        # 웹 서버의 갱신 스레드가 관리할 때는 요청이 CSV 읽기/잠금을
+        # 부담하지 않는다. 아직 적재되지 않은 경우에는 기존 동작으로 복구한다.
+        if self.background_refresh and not refresh and self._loaded and self._arguments == arguments:
+            return self._value
         try:
             version = source_version(self.filename)
         except DataGenerationPending:

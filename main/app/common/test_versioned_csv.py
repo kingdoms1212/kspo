@@ -128,3 +128,79 @@ class VersionedCsvCacheTests(SimpleTestCase):
                 thread.join()
         self.assertEqual(results, ['new'] * 5)
         self.assertEqual(self.calls, 2)
+
+    def test_background_refresh_serves_old_rows_without_waiting_and_swaps_on_success(self):
+        self._write_manifest('one')
+        cache = VersionedCsvCache(self.csv_path.name, self._loader)
+        entered, release = threading.Event(), threading.Event()
+        with override_settings(DATA_DIR=self.data_dir):
+            cache.get()
+            cache.background_refresh = True
+            self.csv_path.write_text('new', encoding='utf-8')
+            self._write_manifest('two')
+
+            def slow_loader():
+                entered.set()
+                release.wait(3)
+                return self._loader()
+
+            cache.loader = slow_loader
+            worker = threading.Thread(target=lambda: cache.get(refresh=True))
+            worker.start()
+            try:
+                self.assertTrue(entered.wait(2))
+                with patch('app.common.versioned_csv.source_version', side_effect=AssertionError('request touched CSV')):
+                    self.assertEqual(cache.get(), 'old')
+            finally:
+                release.set()
+                worker.join(3)
+            self.assertEqual(cache.get(), 'new')
+            self.assertEqual(self.calls, 2)
+
+    def test_failed_background_reload_retains_old_value_and_retries(self):
+        self._write_manifest('one')
+        cache = VersionedCsvCache(self.csv_path.name, self._loader)
+        with override_settings(DATA_DIR=self.data_dir):
+            cache.get()
+            cache.background_refresh = True
+            self.csv_path.write_text('new', encoding='utf-8')
+            self._write_manifest('two')
+            with patch.object(cache, 'loader', side_effect=ValueError('invalid CSV')):
+                with self.assertLogs('app.common.versioned_csv', level='ERROR'):
+                    self.assertEqual(cache.get(refresh=True), 'old')
+            self.assertEqual(cache.get(), 'old')
+            self.assertEqual(cache.get(refresh=True), 'new')
+
+    def test_generation_changed_during_reload_does_not_publish_partial_value(self):
+        self._write_manifest('one')
+        cache = VersionedCsvCache(self.csv_path.name, self._loader)
+        with override_settings(DATA_DIR=self.data_dir):
+            cache.get()
+            self.csv_path.write_text('new', encoding='utf-8')
+            self._write_manifest('two')
+
+            def changing_loader():
+                self._write_manifest('three')
+                return 'partial'
+
+            with patch.object(cache, 'loader', side_effect=changing_loader):
+                self.assertEqual(cache.get(refresh=True), 'old')
+            self.assertEqual(cache.get(refresh=True), 'new')
+
+    def test_external_manifest_publish_reloads_each_web_worker_without_request(self):
+        from . import csv_warmup
+        self._write_manifest('one')
+        first = VersionedCsvCache(self.csv_path.name, self._loader)
+        second = VersionedCsvCache(self.csv_path.name, self._loader)
+        with override_settings(DATA_DIR=self.data_dir), \
+                patch.object(csv_warmup, '_caches', return_value=(first, second)):
+            csv_warmup.warm_csv_caches()
+            first.background_refresh = second.background_refresh = True
+            self.csv_path.write_text('new', encoding='utf-8')
+            # 파일 교체 중에는 이전 세대를 유지한다.
+            csv_warmup.warm_csv_caches()
+            self.assertEqual(first.get(), 'old')
+            self._write_manifest('two')
+            csv_warmup.warm_csv_caches()
+            self.assertEqual(first.get(), 'new')
+            self.assertEqual(second.get(), 'new')

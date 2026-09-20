@@ -1,5 +1,5 @@
 {% load static %}
-<section id="program-planner" class="planner panel" aria-label="프로그램 설계 입력" data-list-url="{% url 'plan_facilities' %}" data-detail-url="{% url 'plan_facility_detail' %}" data-preview-url="{% url 'plan_preview' %}" hidden>
+<section id="program-planner" class="planner panel" aria-label="프로그램 설계 입력" data-list-url="{% url 'plan_facilities' %}" data-detail-url="{% url 'plan_facility_detail' %}" data-preview-url="{% url 'plan_preview' %}" data-restore-url="{% url 'plan_restore' %}" hidden>
   <p id="plan-status" class="sr-only" role="status" aria-live="polite"></p>
   <p id="plan-error" class="plan-error" role="alert" tabindex="-1"></p>
   <div id="plan-selection" hidden>
@@ -47,7 +47,7 @@
   <button type="button" class="button primary" id="plan-confirm" disabled>다음 단계</button>
 </div>
 <dialog id="plan-result" class="plan-result" aria-labelledby="plan-result-title">
-  <div class="plan-result-head"><span class="plan-pill">생성 완료 · 저장되지 않는 검토용 계획서</span><button type="button" class="button ghost plan-close-icon" id="plan-close-top" aria-label="계획서 닫기">×</button></div>
+  <div class="plan-result-head"><span class="plan-pill">검토용 계획서 · 생성 당시 자료 기준</span><button type="button" class="button ghost plan-close-icon" id="plan-close-top" aria-label="계획서 닫기">×</button></div>
   <div id="plan-result-content"></div>
   <p id="plan-share-status" role="status"></p>
   <div class="plan-result-actions"><button type="button" class="button primary" id="plan-print">{% include 'components/icon.html' with name='print' %}프린트</button><button type="button" class="button ghost" id="plan-sms">{% include 'components/icon.html' with name='message' %}문자보내기</button><button type="button" class="button ghost" id="plan-kakao">{% include 'components/icon.html' with name='kakao' %}카카오톡 보내기</button><button type="button" class="button ghost" id="plan-close">닫기</button></div>
