@@ -47,13 +47,10 @@ if ON_RENDER:
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = ON_RENDER and not DEBUG
-SECURE_REDIRECT_EXEMPT = [r'^healthz/$', r'^readyz/$']
+SECURE_REDIRECT_EXEMPT = [r'^healthz/$']
 BATCH_SCHEDULER_ENABLED = os.environ.get('BATCH_SCHEDULER_ENABLED', 'true').lower() == 'true'
 CSV_WARMUP_ENABLED = os.environ.get('CSV_WARMUP_ENABLED', 'true').lower() == 'true'
 CSV_REFRESH_INTERVAL_SECONDS = float(os.environ.get('CSV_REFRESH_INTERVAL_SECONDS', '5'))
-# 첫 적재가 이 시간을 넘기면 안내 화면을 걷고 요청이 직접 읽게 둔다. 기다리게만
-# 하는 화면보다 느리더라도 응답하는 편이 낫다.
-CSV_READY_TIMEOUT_SECONDS = float(os.environ.get('CSV_READY_TIMEOUT_SECONDS', '120'))
 
 
 # Application definition
@@ -71,8 +68,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    # 정적 파일 다음에 둔다. 안내 화면이 뜨는 상황에서도 자산 제공은 살아 있어야 한다.
-    'app.runtime.middleware.CsvReadinessMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

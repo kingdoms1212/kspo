@@ -106,11 +106,6 @@ def set_background_refresh(enabled):
     _usage_cache.set_background_refresh(enabled)
 
 
-def snapshot_loaded():
-    """최초 적재 완료 여부. 준비 상태 판정이 캐시 내부를 보지 않게 한다."""
-    return _usage_cache.is_loaded
-
-
 def _finish(region, district, area):
     observed = sorted(area['months'])
     return {

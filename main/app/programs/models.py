@@ -116,11 +116,6 @@ def set_background_refresh(enabled):
     _snapshot_cache.set_background_refresh(enabled)
 
 
-def snapshot_loaded():
-    """최초 적재 완료 여부. 준비 상태 판정이 캐시 내부를 보지 않게 한다."""
-    return _snapshot_cache.is_loaded
-
-
 def programs():
     """Every distinct offering in the register, not a leading slice of the file."""
     return _snapshot()[0]

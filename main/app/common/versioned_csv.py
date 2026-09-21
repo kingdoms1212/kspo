@@ -170,16 +170,6 @@ class VersionedCsvCache:
         """실행 관리자가 내부 캐시 상태에 접근하지 않고 갱신 방식을 선택한다."""
         self.background_refresh = enabled
 
-    @property
-    def is_loaded(self):
-        """최초 적재가 끝났는지만 알린다. 세대 갱신 중에도 참을 유지한다.
-
-        준비 상태 판정은 이 값만 본다. 갱신은 옛 메모리를 그대로 서비스하면서
-        진행하므로(`get`의 background_refresh 경로), 갱신 중을 미준비로 보면
-        멀쩡한 자료를 두고 화면을 막게 된다.
-        """
-        return self._loaded
-
     def clear(self):
         """테스트와 수동 점검을 위해 현재 프로세스 캐시만 비운다."""
         with self._lock:

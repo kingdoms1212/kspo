@@ -29,16 +29,15 @@ button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 .sidebar-foot { margin-top:auto; padding:20px 10px 4px; display:grid; gap:5px; border-top:1px solid var(--si-navy-hover); font-size:11px; color:var(--si-map-2); }
 .sidebar-foot strong { font-size:12px; letter-spacing:.04em; color:var(--si-text-inverse); }
 .sidebar-tools { margin-top:auto; display:grid; gap:8px; padding:12px 6px; }
-.batch-test-control,.manual-control,.overview-control { margin:0; padding:0; }
+.batch-test-control,.manual-control { margin:0; padding:0; }
 /* 도구 영역과 하단 정보를 붙여 사이드바의 빈 공간이 중간에 생기지 않게 한다. */
 .sidebar-tools ~ .sidebar-foot { margin-top:0; }
-/* 좌측 메뉴 하단의 도구 버튼 셋은 한 벌로 관리한다. 버튼마다 규칙을 따로 두면
-   테두리 농도와 배경이 조금씩 어긋나 같은 줄에서 서로 다른 버튼처럼 보인다. */
-.batch-test-launch,.manual-launch,.overview-launch { width:100%; min-height:40px; display:flex; align-items:center; justify-content:center; gap:7px; padding:8px; border:1px solid color-mix(in srgb,var(--si-text-inverse) 28%,transparent); border-radius:5px; background:color-mix(in srgb,var(--si-primary) 28%,transparent); color:var(--si-text-inverse); font-size:11px; font-weight:700; text-decoration:none; cursor:pointer; }
-.batch-test-launch:hover,.manual-launch:hover,.overview-launch:hover { background:var(--si-primary); border-color:var(--si-primary); }
-/* 현재 열려 있는 화면은 채운 배경으로 구분한다. */
-.overview-launch[aria-current="page"] { background:var(--si-primary); border-color:var(--si-primary); }
-.batch-test-launch .icon,.manual-launch .icon,.overview-launch .icon { width:16px; height:16px; }
+.batch-test-launch { width:100%; min-height:40px; display:flex; align-items:center; justify-content:center; gap:7px; padding:8px; border:1px solid color-mix(in srgb,var(--si-text-inverse) 28%,transparent); border-radius:5px; background:color-mix(in srgb,var(--si-primary) 28%,transparent); color:var(--si-text-inverse); font-size:11px; font-weight:700; cursor:pointer; }
+.batch-test-launch:hover { background:var(--si-primary); border-color:var(--si-primary); }
+.batch-test-launch .icon { width:16px; height:16px; }
+.manual-launch { width:100%; min-height:40px; display:flex; align-items:center; justify-content:center; gap:7px; padding:8px; border:1px solid color-mix(in srgb,var(--si-text-inverse) 35%,transparent); border-radius:5px; background:color-mix(in srgb,var(--si-surface) 8%,transparent); color:var(--si-text-inverse); font-size:11px; font-weight:700; cursor:pointer; }
+.manual-launch:hover { border-color:var(--si-text-inverse); background:color-mix(in srgb,var(--si-primary) 18%,transparent); }
+.manual-launch .icon { width:16px; height:16px; }
 .manual-dialog { width:min(1040px,calc(100vw - 32px)); max-height:calc(100dvh - 48px); padding:0; overflow:hidden; border:1px solid var(--si-border); border-radius:12px; background:var(--si-surface); color:var(--si-text); box-shadow:0 24px 80px var(--si-shadow-color); }
 .manual-dialog::backdrop { background:color-mix(in srgb,var(--si-heading) 48%,transparent); backdrop-filter:blur(3px); }
 .manual-dialog[open],.manual-panel { display:flex; flex-direction:column; }
@@ -416,7 +415,7 @@ tbody tr:hover { background:var(--si-surface-hover); }
   .nav-link .icon { width:17px; height:17px; }
   .sidebar-foot { display:none; }
   .sidebar-tools { gap:6px; padding:8px 0; }
-  .batch-test-launch,.manual-launch,.overview-launch { min-height:48px; flex-direction:column; gap:3px; padding:5px 3px; font-size:9px; white-space:normal; text-align:center; }
+  .batch-test-launch,.manual-launch { min-height:48px; flex-direction:column; gap:3px; padding:5px 3px; font-size:9px; white-space:normal; text-align:center; }
   .manual-dialog { width:calc(100vw - 20px); max-height:calc(100dvh - 20px); }
   .manual-panel { max-height:calc(100dvh - 22px); }
   .manual-head { align-items:flex-start; padding:16px; }
