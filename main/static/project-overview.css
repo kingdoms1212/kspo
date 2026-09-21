@@ -1,0 +1,221 @@
+/* 프로젝트 개요 화면 전용 서식.
+ *
+ * 색은 theme/sport-insight-colors.css 의 토큰만 쓴다. 이 파일은 색을 새로 정의하지 않는다.
+ * 글꼴도 fonts.css 가 동봉한 Noto Sans KR 을 그대로 쓴다. 화면이 닫힌 망에서 떠야 하므로
+ * 외부 글꼴 호스트를 부르지 않는다. 제목과 본문은 굵기와 자간으로만 구분한다.
+ */
+
+.overview-doc {
+  --ov-mono: ui-monospace, "Cascadia Mono", "Consolas", "D2Coding", monospace;
+  display: grid;
+  gap: 44px;
+  padding-bottom: 72px;
+}
+@media (min-width: 1180px) {
+  .overview-doc { grid-template-columns: 188px minmax(0, 1fr); column-gap: 44px; align-items: start; }
+  .overview-doc > .overview-head { grid-column: 1 / -1; }
+}
+
+.overview-doc code,
+.overview-doc .mono { font-family: var(--ov-mono); font-size: .88em; }
+
+/* ── 머리말 ─────────────────────────────────────────────────────────── */
+.overview-head {
+  background: linear-gradient(165deg, var(--si-navy), var(--si-heading));
+  color: var(--si-text-inverse);
+  border-radius: 8px;
+  padding: 30px 32px 28px;
+}
+.overview-head .eyebrow {
+  margin: 0 0 10px; font-family: var(--ov-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--si-map-2);
+}
+.overview-head h1 {
+  margin: 0; font-size: 27px; font-weight: 800; letter-spacing: -.01em;
+  color: var(--si-text-inverse); text-wrap: balance;
+}
+.overview-head p.lede { margin: 12px 0 0; max-width: 64ch; font-size: 14px; line-height: 1.8; color: var(--si-map-1); }
+.overview-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 20px; }
+.overview-chips span {
+  font-family: var(--ov-mono); font-size: 11px; padding: 4px 10px; border-radius: 3px;
+  background: color-mix(in srgb, var(--si-text-inverse) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--si-text-inverse) 20%, transparent);
+  color: var(--si-map-1);
+}
+
+/* ── 목차 레일 ──────────────────────────────────────────────────────── */
+.overview-rail { display: none; }
+@media (min-width: 1180px) {
+  .overview-rail { display: block; position: sticky; top: 16px; }
+  .overview-rail p {
+    margin: 0 0 8px; padding: 0 10px; font-family: var(--ov-mono); font-size: 10px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--si-text-muted);
+  }
+  .overview-rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+  .overview-rail a {
+    display: flex; gap: 9px; padding: 7px 10px; border-radius: 4px; text-decoration: none;
+    font-size: 13px; line-height: 1.45; color: var(--si-text-secondary);
+    border-left: 2px solid transparent;
+  }
+  .overview-rail a:hover { background: var(--si-surface-soft); color: var(--si-heading); border-left-color: var(--si-primary); }
+  .overview-rail b { font-family: var(--ov-mono); font-size: 10.5px; color: var(--si-text-muted); font-weight: 500; }
+}
+
+/* ── 절 ─────────────────────────────────────────────────────────────── */
+.overview-body { display: grid; gap: 52px; min-width: 0; }
+.overview-doc section { scroll-margin-top: 16px; min-width: 0; }
+.ov-head {
+  border-top: 2px solid var(--si-navy); padding-top: 12px; margin-bottom: 18px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
+}
+.ov-head h2 { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -.01em; color: var(--si-heading); }
+.ov-head .src { margin-left: auto; font-family: var(--ov-mono); font-size: 11px; color: var(--si-text-muted); }
+.overview-doc h3 { margin: 30px 0 10px; font-size: 15px; font-weight: 700; color: var(--si-heading); }
+.overview-doc h3:first-child { margin-top: 0; }
+.overview-doc h4 { margin: 0; font-size: 13.5px; font-weight: 700; color: var(--si-heading); }
+.ov-prose { max-width: 76ch; font-size: 14px; line-height: 1.85; color: var(--si-text-secondary); }
+.ov-prose p { margin: 0; }
+.ov-prose p + p { margin-top: 10px; }
+.ov-prose b { color: var(--si-text); }
+.ov-intro { margin-bottom: 22px; }
+
+/* ── 지표 타일 ──────────────────────────────────────────────────────── */
+.ov-figures {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(164px, 1fr)); gap: 1px;
+  margin: 0; background: var(--si-border); border: 1px solid var(--si-border);
+  border-radius: 6px; overflow: hidden;
+}
+.ov-figures > div { background: var(--si-surface); padding: 16px 16px 14px; }
+.ov-figures dt { font-size: 11.5px; color: var(--si-text-muted); margin-bottom: 5px; }
+.ov-figures dd {
+  margin: 0; font-family: var(--ov-mono); font-size: 23px; font-weight: 700; line-height: 1.1;
+  color: var(--si-heading); font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+.ov-figures dd small { font-family: var(--si-font-family); font-size: 11.5px; font-weight: 500; color: var(--si-text-secondary); margin-left: 3px; }
+.ov-figures .sub { margin: 6px 0 0; font-size: 11px; line-height: 1.5; color: var(--si-text-muted); }
+
+/* ── 표 ─────────────────────────────────────────────────────────────── */
+.ov-table { overflow-x: auto; border: 1px solid var(--si-border); border-radius: 6px; background: var(--si-surface); }
+.ov-table + h3 { margin-top: 30px; }
+.ov-table table { border-collapse: collapse; width: 100%; min-width: 460px; font-size: 13px; }
+.ov-table th, .ov-table td { text-align: left; padding: 9px 13px; border-bottom: 1px solid var(--si-border); vertical-align: top; line-height: 1.65; }
+.ov-table thead th { background: var(--si-surface-soft); color: var(--si-heading); font-weight: 700; font-size: 11.5px; white-space: nowrap; }
+.ov-table tbody tr:last-child td { border-bottom: none; }
+.ov-table td.num, .ov-table th.num { text-align: right; font-family: var(--ov-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ov-table .path { display: block; margin-top: 2px; font-family: var(--ov-mono); font-size: 11.5px; color: var(--si-text-muted); }
+.ov-table caption { caption-side: bottom; text-align: left; padding: 9px 2px 0; font-size: 11.5px; color: var(--si-text-muted); }
+
+/* ── 디렉터리 트리 ──────────────────────────────────────────────────── */
+.ov-tree {
+  background: var(--si-surface); border: 1px solid var(--si-border); border-radius: 6px;
+  padding: 16px 18px; overflow-x: auto; font-family: var(--ov-mono); font-size: 12px; line-height: 1.95;
+}
+.ov-tree .row { display: flex; gap: 14px; white-space: pre; }
+.ov-tree .row:hover { background: var(--si-surface-hover); }
+.ov-tree .name { min-width: 27ch; color: var(--si-text); }
+.ov-tree .name b { font-weight: 700; color: var(--si-heading); }
+.ov-tree .dim { color: var(--si-text-muted); }
+.ov-tree .note { white-space: normal; font-family: var(--si-font-family); font-size: 12px; color: var(--si-text-muted); }
+
+/* ── 단계 흐름 ──────────────────────────────────────────────────────── */
+.ov-steps { display: grid; gap: 8px; counter-reset: ovstage; }
+@media (min-width: 880px) { .ov-steps.five { grid-template-columns: repeat(5, 1fr); gap: 0; } }
+@media (min-width: 760px) { .ov-steps.three { grid-template-columns: repeat(3, 1fr); gap: 0; } }
+.ov-steps > li {
+  list-style: none; background: var(--si-surface); border: 1px solid var(--si-border);
+  border-radius: 6px; padding: 14px 15px 15px; position: relative;
+  display: flex; flex-direction: column; gap: 7px;
+}
+@media (min-width: 760px) {
+  .ov-steps.three > li, .ov-steps.five > li { border-radius: 0; border-right: none; }
+  .ov-steps.three > li:first-child, .ov-steps.five > li:first-child { border-radius: 6px 0 0 6px; }
+  .ov-steps.three > li:last-child, .ov-steps.five > li:last-child { border-radius: 0 6px 6px 0; border-right: 1px solid var(--si-border); }
+  .ov-steps.three > li::after, .ov-steps.five > li::after {
+    content: ""; position: absolute; right: -7px; top: 50%; width: 12px; height: 12px;
+    transform: translateY(-50%) rotate(45deg); background: var(--si-surface);
+    border-top: 1px solid var(--si-border); border-right: 1px solid var(--si-border); z-index: 2;
+  }
+  .ov-steps.three > li:last-child::after, .ov-steps.five > li:last-child::after { display: none; }
+}
+@media (min-width: 880px) { .ov-steps.five > li { border-radius: 0; border-right: none; } }
+.ov-steps .n { counter-increment: ovstage; font-family: var(--ov-mono); font-size: 10.5px; font-weight: 700; letter-spacing: .1em; color: var(--si-primary); }
+.ov-steps .n::before { content: "STEP " counter(ovstage); }
+.ov-steps p { margin: 0; font-size: 12.5px; line-height: 1.65; color: var(--si-text-secondary); }
+.ov-steps .amt {
+  margin-top: auto; padding-top: 7px; border-top: 1px dashed var(--si-border);
+  font-family: var(--ov-mono); font-size: 11px; color: var(--si-text-muted); font-variant-numeric: tabular-nums;
+}
+
+/* ── 2레인 프로세스 도식 ────────────────────────────────────────────── */
+.ov-lanes { display: grid; gap: 12px; }
+@media (min-width: 940px) { .ov-lanes { grid-template-columns: 1fr 1fr; } }
+.ov-lane { border: 1px solid var(--si-border); border-radius: 6px; background: var(--si-surface); overflow: hidden; }
+.ov-lane > header { background: var(--si-surface-soft); padding: 9px 15px; border-bottom: 1px solid var(--si-border); display: flex; align-items: baseline; gap: 10px; }
+.ov-lane > header span { margin-left: auto; font-family: var(--ov-mono); font-size: 10.5px; color: var(--si-text-muted); }
+.ov-lane ol { list-style: none; margin: 0; padding: 14px; display: grid; gap: 5px; }
+.ov-node { border: 1px solid var(--si-border); border-radius: 5px; padding: 8px 11px; background: var(--si-bg); display: flex; flex-wrap: wrap; gap: 3px 9px; align-items: baseline; }
+.ov-node b { font-size: 12.5px; font-weight: 700; color: var(--si-heading); }
+.ov-node span { font-size: 11.5px; color: var(--si-text-secondary); }
+.ov-node .mono { font-size: 11px; color: var(--si-text-muted); }
+.ov-node.hi { border-color: var(--si-primary); background: var(--si-surface-soft); }
+.ov-node.plan { border-style: dashed; }
+.ov-lane .arrow { justify-self: center; font-size: 12px; line-height: 1; color: var(--si-text-muted); }
+.ov-shared { margin-top: 12px; border: 1px dashed var(--si-primary); border-radius: 6px; background: var(--si-surface-soft); padding: 14px 16px; }
+.ov-shared h4 { margin-bottom: 5px; }
+.ov-shared p { margin: 0; font-size: 12.5px; line-height: 1.7; color: var(--si-text-secondary); }
+.ov-shared ul { margin: 8px 0 0; padding-left: 17px; font-size: 12.5px; line-height: 1.75; color: var(--si-text-secondary); }
+.ov-shared li + li { margin-top: 2px; }
+
+/* ── 화면 카드 ──────────────────────────────────────────────────────── */
+.ov-screens { display: grid; gap: 12px; }
+@media (min-width: 780px) { .ov-screens { grid-template-columns: 1fr 1fr; } }
+.ov-screen { border: 1px solid var(--si-border); border-radius: 6px; background: var(--si-surface); padding: 16px; }
+.ov-screen .tag { margin: 0; font-family: var(--ov-mono); font-size: 11px; font-weight: 500; color: var(--si-primary); }
+.ov-screen h4 { margin: 5px 0 7px; font-size: 14.5px; }
+.ov-screen p { margin: 0; font-size: 12.5px; line-height: 1.75; color: var(--si-text-secondary); }
+.ov-screen ul { margin: 9px 0 0; padding-left: 16px; font-size: 12px; line-height: 1.7; color: var(--si-text-muted); }
+.ov-screen li + li { margin-top: 3px; }
+.ov-flow { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-top: 11px; font-family: var(--ov-mono); font-size: 11px; color: var(--si-text-muted); }
+.ov-flow b { background: var(--si-surface-soft); border: 1px solid var(--si-border); border-radius: 3px; padding: 3px 7px; color: var(--si-heading); font-weight: 500; }
+
+/* ── 예외처리 3열 ───────────────────────────────────────────────────── */
+.ov-guards { display: grid; gap: 12px; }
+@media (min-width: 960px) { .ov-guards { grid-template-columns: repeat(3, 1fr); } }
+.ov-guard { border: 1px solid var(--si-border); border-radius: 6px; background: var(--si-surface); overflow: hidden; }
+.ov-guard > header { padding: 11px 15px; border-bottom: 1px solid var(--si-border); }
+.ov-guard > header .k { margin: 0; font-family: var(--ov-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.ov-guard > header h4 { margin-top: 3px; font-size: 14.5px; }
+.ov-guard.be > header { background: var(--si-surface-soft); }
+.ov-guard.be .k { color: var(--si-primary); }
+.ov-guard.fe > header { background: var(--si-success-bg); }
+.ov-guard.fe .k { color: var(--si-success); }
+.ov-guard.dp > header { background: var(--si-warning-bg); }
+.ov-guard.dp .k { color: var(--si-warning); }
+.ov-guard dl { margin: 0; padding: 4px 15px 15px; }
+.ov-guard dt { margin-top: 13px; font-size: 12.5px; font-weight: 700; color: var(--si-heading); }
+.ov-guard dd { margin: 2px 0 0; font-size: 12px; line-height: 1.7; color: var(--si-text-secondary); }
+.ov-guard dd .mono { color: var(--si-text-muted); }
+
+/* ── 배지 · 콜아웃 ──────────────────────────────────────────────────── */
+.ov-badge { display: inline-block; font-family: var(--ov-mono); font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 3px; vertical-align: 1px; }
+.ov-badge.ok { background: var(--si-success-bg); color: var(--si-success); }
+.ov-badge.warn { background: var(--si-warning-bg); color: var(--si-warning); }
+.ov-badge.bad { background: var(--si-danger-bg); color: var(--si-danger); }
+.ov-badge.mute { background: var(--si-disabled-bg); color: var(--si-disabled-text); }
+.ov-note {
+  margin-top: 16px; padding: 13px 16px; border: 1px solid var(--si-border);
+  border-left: 3px solid var(--si-primary); border-radius: 0 5px 5px 0;
+  background: var(--si-surface); font-size: 13px; line-height: 1.75; color: var(--si-text-secondary);
+}
+.ov-note b { color: var(--si-heading); }
+.ov-note.warn { border-left-color: var(--si-warning); }
+.overview-foot {
+  margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--si-border);
+  display: grid; gap: 4px; font-size: 12px; color: var(--si-text-muted);
+}
+.overview-foot .mono { font-family: var(--ov-mono); font-size: 11.5px; color: var(--si-text-secondary); }
+
+@media print {
+  .overview-rail, .overview-head { break-inside: avoid; }
+  .overview-doc section { break-inside: avoid-page; }
+}

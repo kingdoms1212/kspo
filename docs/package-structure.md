@@ -13,6 +13,8 @@ app/
   dashboard/presenters.py    차트 표시 계산 (저장소 조회 없음)
   runtime/targets.py         사전 적재 대상과 공개 콜백 등록
   runtime/csv_warmup.py      웹 프로세스의 적재·갱신 스레드 관리
+  runtime/readiness.py       목록 준비 상태 판정 (화면·상태 점검·게이트 공용)
+  runtime/middleware.py      미준비 요청을 요청 형식에 맞는 503으로 응답
   common/versioned_csv.py    CSV 세대 감지·캐시 교체
 ```
 
@@ -23,6 +25,8 @@ app/
 - `runtime/targets.py`만 적재할 기능을 조립한다. 각 기능은 `refresh_snapshot()`과
   `set_background_refresh(enabled)`를 공개한다. 실행 관리자는 `_value`나 `_snapshot_cache`에 접근하지 않는다.
 - `VersionedCsvCache.refresh()`는 내부 데이터 대신 메모리 교체 여부를 반환한다.
+- 준비 상태는 `VersionedCsvCache.is_loaded`(최초 적재 여부)만 본다. 세대 갱신 중에는 옛 목록을
+  그대로 서비스하므로 미준비로 보지 않는다. 자세한 내용은 [준비 상태 문서](readiness.md).
 - 새 목록을 사전 적재하려면 기능의 공개 갱신 함수를 구현하고 `CsvWarmupTarget`으로 등록한다.
   교통 상세 색인은 기존처럼 필요한 시점에 적재한다.
 

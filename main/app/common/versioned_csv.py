@@ -6,6 +6,7 @@ from pathlib import Path
 
 from django.conf import settings
 from .file_digest import sha256_file
+from ..runtime.diagnostics import trace
 
 
 MANIFEST_FILE = 'batch_manifest.json'
@@ -108,6 +109,8 @@ class VersionedCsvCache:
         # 부담하지 않는다. 아직 적재되지 않은 경우에는 기존 동작으로 복구한다.
         if self.background_refresh and not refresh and self._loaded and self._arguments == arguments:
             return self._value
+        if not self._loaded:
+            trace('cache.version.begin', filename=self.filename, thread=threading.get_ident())
         try:
             version = source_version(self.filename)
         except DataGenerationPending:
@@ -123,7 +126,9 @@ class VersionedCsvCache:
         if self._loaded and self._version == version and self._arguments == arguments:
             return self._value
 
+        trace('cache.lock.wait', filename=self.filename, thread=threading.get_ident())
         with self._lock:
+            trace('cache.lock.acquired', filename=self.filename, thread=threading.get_ident())
             try:
                 version = source_version(self.filename)
             except DataGenerationPending:
@@ -139,7 +144,9 @@ class VersionedCsvCache:
                 return self._value
 
             try:
+                trace('cache.load.begin', filename=self.filename, thread=threading.get_ident())
                 value = self.loader(*arguments)
+                trace('cache.load.end', filename=self.filename, thread=threading.get_ident())
                 confirmed = source_version(self.filename)
                 if confirmed != version:
                     raise DataGenerationPending(f'CSV 적재 중 세대가 변경되었습니다: {self.filename}')
@@ -158,6 +165,7 @@ class VersionedCsvCache:
             self._version = version
             self._arguments = arguments
             self._loaded = True
+            trace('cache.publish', filename=self.filename, thread=threading.get_ident())
             return value
 
     def refresh(self, *arguments):
@@ -169,6 +177,16 @@ class VersionedCsvCache:
     def set_background_refresh(self, enabled):
         """실행 관리자가 내부 캐시 상태에 접근하지 않고 갱신 방식을 선택한다."""
         self.background_refresh = enabled
+
+    @property
+    def is_loaded(self):
+        """최초 적재가 끝났는지만 알린다. 세대 갱신 중에도 참을 유지한다.
+
+        준비 상태 판정은 이 값만 본다. 갱신은 옛 메모리를 그대로 서비스하면서
+        진행하므로(`get`의 background_refresh 경로), 갱신 중을 미준비로 보면
+        멀쩡한 자료를 두고 화면을 막게 된다.
+        """
+        return self._loaded
 
     def clear(self):
         """테스트와 수동 점검을 위해 현재 프로세스 캐시만 비운다."""
