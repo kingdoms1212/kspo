@@ -1,6 +1,7 @@
 {% with region_data_id=id|add:"-region-data" district_data_id=id|add:"-district-data" %}
 
 <div id="{{ id }}" class="region-map" role="img"
+     hx-preserve="true" data-preserve-region-map
      aria-label="{{ country_description|default:'시도별 분포 지도' }}"
      data-region-map
      data-region-source="{{ region_data_id }}"

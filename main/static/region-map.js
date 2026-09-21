@@ -224,7 +224,22 @@
     };
   }
 
+  function mapSourceKey(element) {
+    return JSON.stringify([
+      readJson(element.dataset.regionSource, []),
+      readJson(element.dataset.districtSource, {}),
+      element.dataset.focusRegion
+    ]);
+  }
+
   function draw(element) {
+    // Dashboard queries replace statistics, but retain the same Seoul map.
+    // Keep its canvas, selection and zoom when the underlying map data agrees.
+    var sourceKey = mapSourceKey(element);
+    if (element.hasAttribute('data-preserve-region-map') &&
+        element.__regionMapChart && !element.__regionMapChart.isDisposed() &&
+        element.__regionMapSourceKey === sourceKey) return Promise.resolve();
+    element.__regionMapSourceKey = sourceKey;
     var config = element.dataset;
     var regionPairs = readJson(config.regionSource, []);
     var districtGroups = readJson(config.districtSource, {});

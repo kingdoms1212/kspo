@@ -5,9 +5,9 @@
 {% include 'dashboard/_styles.html' %}
 <link rel="stylesheet" href="{% asset 'program-planner.css' %}">
 <div class="dashboard-screen">
-<header class="page-head db-heading"><div class="review-intro"><span class="planner-eyebrow">SPORTS PROGRAM PLANNING</span>
+<header class="page-head db-heading"><div class="review-intro">
 <div class="heading-copy program-heading-copy" id="dashboard-heading"><h1>프로그램 설계</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>
-<p>지역의 이용현황을 살펴보고, 시설과 운영 조건을 담은 프로그램을 설계하세요.</p></div>
+</div>
 <button id="plan-history-open" class="button ghost plan-history-trigger" type="button" aria-label="최근 생성 목록" title="최근 생성 목록" aria-haspopup="dialog" aria-controls="plan-history">{% include 'components/icon.html' with name='history' %}</button>
 </header>
 <dialog id="plan-history" class="plan-history" aria-labelledby="plan-history-title">
