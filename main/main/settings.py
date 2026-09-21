@@ -69,6 +69,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'app.runtime.diagnostics.RequestDiagnosticsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     # 정적 파일 다음에 둔다. 안내 화면이 뜨는 상황에서도 자산 제공은 살아 있어야 한다.
@@ -272,4 +273,10 @@ LOGGING = {
         },
     },
     'root': {'handlers': ['console'], 'level': 'WARNING'},
+}
+
+# 장애 진단 후 환경변수를 false로 설정해 요청별 로그를 끌 수 있다.
+CSV_DIAGNOSTICS_ENABLED = os.environ.get('CSV_DIAGNOSTICS_ENABLED', 'true').lower() == 'true'
+LOGGING['loggers']['app.runtime.diagnostics'] = {
+    'handlers': ['console'], 'level': 'INFO', 'propagate': False,
 }

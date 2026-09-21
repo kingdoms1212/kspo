@@ -6,6 +6,7 @@ from pathlib import Path
 
 from django.conf import settings
 from .file_digest import sha256_file
+from ..runtime.diagnostics import trace
 
 
 MANIFEST_FILE = 'batch_manifest.json'
@@ -108,6 +109,8 @@ class VersionedCsvCache:
         # 부담하지 않는다. 아직 적재되지 않은 경우에는 기존 동작으로 복구한다.
         if self.background_refresh and not refresh and self._loaded and self._arguments == arguments:
             return self._value
+        if not self._loaded:
+            trace('cache.version.begin', filename=self.filename, thread=threading.get_ident())
         try:
             version = source_version(self.filename)
         except DataGenerationPending:
@@ -123,7 +126,9 @@ class VersionedCsvCache:
         if self._loaded and self._version == version and self._arguments == arguments:
             return self._value
 
+        trace('cache.lock.wait', filename=self.filename, thread=threading.get_ident())
         with self._lock:
+            trace('cache.lock.acquired', filename=self.filename, thread=threading.get_ident())
             try:
                 version = source_version(self.filename)
             except DataGenerationPending:
@@ -139,7 +144,9 @@ class VersionedCsvCache:
                 return self._value
 
             try:
+                trace('cache.load.begin', filename=self.filename, thread=threading.get_ident())
                 value = self.loader(*arguments)
+                trace('cache.load.end', filename=self.filename, thread=threading.get_ident())
                 confirmed = source_version(self.filename)
                 if confirmed != version:
                     raise DataGenerationPending(f'CSV 적재 중 세대가 변경되었습니다: {self.filename}')
@@ -158,6 +165,7 @@ class VersionedCsvCache:
             self._version = version
             self._arguments = arguments
             self._loaded = True
+            trace('cache.publish', filename=self.filename, thread=threading.get_ident())
             return value
 
     def refresh(self, *arguments):

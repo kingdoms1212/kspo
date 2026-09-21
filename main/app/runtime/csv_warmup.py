@@ -20,6 +20,7 @@ from django.conf import settings
 from ..common.data import data_path
 from ..common.versioned_csv import DataGenerationPending
 from .targets import csv_warmup_targets
+from .diagnostics import trace
 
 logger = logging.getLogger('app.common.csv_warmup')
 _lock = threading.Lock()
@@ -47,10 +48,12 @@ def warm_csv_caches():
 
 
 def _watch(interval):
+    trace('watch.begin', thread=threading.get_ident(), interval=interval)
     try:
         # 첫 적재는 기다리지 않고 바로 시작한다. 이 호출이 끝나기 전에도
         # 워커는 이미 요청을 받고 있다.
         warm_csv_caches()
+        trace('watch.first_pass.end', loaded=[(target.key, target.is_ready()) for target in csv_warmup_targets()])
         while not _stop.wait(interval):
             warm_csv_caches()
     finally:
@@ -62,6 +65,7 @@ def _watch(interval):
 def start_csv_warmup():
     """WSGI/ASGI 초기화 후 실행. 배치/관리 명령 프로세스에서는 실행하지 않는다."""
     global _thread, _started_at
+    trace('warmup.start', enabled=warmup_enabled(), thread=threading.get_ident())
     if not warmup_enabled():
         return
     with _lock:
@@ -76,6 +80,7 @@ def start_csv_warmup():
                                    name='csv-cache-refresh', daemon=True)
         try:
             _thread.start()
+            trace('warmup.thread.started', thread=_thread.ident)
         except Exception:
             _thread = None
             _started_at = None

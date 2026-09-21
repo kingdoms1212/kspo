@@ -13,6 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from . import readiness
+from .diagnostics import trace
 
 # 경로 앞부분 -> 그 화면이 필요한 목록. 값이 빈 튜플이면 자료 없이 열린다.
 # 교통 상세 색인은 사전 적재 대상이 아니므로 어디에도 넣지 않는다. 넣으면
@@ -71,7 +72,10 @@ class CsvReadinessMiddleware:
         keys = required_targets(path)
         if keys is None:
             return self.get_response(request)
+        trace('gate.begin', request_id=getattr(request, 'csv_diag_id', '-'), targets=keys)
         state = readiness.state(keys)
+        trace('gate.result', request_id=getattr(request, 'csv_diag_id', '-'),
+              state=state, active=readiness.warmup_active(), elapsed=readiness.warmup_elapsed())
         if state not in (readiness.LOADING, readiness.MISSING):
             return self.get_response(request)
         return self._refusal(request, path, state)

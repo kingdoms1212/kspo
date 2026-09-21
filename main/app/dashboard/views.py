@@ -2,6 +2,7 @@
 from urllib.parse import urlencode
 
 from ..common.partials import render_screen
+from ..runtime.diagnostics import trace
 from .planning import SPORT_TYPES
 from .services import (
     selected_districts, chart_sort, courses_per_facility, dashboard_data, normalized_chart_rows,
@@ -9,12 +10,14 @@ from .services import (
 )
 
 def dashboard(request):
+    trace('dashboard.begin', request_id=getattr(request, 'csv_diag_id', '-'))
     region = '서울'
     districts = selected_districts(','.join(request.GET.getlist('district')))
     district = ','.join(districts)
     region_sort = chart_sort(request.GET.get('region_sort', 'desc'))
     sport_sort = chart_sort(request.GET.get('sport_sort', 'desc'))
     context = dashboard_data(region, district) if district else dashboard_data(region)
+    trace('dashboard.data.end', request_id=getattr(request, 'csv_diag_id', '-'))
     context.setdefault('region_district_options', {})
     context['district_options'] = context.get('region_district_options', {}).get(region, [])
     chart_rows = region_chart_rows(context.get('areas', []), region_sort)
@@ -43,4 +46,7 @@ def dashboard(request):
             **shape_filter,
         }),
     })
-    return render_screen(request, 'dashboard/index.html', 'dashboard/_body.html', context)
+    trace('dashboard.render.begin', request_id=getattr(request, 'csv_diag_id', '-'))
+    response = render_screen(request, 'dashboard/index.html', 'dashboard/_body.html', context)
+    trace('dashboard.render.end', request_id=getattr(request, 'csv_diag_id', '-'))
+    return response
