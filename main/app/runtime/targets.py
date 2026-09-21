@@ -5,6 +5,8 @@ from typing import Callable
 
 @dataclass(frozen=True)
 class CsvWarmupTarget:
+    """`is_ready` 는 [SG002] - CSV파일 초기화 예외처리 화면 제공 의 판정 입력이다."""
+
     key: str
     label: str
     filename: str
@@ -19,7 +21,7 @@ def csv_warmup_targets():
     from app.facilities import models as facilities
     from app.dashboard import models as usage
 
-    # 교통 상세 색인은 목록 조회에 필요하지 않으므로 지연 적재를 유지한다.
+    # [SG002] 교통 상세 색인은 목록 조회에 필요하지 않으므로 지연 적재를 유지한다.
     # 준비 상태 판정에도 넣지 않는다. 넣으면 시설 상세를 누를 때마다 화면이
     # 미준비로 보인다.
     return (

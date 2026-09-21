@@ -2,7 +2,7 @@
 
 저장소·집계를 호출하지 않는다. 이 화면은 시스템이 무엇을 하는지 설명하는 문서이므로,
 자료가 아직 없거나 배치가 실패한 상황에서도 읽을 수 있어야 한다. 그래서 준비 상태
-게이트의 대기 목록에도 올리지 않는다(runtime/middleware.py 의 제외 경로).
+게이트의 대기 목록에도 올리지 않는다 -- [SG002] 의 제외 경로(runtime/middleware.py).
 """
 from django.shortcuts import render
 

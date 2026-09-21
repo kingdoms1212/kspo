@@ -25,7 +25,9 @@ from app.runtime import readiness
 
 @never_cache
 def healthz(request):
-    """자료가 준비되기 전에는 실패로 답한다.
+    """[SG002] - CSV파일 초기화 예외처리 화면 제공
+
+    자료가 준비되기 전에는 실패로 답한다.
 
     Render는 이 경로로 새 인스턴스의 투입 시점을 정한다. 준비 전에 200을
     돌려주면 목록이 아직 없는 인스턴스로 트래픽이 넘어가고, 배포할 때마다
@@ -41,7 +43,7 @@ def healthz(request):
 
 @never_cache
 def readyz(request):
-    """준비 상태의 세부 내역. 배치·배포 스크립트와 운영 점검이 함께 쓴다."""
+    """[SG002] 준비 상태의 세부 내역. 안내 화면의 자동 재시도가 이 경로를 확인한다."""
     detail = readiness.report()
     healthy = detail['state'] not in (readiness.LOADING, readiness.MISSING)
     return JsonResponse(detail, status=200 if healthy else 503)

@@ -146,7 +146,7 @@ def _status_context(notice: str = "") -> dict:
         "batch_notice": notice,
         "manifest_summary": _read_manifest_summary(output_dir),
         "log_text": _read_log_tail(output_dir),
-        # 적재가 안 될 때 원인을 보는 곳이므로 이 화면은 게이트에서 제외한다.
+        # [SG002] 적재가 안 될 때 원인을 보는 곳이므로 이 화면은 게이트에서 제외한다.
         "readiness": readiness.report(),
     }
 
