@@ -19,4 +19,5 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
 application = get_asgi_application()
 
 from app.runtime.csv_warmup import start_csv_warmup
-start_csv_warmup()
+if os.environ.get('CSV_WARMUP_MANAGED_BY_GUNICORN') != 'true':
+    start_csv_warmup()
