@@ -20,11 +20,14 @@ class CsvWarmupTests(SimpleTestCase):
         from app.programs import models as programs
         from app.facilities import models as facilities
         from app.dashboard import models as usage
-        for target, module in zip(csv_warmup_targets(), (programs, facilities, usage)):
+        # 가벼운 자료부터 적재해 해당 화면이 먼저 열리게 한 순서다.
+        for target, module in zip(csv_warmup_targets(), (facilities, usage, programs)):
             self.assertIs(target.refresh, module.refresh_snapshot)
             self.assertIs(target.set_background_refresh, module.set_background_refresh)
+            self.assertIs(target.is_ready, module.snapshot_loaded)
 
-    def test_worker_initial_load_and_single_watcher(self):
+    def test_startup_does_not_read_csv_before_serving_requests(self):
+        """기동 호출은 스레드만 띄운다. WSGI 임포트가 적재를 기다리면 안 된다."""
         cache = Mock()
         worker = Mock()
         with patch.object(csv_warmup, '_thread', None), \
@@ -33,7 +36,7 @@ class CsvWarmupTests(SimpleTestCase):
                 patch.object(csv_warmup.threading, 'Thread', return_value=worker) as factory:
             csv_warmup.start_csv_warmup()
             csv_warmup.start_csv_warmup()
-            warm.assert_called_once()
+            warm.assert_not_called()
             factory.assert_called_once()
             worker.start.assert_called_once()
             cache.set_background_refresh.assert_called_with(True)
@@ -74,7 +77,8 @@ class CsvWarmupTests(SimpleTestCase):
                 patch.object(csv_warmup, 'warm_csv_caches') as warm:
             stop.wait.side_effect = [False, True]
             csv_warmup._watch(5)
-            warm.assert_called_once()
+            # 첫 적재 한 번과 주기 한 번. 첫 적재도 이 스레드가 맡는다.
+            self.assertEqual(warm.call_count, 2)
             cache.set_background_refresh.assert_called_with(False)
 
     def test_thread_start_failure_keeps_request_refresh_available(self):
