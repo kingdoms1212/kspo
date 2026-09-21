@@ -1,6 +1,5 @@
 """실제 웹 프로세스에서 목록을 사전 적재하고 외부 배치 발행도 감지한다.
 
-[SG002] - CSV파일 초기화 예외처리 화면 제공
 첫 적재도 감시 스레드가 맡는다. 예전에는 `start_csv_warmup()`이 동기로 한 번
 읽고 나서 스레드를 띄웠는데, 이 호출은 `main.wsgi` 임포트 시점에 일어난다.
 gunicorn은 WSGI 모듈을 다 읽은 뒤에야 요청 처리를 시작하므로, 그동안 들어온
@@ -49,8 +48,8 @@ def warm_csv_caches():
 
 def _watch(interval):
     try:
-        # [SG002] 첫 적재는 기다리지 않고 바로 시작한다. 이 호출이 끝나기 전에도
-        # 워커는 이미 요청을 받고 있으므로 안내 화면을 돌려줄 수 있다.
+        # 첫 적재는 기다리지 않고 바로 시작한다. 이 호출이 끝나기 전에도
+        # 워커는 이미 요청을 받고 있다.
         warm_csv_caches()
         while not _stop.wait(interval):
             warm_csv_caches()
@@ -97,17 +96,17 @@ def stop_csv_warmup():
 
 
 def warmup_enabled():
-    """[SG002] 이 프로세스가 사전 적재를 맡는지. 테스트와 관리 명령에서는 끈다."""
+    """이 프로세스가 사전 적재를 맡는지. 테스트와 관리 명령에서는 끈다."""
     return bool(getattr(settings, 'CSV_WARMUP_ENABLED', True))
 
 
 def warmup_active():
-    """[SG002] 감시 스레드가 살아 있고 종료 신호를 받지 않았는지."""
+    """감시 스레드가 살아 있고 종료 신호를 받지 않았는지."""
     return _thread is not None and _thread.is_alive() and not _stop.is_set()
 
 
 def warmup_elapsed():
-    """[SG002] 첫 적재를 시작한 뒤 흐른 초. 시작하지 않았으면 None."""
+    """첫 적재를 시작한 뒤 흐른 초. 시작하지 않았으면 None."""
     return None if _started_at is None else monotonic() - _started_at
 
 

@@ -172,9 +172,7 @@ class VersionedCsvCache:
 
     @property
     def is_loaded(self):
-        """[SG002] - CSV파일 초기화 예외처리 화면 제공
-
-        최초 적재가 끝났는지만 알린다. 세대 갱신 중에도 참을 유지한다.
+        """최초 적재가 끝났는지만 알린다. 세대 갱신 중에도 참을 유지한다.
 
         준비 상태 판정은 이 값만 본다. 갱신은 옛 메모리를 그대로 서비스하면서
         진행하므로(`get`의 background_refresh 경로), 갱신 중을 미준비로 보면

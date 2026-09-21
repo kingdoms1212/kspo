@@ -1,7 +1,4 @@
-"""[SG002] - CSV파일 초기화 예외처리 화면 제공
-
-준비 상태 판정과 안내 화면 게이트의 회귀 시험.
-"""
+"""준비 상태 판정과 안내 화면 게이트의 회귀 시험."""
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch

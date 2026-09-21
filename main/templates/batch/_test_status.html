@@ -9,7 +9,6 @@
     <div><dt>데이터 세대</dt><dd>{{ batch_status.generation|default:'-' }}</dd></div>
   </dl>
   {% if batch_status.error %}<p class="batch-test-error"><strong>실패 원인</strong>{{ batch_status.error }}</p>{% endif %}
-  {# [SG002] - CSV파일 초기화 예외처리 화면 제공 : 적재가 안 될 때 담당자가 원인을 보는 표 #}
   <section class="batch-readiness">
     <h3>서비스 목록 적재 상태</h3>
     <p class="batch-change-help">화면이 읽는 메모리 목록의 상태입니다. 배치가 만든 파일과 별개로, 이 프로세스가 그 파일을 올렸는지를 나타냅니다.</p>

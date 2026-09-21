@@ -1,6 +1,4 @@
-"""[SG002] - CSV파일 초기화 예외처리 화면 제공
-
-목록 자료가 아직 없을 때 화면이 이유를 말하게 한다.
+"""목록 자료가 아직 없을 때 화면이 이유를 말하게 한다.
 
 막는 경우는 둘뿐이다. 적재가 진행 중이거나(`loading`), 원본 CSV가 아예
 없는(`missing`) 경우다. 감시 스레드가 없거나 너무 오래 걸리면(`stalled`)
@@ -16,7 +14,6 @@ from django.shortcuts import render
 
 from . import readiness
 
-# [SG002] - CSV파일 초기화 예외처리 화면 제공
 # 경로 앞부분 -> 그 화면이 필요한 목록. 값이 빈 튜플이면 자료 없이 열린다.
 # 교통 상세 색인은 사전 적재 대상이 아니므로 어디에도 넣지 않는다. 넣으면
 # 시설 상세를 누를 때마다 미준비로 보인다.
@@ -34,8 +31,8 @@ ROUTE_REQUIREMENTS = (
 
 # 자료를 읽지 않는 경로. 특히 배치 관리 화면은 적재가 안 될 때 원인을 보는
 # 곳이므로 절대 막지 않는다.
-# [SG002] 자료를 읽지 않는 경로. 특히 배치 관리 화면은 적재가 안 될 때 원인을 보는
-# 곳이고, 개요 화면은 시스템 설명 문서다. 둘 다 자료가 없을 때야말로 열려야 한다.
+# 개요 화면은 시스템이 무엇을 하는지 설명하는 문서다. 자료가 없을 때야말로 읽혀야 하므로
+# 자료를 읽지 않는 다른 경로와 함께 제외한다.
 EXEMPT_PREFIXES = ('/healthz', '/readyz', '/static', '/media',
                    '/policies', '/overview', '/batch-test', '/admin')
 
@@ -47,7 +44,7 @@ MISSING_MESSAGE = ('서비스 데이터가 준비되지 않았습니다. '
 
 
 def required_targets(path):
-    """[SG002] 이 경로가 필요한 목록 키. 해당 없으면 None."""
+    """이 경로가 필요한 목록 키. 해당 없으면 None."""
     for prefix, keys in ROUTE_REQUIREMENTS:
         if path == prefix or path.startswith(prefix + '/') or path.startswith(prefix + '.'):
             return keys
@@ -55,17 +52,14 @@ def required_targets(path):
 
 
 def _wants_json(request, path):
-    """[SG002] 설계 마법사는 fetch로 JSON을 기대한다. 그 형식을 지켜야 문구가 뜬다."""
+    """설계 마법사는 fetch로 JSON을 기대한다. 그 형식을 지켜야 문구가 뜬다."""
     if path.startswith('/dashboard/plan'):
         return True
     return request.headers.get('Accept', '').startswith('application/json')
 
 
 class CsvReadinessMiddleware:
-    """[SG002] - CSV파일 초기화 예외처리 화면 제공
-
-    자료가 준비되기 전 요청에 이유를 담은 503을 돌려준다.
-    """
+    """자료가 준비되기 전 요청에 이유를 담은 503을 돌려준다."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -78,14 +72,11 @@ class CsvReadinessMiddleware:
         if keys is None:
             return self.get_response(request)
         state = readiness.state(keys)
-        # [SG002] stalled 를 막지 않는 것이 중요하다. 그 경로에서는 요청이 직접 읽으므로,
-        # 막으면 아무도 적재하지 않아 화면이 영원히 안내문에 머문다.
         if state not in (readiness.LOADING, readiness.MISSING):
             return self.get_response(request)
         return self._refusal(request, path, state)
 
     def _refusal(self, request, path, state):
-        """[SG002] 요청이 기대하는 형식으로 거절해야 화면이 깨지지 않는다."""
         message = LOADING_MESSAGE if state == readiness.LOADING else MISSING_MESSAGE
         if request.headers.get('HX-Request') == 'true':
             # 조각을 기다리는 자리에 문서를 넣지 않는다. 브라우저가 주소를 다시

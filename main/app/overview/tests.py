@@ -48,7 +48,7 @@ class OverviewSidebarTests(SimpleTestCase):
 
 
 class OverviewReadinessTests(SimpleTestCase):
-    """[SG002] 자료가 없을 때야말로 읽혀야 하는 문서이므로 준비 상태 게이트에서 제외한다."""
+    """자료가 없을 때야말로 읽혀야 하는 문서이므로 준비 상태 게이트에서 제외한다."""
 
     def test_route_waits_for_no_csv_list(self):
         self.assertIsNone(required_targets('/overview'))

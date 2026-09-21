@@ -51,7 +51,6 @@ SECURE_REDIRECT_EXEMPT = [r'^healthz/$', r'^readyz/$']
 BATCH_SCHEDULER_ENABLED = os.environ.get('BATCH_SCHEDULER_ENABLED', 'true').lower() == 'true'
 CSV_WARMUP_ENABLED = os.environ.get('CSV_WARMUP_ENABLED', 'true').lower() == 'true'
 CSV_REFRESH_INTERVAL_SECONDS = float(os.environ.get('CSV_REFRESH_INTERVAL_SECONDS', '5'))
-# [SG002] - CSV파일 초기화 예외처리 화면 제공
 # 첫 적재가 이 시간을 넘기면 안내 화면을 걷고 요청이 직접 읽게 둔다. 기다리게만
 # 하는 화면보다 느리더라도 응답하는 편이 낫다.
 CSV_READY_TIMEOUT_SECONDS = float(os.environ.get('CSV_READY_TIMEOUT_SECONDS', '120'))
@@ -72,7 +71,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    # [SG002] - CSV파일 초기화 예외처리 화면 제공
     # 정적 파일 다음에 둔다. 안내 화면이 뜨는 상황에서도 자산 제공은 살아 있어야 한다.
     'app.runtime.middleware.CsvReadinessMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

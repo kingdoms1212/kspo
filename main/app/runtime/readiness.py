@@ -1,6 +1,4 @@
-"""[SG002] - CSV파일 초기화 예외처리 화면 제공
-
-목록 자료의 준비 상태를 판정한다. 화면·상태 점검·게이트가 같은 답을 쓴다.
+"""목록 자료의 준비 상태를 판정한다. 화면·상태 점검·게이트가 같은 답을 쓴다.
 
 판정은 "최초 적재가 끝났는가"만 본다. 배치가 새 세대를 발행해 다시 읽는 중에도
 캐시는 옛 목록을 그대로 서비스하므로, 갱신 중을 미준비로 보면 멀쩡한 자료를
@@ -39,15 +37,11 @@ def _selected(keys):
 
 
 def state(keys=None):
-    """[SG002] - CSV파일 초기화 예외처리 화면 제공
-
-    `keys`가 가리키는 목록의 준비 상태. None이면 전체를 본다.
+    """`keys`가 가리키는 목록의 준비 상태. None이면 전체를 본다.
 
     `keys`에 등록되지 않은 이름이 있으면 그 목록은 판정에서 빠진다. 교통 상세
     색인처럼 사전 적재 대상이 아닌 자료를 실수로 넣어도 화면이 막히지 않는다.
     """
-    # [SG002] - CSV파일 초기화 예외처리 화면 제공
-    # 판정 순서가 곧 안내 문구를 가른다. 앞의 조건이 뒤를 가리지 않게 둔다.
     if not warmup_enabled():
         return DISABLED
     pending = [target for target in _selected(keys) if not target.is_ready()]
@@ -69,12 +63,12 @@ def state(keys=None):
 
 
 def is_ready(keys=None):
-    """[SG002] 게이트를 통과시켜도 되는 상태인지. 미준비 중 막는 것은 둘뿐이다."""
+    """게이트를 통과시켜도 되는 상태인지. 미준비 중 막는 것은 둘뿐이다."""
     return state(keys) not in (LOADING, MISSING)
 
 
 def report():
-    """[SG002] 상태 점검 응답과 배치 화면이 함께 쓰는 세부 내역."""
+    """상태 점검 응답과 배치 화면이 함께 쓰는 세부 내역."""
     targets = csv_warmup_targets()
     return {
         'state': state(),
