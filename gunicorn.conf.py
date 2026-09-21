@@ -2,6 +2,10 @@
 import os
 from pathlib import Path
 
+# Config is loaded before WSGI preloading. Never start CSV threads in the
+# master: fork would inherit their locks without the threads that release them.
+os.environ['CSV_WARMUP_MANAGED_BY_GUNICORN'] = 'true'
+
 chdir = str(Path(__file__).resolve().parent / 'main')
 bind = f"0.0.0.0:{os.environ.get('PORT', '10000')}"
 workers = 1
@@ -26,6 +30,8 @@ def post_fork(server, worker):
 def post_worker_init(worker):
     worker.log.info('CSV_DIAG worker.init pid=%s parent=%s', os.getpid(), os.getppid())
     from django.conf import settings
+    from app.runtime.csv_warmup import start_csv_warmup
+    start_csv_warmup()
     if settings.BATCH_SCHEDULER_ENABLED:
         from app.Batch.scheduler import start_scheduler
         start_scheduler()

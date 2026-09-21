@@ -79,6 +79,19 @@ Render는 이 경로로 새 인스턴스의 투입 시점을 정한다. 예전�
 
 ## 설정
 
+### Gunicorn preload 실행 시 주의
+
+Gunicorn 설정 파일은 WSGI 임포트 전에 `CSV_WARMUP_MANAGED_BY_GUNICORN=true`를
+설정한다. WSGI/ASGI 진입점은 이 경우 적재를 시작하지 않고, 워커의
+`post_worker_init`에서 적재 스레드를 시작한다. `--preload`가 운영 실행 옵션으로
+추가돼도 마스터에서 실행 중인 스레드의 잠금을 워커에 물려주지 않기 위함이다.
+이 환경변수는 Gunicorn 설정 파일 내부에서만 지정하며 Render 환경변수로 직접
+등록하지 않는다. 실행 시 `--config gunicorn.conf.py`를 유지해야 한다.
+
+정상 로그에서는 `worker.init` 다음에 같은 워커 PID로 `warmup.start`,
+`watch.begin`, `cache.publish`가 나온다. 마스터의 적재 완료는 워커의 적재 완료를
+의미하지 않는다. 기존 장애 프로세스는 새 배포로 교체해야 한다.
+
 | 이름 | 기본값 | 뜻 |
 |---|---|---|
 | `CSV_WARMUP_ENABLED` | `true` | 이 프로세스가 사전 적재를 맡는가 |
