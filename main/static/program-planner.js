@@ -280,7 +280,7 @@
     el('plan-candidates-section').hidden = true;
     el('plan-facility-grid').dataset.empty = 'true';
     const content = document.createElement('div');
-    content.className = 'plan-detail-content';
+    content.className = 'plan-detail-content-empty';
     const box = document.createElement('div');
     box.className = 'plan-empty';
     const heading = document.createElement('h4'); heading.textContent = title;
