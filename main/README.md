@@ -1,4 +1,4 @@
-# SPORT INSIGHT 구조 검토
+# 스포링 구조 검토
 
 최근 패키지 분리 범위와 호환성·제외 사항은 [패키지 구성 문서](../docs/package-structure.md)를 참고한다.
 

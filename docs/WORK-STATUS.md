@@ -1,4 +1,4 @@
-# SPORT INSIGHT 작업 상태
+# 스포링 작업 상태
 
 ## 최신 작업 — 원본 CSV 이름 단일 관리 (2026-09-17, 12차)
 
@@ -59,7 +59,7 @@
 - 대상: 좌측 메뉴 3개와 상단 브랜드 링크. 현재 열린 메뉴와 새 탭 클릭은 제외.
 - 150ms 지연 후 표시(워밍 상태의 깜빡임 방지), `pageshow`에서 해제(뒤로 가기 bfcache 포함), 60초 안전 타임아웃.
 - 접근성: `body[aria-busy]` 토글, 안내 문구를 표시 시점에 주입해 `role="status"`가 낭독되게 함, `prefers-reduced-motion`에서 진행 바 애니메이션 정지.
-- 그림은 `image/logo/logo.svg`(헤더에서 이미 캐시됨). 표시 폭 `min(420px,72vw)`.
+- 그림은 `image/logo/logo.png`(헤더에서 이미 캐시됨). 표시 폭 `min(420px,72vw)`.
 - 신규 `app/templatetags/assets.py`의 `{% asset %}` — 정적 URL에 파일 수정시각을 붙인다. 수동 토큰(`?v=20260915-...`)을 안 바꿔 옛 CSS가 캐시되는 바람에 스플래시가 처음에 뜨지 않았다. `app.css`·`fonts.css`·테마·`interactions.js`·`region-map.js`에 적용.
 - 변경 파일: `templates/base.html`, `templates/{dashboard,programs}/index.html`, `static/app.css`, `static/interactions.js`, `app/templatetags/assets.py`. 회귀 테스트 3개 추가.
 - 검증: 이미지 200·3,109b·원본 동일, 네 화면 모두 오버레이가 `hidden`으로 실려오고, JS 조건 7종·CSS 3종 확인.

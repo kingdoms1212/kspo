@@ -1,4 +1,4 @@
-# SPORT INSIGHT
+# 스포링
 
 Render 배포 명령과 환경변수, `data/origin.zip` 자동 압축 해제는 [Render 배포 안내](docs/RENDER-DEPLOYMENT.md)를 참고하세요.
 

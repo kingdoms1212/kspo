@@ -6,8 +6,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SPORT INSIGHT · 공공 체육복지 현황</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon_32.png' %}">
+  <title>스포링 · 공공 체육복지 현황</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon.png' %}">
   <link rel="stylesheet" href="{% asset 'theme/sport-insight-colors.css' %}">
   <link rel="stylesheet" href="{% asset 'fonts.css' %}">
   <link rel="stylesheet" href="{% asset 'app.css' %}">
@@ -18,7 +18,7 @@
   {% include 'components/icons.html' %}
   <a class="skip-link" href="#main-content">본문 바로가기</a>
   <header class="global-header">
-    <a class="global-brand" href="/dashboard"><span class="brand-mark" aria-hidden="true"><img class="icon" src="{% static 'image/logo/logo.svg' %}" alt="" width="180" height="23"></span><strong>SPORT INSIGHT</strong><span>체육복지 정책의사결정 지원 플랫폼</span></a>
+    <a class="global-brand" href="/dashboard"><span class="brand-mark" aria-hidden="true"><img class="icon" src="{% static 'image/logo/logo.png' %}" alt="" width="180" height="23"></span><span>체육복지 정책의사결정 지원 플랫폼</span></a>
     <div class="global-meta">
       <a class="button ghost policy-open" aria-haspopup="dialog" aria-controls="policy-dialog" href="{% url 'policies' %}" hx-get="{% url 'policies' %}" hx-target="#policy-dialog-body" hx-swap="innerHTML" hx-indicator="#policy-busy">{% include 'components/icon.html' with name='program' %}주요 정책 보기</a>
     </div>
@@ -35,14 +35,14 @@
       {% show_batch_test_button %}
       {% include 'components/overview_control.html' %}
     </div>
-    <div class="sidebar-foot"><strong>SPORT INSIGHT</strong><span>공공 체육복지 데이터</span><span>조회 · 비교 · 검토</span></div>
+    <div class="sidebar-foot"><strong>스포링</strong><span>공공 체육복지 데이터</span><span>조회 · 비교 · 검토</span></div>
   </aside>
   <main id="main-content" class="main-content" tabindex="-1">
     {% block content %}{% endblock %}
   </main>
   <div id="app-splash" class="app-splash" hidden>
     <div class="app-splash-inner">
-      <img src="{% static 'image/logo/logo.svg' %}" alt="" width="946" height="122">
+      <img src="{% static 'image/logo/logo.png' %}" alt="" width="946" height="122">
       <p id="app-splash-text" class="app-splash-text" role="status"></p>
       <span class="app-splash-bar" aria-hidden="true"><i></i></span>
     </div>

@@ -73,7 +73,6 @@
       // Only verified server output goes into the preview, never stored HTML.
       lastPlan = result.summary;
       el('plan-result-content').innerHTML = result.html;
-      el('plan-share-status').textContent = '최근 생성 목록에서 열었습니다. 생성 당시 자료 기준입니다.';
       resultOpener = el('plan-history-open');
       el('plan-history').close();
       // 과거 결과 조회는 새 설계 흐름의 단계를 변경하지 않는다.
@@ -114,6 +113,7 @@
     });
   };
   function detailNote(text) {
+    el('plan-detail').setAttribute('aria-busy', 'false');
     const box = document.createElement('div');
     box.className = 'plan-detail-content';
     const line = document.createElement('p');
@@ -121,6 +121,18 @@
     box.append(line);
     el('plan-detail').replaceChildren(box);
     delete el('plan-detail').dataset.facility;
+  }
+  function detailSplash() {
+    const panel = el('plan-detail');
+    const splash = el('plan-loading').cloneNode(true);
+    splash.removeAttribute('id');
+    splash.className = 'app-splash plan-detail-loading';
+    splash.hidden = false;
+    splash.querySelector('.app-splash-text').textContent = '시설 상세와 교통 정보를 불러오는 중입니다. 잠시만 기다려 주세요.';
+    panel.replaceChildren(splash);
+    panel.scrollTop = 0;
+    panel.setAttribute('aria-busy', 'true');
+    delete panel.dataset.facility;
   }
   function stage(index) {
     document.body.dataset.planStep = index;
@@ -213,7 +225,7 @@
   }
   async function inspect(row) {
     const version = ++detailVersion;
-    detailNote('시설 상세와 교통 정보를 불러오는 중입니다…');
+    detailSplash();
     root.querySelectorAll('[data-inspect]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.inspect === row.id)));
     const query = params(); query.set('id', row.id);
     try {
@@ -221,6 +233,7 @@
       const html = await result.text();
       if (version !== detailVersion) return;
       el('plan-detail').innerHTML = html;
+      el('plan-detail').setAttribute('aria-busy', 'false');
       el('plan-detail').dataset.facility = row.id;
       const check = el('plan-detail-check');
       if (check) {
@@ -263,6 +276,7 @@
     });
   }
   function detailEmpty(title, description) {
+    el('plan-detail').setAttribute('aria-busy', 'false');
     el('plan-candidates-section').hidden = true;
     el('plan-facility-grid').dataset.empty = 'true';
     const content = document.createElement('div');
@@ -413,9 +427,28 @@
   /* `reset` fires before the fields are cleared, so the bounds are recomputed
      on the next task rather than from the values still on screen. */
   el('plan-form').addEventListener('reset', () => setTimeout(syncDateBounds));
-  el('plan-print').addEventListener('click', () => window.print());
+  let preparingPrint = false;
+  el('plan-print').addEventListener('click', async () => {
+    if (preparingPrint) return;
+    preparingPrint = true;
+    el('plan-print').disabled = true;
+    try {
+      preparePrint();
+      // Decode the actual print copies before opening the print preview.
+      // beforeprint alone cannot wait for newly cloned images to load.
+      await Promise.all(Array.from(printArea.querySelectorAll('img'), async img => {
+        img.loading = 'eager';
+        try { await img.decode(); } catch (_) { /* Keep printing if a source is unavailable. */ }
+      }));
+      window.print();
+    } finally {
+      preparingPrint = false;
+      el('plan-print').disabled = false;
+    }
+  });
   let printDetails = [];
-  window.addEventListener('beforeprint', () => {
+  function preparePrint() {
+    if (printArea && printArea.childElementCount) return;
     printDetails = Array.from(el('plan-result-content').querySelectorAll('details:not([open])'));
     printDetails.forEach(detail => {detail.open = true;});
     /* A modal dialog sits in the top layer, and Chrome prints that layer as one
@@ -427,7 +460,8 @@
       printArea.replaceChildren(
         ...Array.from(el('plan-result-content').children, node => node.cloneNode(true)));
     }
-  });
+  }
+  window.addEventListener('beforeprint', preparePrint);
   window.addEventListener('afterprint', () => {
     printDetails.forEach(detail => {detail.open = false;}); printDetails = [];
     if (printArea) printArea.replaceChildren();
