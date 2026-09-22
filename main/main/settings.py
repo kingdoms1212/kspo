@@ -12,10 +12,14 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 실행 위치와 관계없이 프로젝트 루트의 설정을 읽고 운영 환경변수를 우선합니다.
+load_dotenv(BASE_DIR.parent / ".env", override=False, encoding="utf-8-sig")
 
 
 # Quick-start development settings - unsuitable for production
@@ -277,6 +281,11 @@ LOGGING = {
 
 # 장애 진단 후 환경변수를 false로 설정해 요청별 로그를 끌 수 있다.
 CSV_DIAGNOSTICS_ENABLED = os.environ.get('CSV_DIAGNOSTICS_ENABLED', 'true').lower() == 'true'
+AI_REVIEW_MODE = os.environ.get('AI_REVIEW_MODE', 'gemini')
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.1-flash-lite')
+GEMINI_TIMEOUT_SECONDS = min(60, max(1, float(os.environ.get('GEMINI_TIMEOUT_SECONDS', '25'))))
+# 대용량 교통 색인의 최초 적재가 Free 인스턴스를 지연시킬 수 있어 선택적으로 사용합니다.
+AI_REVIEW_INCLUDE_TRANSIT = os.environ.get('AI_REVIEW_INCLUDE_TRANSIT', 'false').lower() == 'true'
 LOGGING['loggers']['app.runtime.diagnostics'] = {
     'handlers': ['console'], 'level': 'INFO', 'propagate': False,
 }
