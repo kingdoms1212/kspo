@@ -13,4 +13,5 @@
 <h3>프로그램 운영안</h3><dl class="plan-summary"><dt>프로그램명</dt><dd>{{ plan.name }}</dd><dt>대상</dt><dd>{{ plan.target|default:"미정" }}</dd><dt>운영기간</dt><dd>{{ plan.start|date:"Y-m-d"|default:"미정" }} ~ {{ plan.end|date:"Y-m-d"|default:"미정" }}</dd><dt>모집인원</dt><dd>시설당 {{ plan.capacity|floatformat:'0g' }}명 · {% if selected %}전체 {{ total_capacity|floatformat:'0g' }}명{% else %}전체 모집인원 미정{% endif %}</dd><dt>수강료</dt><dd>{% if plan.fee %}{{ plan.fee|floatformat:'0g' }}원 / 1인 / {{ plan.fee_unit }} 기준{% else %}무료{% endif %}</dd><dt>프로그램 설명</dt><dd><div class="plan-description">{{ plan.description }}</div></dd></dl>
 </div>
 </section>
+{% if ai_review %}{% include 'dashboard/_plan_ai_review.html' %}{% endif %}
 </article>

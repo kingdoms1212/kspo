@@ -8,6 +8,42 @@ from .planning import candidates, facility_token
 
 
 class PlanningTests(SimpleTestCase):
+    def test_dummy_review_is_saved_and_restored_with_report(self):
+        result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'),
+                                  HTTP_ACCEPT='application/json').json()
+        self.assertIn('데모 검토 결과', result['html'])
+        self.assertIn('실제 Gemini를 호출하지 않은', result['html'])
+        with patch('app.dashboard.plan_views.review_plan', side_effect=AssertionError('No new review')):
+            restored = self.client.post('/dashboard/plan/restore', {'snapshot': result['snapshot']}).json()
+        self.assertEqual(restored['html'], result['html'])
+
+    def test_review_opt_out_never_calls_client(self):
+        with patch('app.dashboard.plan_views.review_plan') as review:
+            result = self.client.post('/dashboard/plan/preview', self.payload)
+        review.assert_not_called()
+        self.assertNotContains(result, 'AI 검토 의견')
+
+    def test_broken_review_keeps_basic_report(self):
+        with patch('app.ai_review.services.DummyGeminiClient.review', return_value={'summary': 'broken'}):
+            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'))
+        self.assertContains(result, '기본 계획서는 그대로 이용할 수 있습니다')
+        self.assertContains(result, '청소년 농구')
+
+    def test_dummy_review_without_facility(self):
+        with patch('app.dashboard.planning.candidates', return_value=[]):
+            result = self.client.post('/dashboard/plan/preview', dict(
+                self.payload, facilities=[], without_facility='on', ai_review='on'))
+        self.assertContains(result, '시설 미지정 상태입니다')
+
+    def test_review_output_is_escaped(self):
+        from app.ai_review.client import DummyGeminiClient
+        data = DummyGeminiClient().review({'plan': {'region': '서울', 'sport': '농구'}, 'facilities': []})
+        data['summary'] = '<script>alert(1)</script>'
+        with patch('app.ai_review.services.DummyGeminiClient.review', return_value=data):
+            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'))
+        self.assertContains(result, '&lt;script&gt;')
+        self.assertNotContains(result, '<script>alert')
+
     def test_history_snapshot_restores_original_result_without_csv(self):
         response = self.client.post('/dashboard/plan/preview', self.payload, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)

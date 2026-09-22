@@ -1,0 +1,13 @@
+<section class="report-ai-review plan-document-block" aria-label="AI 검토 의견">
+  <p class="planner-eyebrow">AI REVIEW · {{ ai_review.provider }}</p>
+  <h2>AI 검토 의견 {% if ai_review.mode == 'dummy' %}<small>데모 검토 결과</small>{% endif %}</h2>
+  {% if ai_review.mode == 'dummy' %}<p class="report-ai-notice">실제 Gemini를 호출하지 않은 예시 응답입니다. 프로그램 적합성을 평가한 결과가 아닙니다.</p>{% endif %}
+  <p>{{ ai_review.summary }}</p>
+  {% if ai_review.status == 'completed' %}
+    {% for finding in ai_review.findings %}<section class="report-ai-finding"><h3>{{ finding.title }} <small>{{ finding.status }}</small></h3><p>{{ finding.comment }}</p></section>{% endfor %}
+    <h3>개선 제안{% if ai_review.mode == 'dummy' %} 예시{% endif %}</h3>
+    <ul>{% for item in ai_review.suggestions %}<li>{{ item }}</li>{% endfor %}</ul>
+    <h3>판단 제한</h3><ul>{% for item in ai_review.limitations %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% endif %}
+  <p class="chart-note">생성 시각 {{ ai_review.created|date:'Y-m-d H:i' }} · 응답 {{ ai_review.model }} · 검토 기준 v{{ ai_review.criteria_version }}<br>근거: 이 보고서에 사용한 선택 지역·종목 통계와 선택 시설 정보</p>
+</section>

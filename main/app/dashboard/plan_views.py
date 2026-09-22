@@ -10,6 +10,7 @@ from django.views.decorators.http import require_GET, require_POST
 from ..facilities.services import facility_transit
 from .planning import ScopeForm, PlanForm, candidates, facility_token
 from ..planning.reports import report_context, report_summary
+from ..ai_review.services import review_plan
 from ..planning.snapshots import (
     SNAPSHOT_SALT, SNAPSHOT_LIMIT, InvalidSnapshot, decode_snapshot, encode_snapshot,
 )
@@ -67,8 +68,11 @@ def preview(request):
     if not form.is_valid():
         return JsonResponse({'errors': form.errors}, status=400)
     created = timezone.localtime()
+    context = report_context(form.cleaned_data, form.selected, form.statistics, created)
+    if form.cleaned_data.get('ai_review'):
+        context['ai_review'] = review_plan(form.cleaned_data, form.selected, form.statistics, created)
     result = render(request, 'dashboard/_plan_result.html',
-                    report_context(form.cleaned_data, form.selected, form.statistics, created))
+                    context)
     if request.headers.get('Accept') != 'application/json':
         return result
     summary = report_summary(form.cleaned_data, form.selected, created)

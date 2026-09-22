@@ -69,6 +69,7 @@ class ScopeForm(forms.Form):
 
 
 class PlanForm(ScopeForm):
+    ai_review = forms.BooleanField(required=False)
     without_facility = forms.BooleanField(required=False)
     target = forms.CharField(required=False, max_length=100)
     start = forms.DateField(required=False)
