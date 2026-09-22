@@ -1,6 +1,6 @@
 <section class="report-ai-review plan-document-block" aria-label="AI 검토 의견">
   <h2 class="report-ai-title">AI 지역·프로그램 적합성 분석 {% if ai_review.mode == 'dummy' %}<small>데모 검토 결과</small>{% endif %}</h2>
-  {% if ai_review.mode == 'dummy' %}<p class="report-ai-notice">실제 Gemini를 호출하지 않은 예시 응답입니다. 프로그램 적합성을 평가한 결과가 아닙니다.</p>{% endif %}
+  {% if ai_review.mode == 'dummy' %}<p class="report-ai-notice">실제 AI를 호출하지 않은 예시 응답입니다. 프로그램 적합성을 평가한 결과가 아닙니다.</p>{% endif %}
   <p>{{ ai_review.summary }}</p>
   {% if ai_review.status == 'completed' %}
     {% if ai_review.mode != 'dummy' %}

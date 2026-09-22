@@ -7,7 +7,7 @@ from ..facilities.tests import facility
 from .planning import candidates, facility_token
 
 
-@override_settings(AI_REVIEW_MODE='dummy')
+@override_settings(AI_MODE='dummy')
 class PlanningTests(SimpleTestCase):
     def test_review_is_separate_and_signed_result_is_included(self):
         review = self.client.post('/dashboard/ai/plan', self.payload).json()
@@ -37,16 +37,20 @@ class PlanningTests(SimpleTestCase):
         self.assertNotContains(result, 'AI 검토 의견')
 
     def test_failed_review_cannot_be_included(self):
-        with patch('app.ai_review.services.DummyGeminiClient.review', return_value={'summary': 'broken'}):
+        with patch('app.ai_review.providers.dummy.DummyProvider.generate', side_effect=ValueError('broken')):
             result = self.client.post('/dashboard/ai/plan', self.payload).json()
         self.assertFalse(result['token'])
         self.assertIn('기본 계획서는 그대로', result['html'])
 
     def test_review_output_is_escaped(self):
-        from app.ai_review.client import DummyGeminiClient
-        data = DummyGeminiClient().review({'plan': {'region': '서울', 'sport': '농구'}, 'facilities': []})
-        data['summary'] = '<script>alert(1)</script>'
-        with patch('app.ai_review.services.DummyGeminiClient.review', return_value=data):
+        from app.ai_review.providers.dummy import DummyProvider
+        from app.ai_review.contracts import AIResponse
+        generate = DummyProvider.generate
+        def malicious(provider, request):
+            response = generate(provider, request)
+            response.data['summary'] = '<script>alert(1)</script>'
+            return response
+        with patch.object(DummyProvider, 'generate', malicious):
             result = self.client.post('/dashboard/ai/plan', self.payload).json()
         self.assertIn('&lt;script&gt;', result['html'])
         self.assertNotIn('<script>alert', result['html'])
