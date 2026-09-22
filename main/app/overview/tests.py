@@ -21,6 +21,16 @@ class OverviewScreenTests(SimpleTestCase):
                      'cdnjs.cloudflare.com', 'unpkg.com'):
             self.assertNotIn(host, body)
 
+    def test_integrated_document_keeps_diagrams_without_print_control(self):
+        body = self.client.get('/overview').content.decode()
+        for identifier in ('architecture-map-title', 'exception-map-title',
+                           'ov-domain', 'ov-api', 'ov-limits', 'ov-evidence'):
+            self.assertIn(f'id="{identifier}"', body)
+        self.assertIn('project-overview.js', body)
+        self.assertNotIn('id="print-document"', body)
+        self.assertNotIn('인쇄 / PDF 저장', body)
+        self.assertNotIn('data:font/ttf', body)
+
     def test_screen_reads_no_csv_snapshot(self):
         """저장소를 부르면 자료가 없을 때 이 문서까지 못 읽게 된다."""
         with patch('app.programs.models.programs') as programs, \
