@@ -24,8 +24,9 @@ class ManualBatchRunnerTests(TestCase):
         self.addCleanup(self.settings.disable)
 
     def test_success_records_new_manifest_generation(self):
-        def refresh(profile, output_dir, progress_callback):
+        def refresh(profile, output_dir, progress_callback, force_refresh):
             self.assertEqual(output_dir, self.output_dir)
+            self.assertTrue(force_refresh)
             progress_callback(55, "시설 CSV 추출 완료")
             (self.output_dir / MANIFEST_FILE).write_text(
                 json.dumps({"generation": "new-generation"}), encoding="utf-8"
@@ -49,6 +50,21 @@ class ManualBatchRunnerTests(TestCase):
         status = read_manual_batch_status()
         self.assertEqual(status["status"], "failed")
         self.assertIn("원본 오류", status["error"])
+
+    def test_manual_refresh_requests_forced_reprocessing(self):
+        (self.output_dir / MANIFEST_FILE).write_text(
+            json.dumps({"generation": "new-generation"}), encoding="utf-8"
+        )
+        with patch.object(
+            manual_runner, "refresh_region_data", return_value=["rebuilt"]
+        ) as refresh_region_data:
+            manual_runner._run_manual_batch("job-same", "requested")
+
+        status = read_manual_batch_status()
+        self.assertEqual(status["status"], "success")
+        self.assertEqual(status["generation"], "new-generation")
+        self.assertEqual(status["progress_message"], "배치 완료")
+        self.assertTrue(refresh_region_data.call_args.kwargs["force_refresh"])
 
     def test_active_batch_lock_rejects_manual_start(self):
         (self.output_dir / LOCK_FILE).write_text("running", encoding="utf-8")

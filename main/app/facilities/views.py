@@ -30,7 +30,9 @@ def _search_params(request):
 
 
 def _selection(request):
-    catalogue = models.facilities()
+    region_scope = get_facility_region_scope()
+    # 고정 지역 모드에서는 화면과 엑셀 모두 현재 배치 대상 지역만 사용한다.
+    catalogue = region_scope.filter_rows(models.facilities())
     params = _search_params(request)
     rows = filter_facilities(catalogue, **params)
     selected_id = request.GET.get('facilityId', '')

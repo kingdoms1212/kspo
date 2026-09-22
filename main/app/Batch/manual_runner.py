@@ -138,10 +138,12 @@ def _run_manual_batch(job_id: str, requested_at: str) -> None:
 
     write_running_progress(0, "배치 시작 준비 중")
     try:
-        refresh_region_data(
+        results = refresh_region_data(
             get_region_profile(settings.BATCH_REGION_KEY),
             output_dir=_output_dir(),
             progress_callback=write_running_progress,
+            # 사용자가 직접 요청한 최신화는 원본이 같아도 다시 정제한다.
+            force_refresh=True,
         )
     except Exception as error:
         last_status = read_manual_batch_status()
@@ -166,7 +168,7 @@ def _run_manual_batch(job_id: str, requested_at: str) -> None:
             "generation": _manifest_generation(),
             "error": "",
             "progress_percent": 100,
-            "progress_message": "배치 완료",
+            "progress_message": "원본 변경 없음" if results == [] else "배치 완료",
         })
 
 

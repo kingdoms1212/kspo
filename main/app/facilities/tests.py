@@ -408,11 +408,13 @@ class FacilityViewTests(SimpleTestCase):
         self.assertIn('SPORT_INSIGHT_facilities.xlsx', export['Content-Disposition'])
         self.assertEqual(len(list(load_workbook(BytesIO(empty.content)).active.values)), 1)
 
-    @override_settings(FACILITY_REGION_FILTER_MODE='fixed')
+    @override_settings(FACILITY_REGION_FILTER_MODE='fixed', BATCH_REGION_KEY='seoul')
     def test_fixed_region_mode_shows_districts_as_region_filter(self):
         rows = [
             facility(id='facility-0', district='강남구'),
             facility(id='facility-1', district='종로구'),
+            facility(id='facility-2', region='경기도', district='고양시'),
+            facility(id='facility-3', region='서울특별시', district='고양시'),
         ]
         with patch('app.facilities.views.models.facilities', return_value=rows), \
              patch('app.facilities.views.models.load_report', return_value=REPORT), \
@@ -422,6 +424,7 @@ class FacilityViewTests(SimpleTestCase):
                 'district': '강남구',
             })
             export = self.client.get('/export/facilities.xlsx', {'district': '강남구'})
+            all_page = self.client.get('/facilities')
 
         self.assertNotContains(page, '<label for="region">시도</label>')
         self.assertContains(page, '<label for="district">지역</label>')
@@ -429,8 +432,13 @@ class FacilityViewTests(SimpleTestCase):
         self.assertEqual(page.context['params']['region'], '')
         self.assertEqual(page.context['districts'], ['강남구', '종로구'])
         self.assertEqual([row.id for row in page.context['rows']], ['facility-0'])
+        self.assertEqual(
+            [row.id for row in all_page.context['rows']],
+            ['facility-0', 'facility-1'],
+        )
         self.assertEqual(len(list(load_workbook(BytesIO(export.content)).active.values)), 2)
 
+    @override_settings(FACILITY_REGION_FILTER_MODE='selectable')
     def test_export_button_is_disabled_with_a_reason_over_the_limit(self):
         with patch('app.facilities.views.models.facilities', return_value=self.rows),              patch('app.facilities.views.models.load_report', return_value=REPORT),              patch('app.facilities.views.facility_transit', return_value=None),              patch('app.common.exports.EXPORT_ROW_LIMIT', 1),              patch('app.facilities.views.EXPORT_ROW_LIMIT', 1):
             page = self.client.get('/facilities')
@@ -439,6 +447,7 @@ class FacilityViewTests(SimpleTestCase):
         self.assertContains(page, '한 번에 내보낼 수 있는 1건을 넘습니다')
         self.assertNotContains(page, 'href="/export/facilities.xlsx')
 
+    @override_settings(FACILITY_REGION_FILTER_MODE='selectable')
     def test_industry_filter_scopes_page_and_export_alike(self):
         with patch('app.facilities.views.models.facilities', return_value=self.rows), \
              patch('app.facilities.views.models.load_report', return_value=REPORT), \
