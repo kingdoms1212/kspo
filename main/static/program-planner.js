@@ -398,9 +398,6 @@
         {...result.summary, snapshot: result.snapshot}, ...readHistory(),
       ]);
       el('plan-result-content').innerHTML = result.html;
-      el('plan-share-status').textContent = saved
-        ? '이 브라우저의 최근 생성 목록에 보관했습니다. (최대 5건)'
-        : '계획서는 생성되었지만 브라우저에 보관하지 못했습니다. 지금 인쇄할 수 있습니다.';
       if (saved) historyNote('');
       resultOpener = el('plan-start');
       el('plan-result').showModal();
