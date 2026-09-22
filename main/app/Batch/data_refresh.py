@@ -55,6 +55,7 @@ def refresh_region_data(
     output_dir: Path = DEFAULT_OUTPUT_DIR,
     specs: tuple[SourceSpec, ...] = SOURCE_SPECS,
     progress_callback: Callable[[int, str], None] | None = None,
+    force_refresh: bool = False,
 ):
     """정제 규칙은 유지하고 설정에 맞는 저장 방식으로 지역 데이터를 반영한다.
 
@@ -67,6 +68,8 @@ def refresh_region_data(
         "output_dir": Path(output_dir),
         "specs": specs,
         "progress_callback": progress_callback,
+        # 수동 실행은 True, 기동·예약 실행은 기본값 False로 동작한다.
+        "force_refresh": force_refresh,
     }
     if get_storage_mode() == CSV_MODE:
         return refresh_region_csvs(profile, **common_options)

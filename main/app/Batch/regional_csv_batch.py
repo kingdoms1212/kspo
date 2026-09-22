@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import argparse
+import codecs
 import csv
+import hashlib
 import json
 import os
 import sys
@@ -25,9 +27,6 @@ if str(MAIN_ROOT) not in sys.path:
     sys.path.insert(0, str(MAIN_ROOT))
 
 from app.common.regions import REGION_PROFILES, RegionProfile, get_region_profile
-from app.common.file_digest import sha256_file
-
-
 DEFAULT_DATA_DIR = PROJECT_ROOT / "data"
 DEFAULT_OUTPUT_DIR = DEFAULT_DATA_DIR / "Batch"
 
@@ -71,11 +70,33 @@ class ExtractResult:
     missing_region_codes: int
     invalid_region_codes: int
     region_code_mismatches: int
+    sha256: str
 
     @property
     def seoul_rows(self) -> int:
         """기존 출력과 테스트에서 사용하던 서울 행 이름을 유지한다."""
         return self.matched_rows
+
+
+class _HashingCsvOutput:
+    """CSV를 쓰는 동시에 최종 파일의 SHA-256을 계산한다."""
+
+    def __init__(self, output):
+        self.output = output
+        self.digest = hashlib.sha256()
+        self._write_bytes(codecs.BOM_UTF8)
+
+    def _write_bytes(self, value: bytes) -> int:
+        self.digest.update(value)
+        return self.output.write(value)
+
+    def write(self, value: str) -> int:
+        encoded = value.encode("utf-8")
+        self._write_bytes(encoded)
+        return len(value)
+
+    def hexdigest(self) -> str:
+        return self.digest.hexdigest()
 
 
 SOURCE_SPECS = (
@@ -244,7 +265,8 @@ def _extract_to_part(
                 district_name_index,
             )
 
-            with part.open("w", encoding="utf-8-sig", newline="") as output_file:
+            with part.open("wb") as raw_output:
+                output_file = _HashingCsvOutput(raw_output)
                 writer = csv.writer(output_file)
                 writer.writerow(header)
 
@@ -297,8 +319,9 @@ def _extract_to_part(
                     writer.writerow(row)
                     matched_rows += 1
 
-                output_file.flush()
-                os.fsync(output_file.fileno())
+                raw_output.flush()
+                os.fsync(raw_output.fileno())
+                output_sha256 = output_file.hexdigest()
 
         if matched_rows == 0:
             raise ValueError(
@@ -314,67 +337,59 @@ def _extract_to_part(
             missing_region_codes=missing_region_codes,
             invalid_region_codes=invalid_region_codes,
             region_code_mismatches=region_code_mismatches,
+            sha256=output_sha256,
         )
     except Exception:
         part.unlink(missing_ok=True)
         raise
 
 
-def _validate_part(path: Path, spec: SourceSpec, profile: RegionProfile) -> int:
-    """서비스 파일을 바꾸기 전에 준비본의 지역 범위를 전수 검사한다."""
-    if not path.is_file():
-        raise FileNotFoundError(f"새 지역 CSV 준비본을 찾을 수 없습니다: {path}")
+def _source_version(data_dir: Path, specs: tuple[SourceSpec, ...]) -> dict:
+    """빠른 변경 감지를 위해 배포 버전과 원본 파일 정보를 수집한다."""
+    render_commit = os.environ.get("RENDER_GIT_COMMIT", "").strip()
+    files = {}
+    for spec in specs:
+        source = data_dir / spec.filename
+        if not source.is_file():
+            raise FileNotFoundError(f"원본 CSV를 찾을 수 없습니다: {source}")
+        stat = source.stat()
+        details = {"size": stat.st_size}
+        # 로컬에서는 파일 수정 시각으로 변경을 감지하고 Render에서는 배포 SHA를 사용한다.
+        if not render_commit:
+            details["mtime_ns"] = stat.st_mtime_ns
+        files[spec.filename] = details
+    return {"render_git_commit": render_commit, "files": files}
 
-    rows = 0
-    with path.open("r", encoding="utf-8-sig", newline="") as source:
-        reader = csv.reader(source)
-        header = next(reader, None)
-        if not header:
-            raise ValueError(f"CSV 헤더가 없습니다: {path.name}")
-        missing = [
-            column
-            for column in (
-                spec.province_code_column,
-                spec.province_name_column,
-                spec.district_code_column,
-                spec.district_name_column,
-            )
-            if column not in header
-        ]
-        if missing:
-            raise ValueError(
-                f"{path.name}에 지역 판별 열이 없습니다: {', '.join(missing)}"
-            )
 
-        code_index = header.index(spec.province_code_column)
-        name_index = header.index(spec.province_name_column)
-        district_code_index = header.index(spec.district_code_column)
-        required_index = max(
-            code_index,
-            name_index,
-            header.index(spec.district_code_column),
-            header.index(spec.district_name_column),
-        )
-        for line_number, row in enumerate(reader, start=2):
-            if len(row) <= required_index:
-                raise ValueError(f"{path.name}의 {line_number}행에 지역 열이 없습니다.")
-            if not _matches_region(row[code_index], row[name_index], profile):
-                raise ValueError(
-                    f"{path.name}의 {line_number}행은 {profile.display_name} 데이터가 아닙니다."
-                )
-            if _region_code_issue(
-                row[code_index].strip(), row[district_code_index].strip()
+def _current_generation_if_unchanged(
+    output_dir: Path,
+    specs: tuple[SourceSpec, ...],
+    profile: RegionProfile,
+    source_version: dict,
+) -> str | None:
+    """원본과 운영 파일이 그대로면 현재 세대를 반환한다."""
+    try:
+        with (output_dir / MANIFEST_FILE).open("r", encoding="utf-8") as source:
+            manifest = json.load(source)
+        if manifest.get("source_version") != source_version:
+            return None
+        if manifest.get("region", {}).get("key") != profile.key:
+            return None
+        published = manifest.get("files", {})
+        for spec in specs:
+            filename = spec.final_filename_for(profile)
+            details = published.get(filename, {})
+            path = output_dir / filename
+            if (
+                not path.is_file()
+                or not details.get("rows")
+                or path.stat().st_size != details.get("size")
             ):
-                raise ValueError(
-                    f"{path.name}의 {line_number}행에 유효하지 않은 지역 코드가 있습니다."
-                )
-            rows += 1
-
-    if rows == 0:
-        raise ValueError(
-            f"{profile.display_name} 행이 없는 준비본은 반영할 수 없습니다: {path.name}"
-        )
-    return rows
+                return None
+        generation = manifest.get("generation")
+        return str(generation) if generation else None
+    except (FileNotFoundError, OSError, json.JSONDecodeError, AttributeError, TypeError):
+        return None
 
 
 def _publish_prepared_files(
@@ -382,7 +397,7 @@ def _publish_prepared_files(
     specs: tuple[SourceSpec, ...],
     profile: RegionProfile,
 ) -> list[Path]:
-    """검증된 준비본을 별도 백업 없이 최종 파일로 반영한다."""
+    """추출 중 검증을 마친 준비본을 최종 파일로 반영한다."""
     files = [
         (
             _part_path(output_dir / spec.final_filename_for(profile)),
@@ -392,9 +407,10 @@ def _publish_prepared_files(
         for spec in specs
     ]
 
-    # 네 준비본이 모두 정상이어야 기존 서비스 파일을 변경한다.
-    for part, _, spec in files:
-        _validate_part(part, spec, profile)
+    # 모든 준비본이 비어 있지 않아야 기존 서비스 파일을 변경한다.
+    for part, _, _ in files:
+        if not part.is_file() or part.stat().st_size <= len(codecs.BOM_UTF8):
+            raise ValueError(f"새 지역 CSV 준비본이 없거나 비어 있습니다: {part.name}")
 
     # os.replace를 사용해 개별 운영 파일이 불완전한 상태로 노출되지 않게 한다.
     for part, final, _ in files:
@@ -410,6 +426,7 @@ def _publish_manifest(
     output_dir: Path,
     results: list[ExtractResult],
     profile: RegionProfile,
+    source_version: dict,
 ) -> str:
     """네 파일 교체가 끝난 뒤 새 배치 세대를 원자적으로 공개한다."""
     generation = _next_generation(output_dir)
@@ -421,6 +438,7 @@ def _publish_manifest(
             "display_name": profile.display_name,
             "output_suffix": profile.output_suffix,
         },
+        "source_version": source_version,
         "files": {},
     }
     for result in results:
@@ -428,7 +446,7 @@ def _publish_manifest(
         manifest["files"][result.output.name] = {
             "mtime_ns": stat.st_mtime_ns,
             "size": stat.st_size,
-            "sha256": sha256_file(result.output),
+            "sha256": result.sha256,
             "rows": result.matched_rows,
             "source_rows": result.source_rows,
             "source_quality": {
@@ -485,8 +503,9 @@ def refresh_region_csvs(
     output_dir: Path = DEFAULT_OUTPUT_DIR,
     specs: tuple[SourceSpec, ...] = SOURCE_SPECS,
     progress_callback: Callable[[int, str], None] | None = None,
+    force_refresh: bool = False,
 ) -> list[ExtractResult]:
-    """선택 지역 CSV를 새로 만들고 기존 최종본과 안전하게 교대한다."""
+    """선택 지역 CSV를 만들며 필요하면 원본 변경 여부와 무관하게 재정제한다."""
     data_dir = Path(data_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -497,11 +516,44 @@ def refresh_region_csvs(
         _write_log(output_dir, f"{profile.display_name} CSV 배치를 시작합니다.")
         _notify_progress(progress_callback, 5, "원본 CSV 확인 중")
         try:
+            source_version = _source_version(data_dir, specs)
+            current_generation = None
+            if not force_refresh:
+                current_generation = _current_generation_if_unchanged(
+                    output_dir, specs, profile, source_version
+                )
+            if current_generation:
+                _write_log(
+                    output_dir,
+                    f"원본 CSV 변경이 없어 기존 세대를 유지합니다. "
+                    f"세대={current_generation}",
+                )
+                _write_log(
+                    output_dir,
+                    f"{profile.display_name} CSV 변경 확인 소요 시간: "
+                    f"{_format_elapsed(perf_counter() - started_at)}.",
+                )
+                _notify_progress(progress_callback, 100, "원본 변경 없음")
+                return results
+            if force_refresh:
+                _write_log(
+                    output_dir,
+                    "강제 최신화 요청으로 원본 변경 여부와 관계없이 다시 정제합니다.",
+                )
+
             total_files = len(specs)
             for index, spec in enumerate(specs, start=1):
+                file_started_at = perf_counter()
                 final = output_dir / spec.final_filename_for(profile)
-                results.append(
-                    _extract_to_part(data_dir / spec.filename, final, spec, profile)
+                result = _extract_to_part(
+                    data_dir / spec.filename, final, spec, profile
+                )
+                results.append(result)
+                _write_log(
+                    output_dir,
+                    f"{spec.filename} 추출 소요 시간: "
+                    f"{_format_elapsed(perf_counter() - file_started_at)} "
+                    f"(원본 {result.source_rows:,}행, 반영 {result.matched_rows:,}행).",
                 )
                 percent = 10 + round(index / total_files * 60)
                 _notify_progress(
@@ -509,10 +561,24 @@ def refresh_region_csvs(
                     percent,
                     f"{Path(spec.filename).stem} 추출 완료",
                 )
-            _notify_progress(progress_callback, 75, "새 CSV 검증 중")
+            _notify_progress(progress_callback, 75, "새 CSV 확인 중")
+            publish_started_at = perf_counter()
             _publish_prepared_files(output_dir, specs, profile)
+            _write_log(
+                output_dir,
+                f"운영 CSV 교체 소요 시간: "
+                f"{_format_elapsed(perf_counter() - publish_started_at)}.",
+            )
             _notify_progress(progress_callback, 90, "운영 CSV 교체 완료")
-            generation = _publish_manifest(output_dir, results, profile)
+            manifest_started_at = perf_counter()
+            generation = _publish_manifest(
+                output_dir, results, profile, source_version
+            )
+            _write_log(
+                output_dir,
+                f"Manifest 생성 소요 시간: "
+                f"{_format_elapsed(perf_counter() - manifest_started_at)}.",
+            )
             _write_log(
                 output_dir,
                 f"{profile.display_name} CSV 배치를 완료했습니다. 세대={generation}",
@@ -546,9 +612,16 @@ def refresh_seoul_csvs(
     data_dir: Path = DEFAULT_DATA_DIR,
     output_dir: Path = DEFAULT_OUTPUT_DIR,
     specs: tuple[SourceSpec, ...] = SOURCE_SPECS,
+    force_refresh: bool = False,
 ) -> list[ExtractResult]:
     """기존 호출부에서 서울 프로필 배치를 실행한다."""
-    return refresh_region_csvs(DEFAULT_REGION_PROFILE, data_dir, output_dir, specs)
+    return refresh_region_csvs(
+        DEFAULT_REGION_PROFILE,
+        data_dir,
+        output_dir,
+        specs,
+        force_refresh=force_refresh,
+    )
 
 
 def main() -> int:
@@ -562,10 +635,20 @@ def main() -> int:
         choices=sorted(REGION_PROFILES),
         default=DEFAULT_REGION_PROFILE.key,
     )
+    parser.add_argument(
+        "--force-refresh",
+        action="store_true",
+        help="원본 CSV가 변경되지 않았어도 서비스 CSV를 다시 정제합니다.",
+    )
     args = parser.parse_args()
 
     profile = get_region_profile(args.region)
-    results = refresh_region_csvs(profile, args.data_dir, args.output_dir)
+    results = refresh_region_csvs(
+        profile,
+        args.data_dir,
+        args.output_dir,
+        force_refresh=args.force_refresh,
+    )
     for result in results:
         spec = next(item for item in SOURCE_SPECS if item.filename == result.source.name)
         print(

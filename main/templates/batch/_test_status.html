@@ -1,7 +1,7 @@
 <div class="batch-test-status" data-batch-running="{{ batch_running|yesno:'true,false' }}" data-batch-progress="{{ batch_status.progress_percent }}">
   {% if batch_notice %}<p class="batch-test-notice">{{ batch_notice }}</p>{% endif %}
   <dl class="batch-test-summary">
-    <div><dt>상태</dt><dd class="status-{{ batch_status.status }}">{{ batch_status_label }}{% if batch_running %}, {{ batch_status.progress_message }}{% endif %}</dd></div>
+    <div><dt>상태</dt><dd class="status-{{ batch_status.status }}">{{ batch_status_label }}{% if batch_status.progress_message %}, {{ batch_status.progress_message }}{% endif %}</dd></div>
     <div><dt>요청 시간</dt><dd>{{ batch_status.requested_at|default:'-' }}</dd></div>
     <div><dt>시작 시간</dt><dd>{{ batch_status.started_at|default:'-' }}</dd></div>
     <div><dt>종료 시간</dt><dd>{{ batch_status.finished_at|default:'-' }}</dd></div>

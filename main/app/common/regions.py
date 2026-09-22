@@ -16,6 +16,7 @@ class RegionProfile:
     output_suffix: str
     source_code_prefixes: frozenset[str]
     source_name_aliases: frozenset[str]
+    district_names: frozenset[str] = frozenset()
     map_code: str | None = None
     include_all: bool = False
 
@@ -25,6 +26,11 @@ class RegionProfile:
             self,
             "source_name_aliases",
             frozenset(_compact(alias) for alias in self.source_name_aliases),
+        )
+        object.__setattr__(
+            self,
+            "district_names",
+            frozenset(_compact(name) for name in self.district_names),
         )
 
     def matches(self, code: str, name: str) -> bool:
@@ -44,6 +50,10 @@ class RegionProfile:
         normalized_name = _compact(name)
         return normalized_name in self.source_name_aliases
 
+    def matches_district(self, name: str) -> bool:
+        """현재 지역에 속한 시군구인지 확인한다."""
+        return self.include_all or _compact(name) in self.district_names
+
 
 REGION_PROFILES = {
     "seoul": RegionProfile(
@@ -52,6 +62,13 @@ REGION_PROFILES = {
         output_suffix="seoul",
         source_code_prefixes=frozenset({"11"}),
         source_name_aliases=frozenset({"서울", "서울시", "서울특별시"}),
+        # 서울로 잘못 표기된 타 지역 행이 화면에 섞이지 않도록 25개 자치구를 검증한다.
+        district_names=frozenset({
+            "강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구",
+            "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구",
+            "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구",
+            "은평구", "종로구", "중구", "중랑구",
+        }),
         map_code="11",
     ),
     "national": RegionProfile(

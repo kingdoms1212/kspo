@@ -6,6 +6,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 from django.test import override_settings
 
 from app.common.regions import get_region_profile
@@ -138,6 +139,70 @@ class SeoulCsvBatchTests(TestCase):
             encoding="utf-8"
         )
         self.assertIn("서울 CSV 배치 소요 시간:", log)
+        self.assertIn("source.csv 추출 소요 시간:", log)
+        self.assertIn("운영 CSV 교체 소요 시간:", log)
+        self.assertIn("Manifest 생성 소요 시간:", log)
+
+    def test_unchanged_source_keeps_generation_without_extracting_again(self):
+        self._write_source([("11", "서울", "11110", "종로구", "same")])
+        first = refresh_seoul_csvs(
+            self.data_dir, self.output_dir, (self.spec,)
+        )
+        before = json.loads(
+            (self.output_dir / MANIFEST_FILE).read_text(encoding="utf-8")
+        )
+        progress = []
+
+        with patch(
+            "app.Batch.regional_csv_batch._extract_to_part"
+        ) as extract_to_part:
+            second = refresh_region_csvs(
+                get_region_profile("seoul"),
+                self.data_dir,
+                self.output_dir,
+                (self.spec,),
+                progress_callback=lambda percent, message: progress.append(
+                    (percent, message)
+                ),
+            )
+
+        after = json.loads(
+            (self.output_dir / MANIFEST_FILE).read_text(encoding="utf-8")
+        )
+        self.assertEqual(len(first), 1)
+        self.assertEqual(second, [])
+        extract_to_part.assert_not_called()
+        self.assertEqual(after["generation"], before["generation"])
+        self.assertEqual(progress, [(5, "원본 CSV 확인 중"), (100, "원본 변경 없음")])
+        log = (self.output_dir / "logs" / "regional_batch.log").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("원본 CSV 변경이 없어 기존 세대를 유지합니다.", log)
+
+    def test_force_refresh_reprocesses_unchanged_source(self):
+        self._write_source([("11", "서울", "11110", "종로구", "same")])
+        refresh_seoul_csvs(self.data_dir, self.output_dir, (self.spec,))
+        before = json.loads(
+            (self.output_dir / MANIFEST_FILE).read_text(encoding="utf-8")
+        )
+
+        results = refresh_seoul_csvs(
+            self.data_dir,
+            self.output_dir,
+            (self.spec,),
+            force_refresh=True,
+        )
+
+        after = json.loads(
+            (self.output_dir / MANIFEST_FILE).read_text(encoding="utf-8")
+        )
+        self.assertEqual(len(results), 1)
+        self.assertNotEqual(after["generation"], before["generation"])
+        self.assertEqual(self._read_values(results[0].output), ["same"])
+        log = (self.output_dir / "logs" / "regional_batch.log").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("강제 최신화 요청", log)
 
     def test_existing_legacy_temp_is_deleted_after_success(self):
         self._write_source([("11", "서울", "11110", "종로구", "first")])

@@ -21,10 +21,12 @@ class RegionDataRefreshTests(SimpleTestCase):
             data_dir=Path("source"),
             output_dir=Path("output"),
             specs=(),
+            force_refresh=True,
         )
 
         self.assertEqual(result, ["csv-result"])
         refresh_csvs.assert_called_once()
+        self.assertTrue(refresh_csvs.call_args.kwargs["force_refresh"])
 
     @override_settings(BATCH_STORAGE_MODE="db", BATCH_DB_WRITER="tests.writer")
     @patch.object(data_refresh, "import_string")

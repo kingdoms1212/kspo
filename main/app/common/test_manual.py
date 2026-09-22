@@ -16,6 +16,9 @@ class ManualControlTests(SimpleTestCase):
         self.assertIn("시설 현황", output)
         self.assertIn("데이터 최신화", output)
         self.assertIn("데이터 기준", output)
+        self.assertEqual(output.count('class="manual-nav-number"'), 6)
+        for number in ("01", "02", "03", "04", "05", "06"):
+            self.assertIn(f'<span class="manual-nav-number">{number}</span>', output)
         self.assertNotIn("화면별 사용 방법과 데이터 기준", output)
         self.assertNotIn("프로그램 설계 열기", output)
         self.assertNotIn("프로그램 현황 열기", output)
