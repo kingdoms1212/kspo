@@ -1,13 +1,28 @@
 from unittest.mock import patch
 
 from django.core import signing
-from django.test import Client, SimpleTestCase
+from django.test import Client, SimpleTestCase, override_settings
 
 from ..facilities.tests import facility
 from .planning import candidates, facility_token
 
 
+@override_settings(AI_REVIEW_MODE='dummy')
 class PlanningTests(SimpleTestCase):
+    @override_settings(AI_REVIEW_MODE='gemini')
+    def test_live_analysis_report_and_snapshot(self):
+        from app.ai_review.tests import example_response
+        data = example_response()
+        data['evaluations']['sports_demand'] = {'score': 65, 'reason': '신청 실적 기준 참고 의견입니다.', 'evidence_keys': ['sport_requests']}
+        with patch.dict('os.environ', {'GEMINI_API_KEY': 'test-only'}), patch('app.ai_review.services.GeminiClient.review', side_effect=lambda evidence: {**data, 'evaluations': {**example_response(evidence['available_criteria'])['evaluations'], **data['evaluations']}}):
+            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'), HTTP_ACCEPT='application/json').json()
+        self.assertIn('65 / 100', result['html'])
+        self.assertNotIn('인구·대상 적합성', result['html'])
+        self.assertNotIn('예산·규모 적정성', result['html'])
+        self.assertNotIn('데모 검토 결과', result['html'])
+        restored = self.client.post('/dashboard/plan/restore', {'snapshot': result['snapshot']}).json()
+        self.assertEqual(restored['html'], result['html'])
+
     def test_dummy_review_is_saved_and_restored_with_report(self):
         result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'),
                                   HTTP_ACCEPT='application/json').json()

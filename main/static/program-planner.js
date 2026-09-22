@@ -388,7 +388,7 @@
     data.set('region', scope.region); data.set('district', scope.district); data.set('sport', el('plan-sport').value);
     selected.forEach(row => data.append('facilities', row.token));
     if (!selected.size && withoutFacility()) data.set('without_facility', 'on');
-    message('입력 내용을 확인하고 계획서를 만드는 중입니다…');
+    message(data.get('ai_review') ? '지역·프로그램 AI 분석 중입니다. 잠시만 기다려 주세요…' : '입력 내용을 확인하고 계획서를 만드는 중입니다…');
     try {
       const result = await (await response(root.dataset.previewUrl, {
         method: 'POST', body: data, headers: {'Accept': 'application/json'},

@@ -1,9 +1,14 @@
 <section class="report-ai-review plan-document-block" aria-label="AI 검토 의견">
   <p class="planner-eyebrow">AI REVIEW · {{ ai_review.provider }}</p>
-  <h2>AI 검토 의견 {% if ai_review.mode == 'dummy' %}<small>데모 검토 결과</small>{% endif %}</h2>
+  <h2>AI 지역·프로그램 적합성 분석 {% if ai_review.mode == 'dummy' %}<small>데모 검토 결과</small>{% endif %}</h2>
   {% if ai_review.mode == 'dummy' %}<p class="report-ai-notice">실제 Gemini를 호출하지 않은 예시 응답입니다. 프로그램 적합성을 평가한 결과가 아닙니다.</p>{% endif %}
   <p>{{ ai_review.summary }}</p>
   {% if ai_review.status == 'completed' %}
+    {% if ai_review.mode != 'dummy' %}
+    <p class="report-ai-notice"><strong>{{ ai_review.grade }}{% if ai_review.overall_score != None %} · {{ ai_review.overall_score }} / 100{% endif %}</strong><br>평가 가능 {{ ai_review.scored_count }} / {{ ai_review.criterion_count }}항목 · 제공된 근거로 평가한 항목의 동일 가중 평균입니다. 미평가 항목은 제외되며, 종합 점수만으로 운영을 결정하지 마세요.</p>
+    <h3>주요 강점</h3><ul>{% for item in ai_review.strengths %}<li>{{ item }}</li>{% empty %}<li>확인된 강점이 없습니다.</li>{% endfor %}</ul>
+    <h3>예상 리스크</h3><ul>{% for item in ai_review.risks %}<li>{{ item }}</li>{% empty %}<li>추가 확인이 필요합니다.</li>{% endfor %}</ul>
+    {% endif %}
     {% for finding in ai_review.findings %}<section class="report-ai-finding"><h3>{{ finding.title }} <small>{{ finding.status }}</small></h3><p>{{ finding.comment }}</p></section>{% endfor %}
     <h3>개선 제안{% if ai_review.mode == 'dummy' %} 예시{% endif %}</h3>
     <ul>{% for item in ai_review.suggestions %}<li>{{ item }}</li>{% endfor %}</ul>
