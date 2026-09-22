@@ -173,7 +173,7 @@ class NavigationSplashTests(SimpleTestCase):
                 body = self.client.get(route).content.decode()
                 self.assertIn('id="app-splash"', body)
                 self.assertIn('class="app-splash" hidden', body)
-                self.assertIn('image/logo/logo.svg', body)
+                self.assertIn('image/logo/logo.png', body)
                 self.assertIn('id="app-splash-text"', body)
                 self.assertIn('interactions.js', body)
 

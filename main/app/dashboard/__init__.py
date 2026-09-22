@@ -1,1 +1,1 @@
-"""SPORT INSIGHT dashboard module."""
+"""스포링 dashboard module."""

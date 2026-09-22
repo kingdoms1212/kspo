@@ -114,6 +114,7 @@
     });
   };
   function detailNote(text) {
+    el('plan-detail').setAttribute('aria-busy', 'false');
     const box = document.createElement('div');
     box.className = 'plan-detail-content';
     const line = document.createElement('p');
@@ -121,6 +122,18 @@
     box.append(line);
     el('plan-detail').replaceChildren(box);
     delete el('plan-detail').dataset.facility;
+  }
+  function detailSplash() {
+    const panel = el('plan-detail');
+    const splash = el('plan-loading').cloneNode(true);
+    splash.removeAttribute('id');
+    splash.className = 'app-splash plan-detail-loading';
+    splash.hidden = false;
+    splash.querySelector('.app-splash-text').textContent = '시설 상세와 교통 정보를 불러오는 중입니다. 잠시만 기다려 주세요.';
+    panel.replaceChildren(splash);
+    panel.scrollTop = 0;
+    panel.setAttribute('aria-busy', 'true');
+    delete panel.dataset.facility;
   }
   function stage(index) {
     document.body.dataset.planStep = index;
@@ -213,7 +226,7 @@
   }
   async function inspect(row) {
     const version = ++detailVersion;
-    detailNote('시설 상세와 교통 정보를 불러오는 중입니다…');
+    detailSplash();
     root.querySelectorAll('[data-inspect]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.inspect === row.id)));
     const query = params(); query.set('id', row.id);
     try {
@@ -221,6 +234,7 @@
       const html = await result.text();
       if (version !== detailVersion) return;
       el('plan-detail').innerHTML = html;
+      el('plan-detail').setAttribute('aria-busy', 'false');
       el('plan-detail').dataset.facility = row.id;
       const check = el('plan-detail-check');
       if (check) {
@@ -263,6 +277,7 @@
     });
   }
   function detailEmpty(title, description) {
+    el('plan-detail').setAttribute('aria-busy', 'false');
     el('plan-candidates-section').hidden = true;
     el('plan-facility-grid').dataset.empty = 'true';
     const content = document.createElement('div');

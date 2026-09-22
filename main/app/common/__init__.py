@@ -1,1 +1,1 @@
-"""SPORT INSIGHT common module."""
+"""스포링 common module."""

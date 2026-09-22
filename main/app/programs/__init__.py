@@ -1,1 +1,1 @@
-"""SPORT INSIGHT programs module."""
+"""스포링 programs module."""

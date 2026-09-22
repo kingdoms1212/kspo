@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>SPORT INSIGHT · {% if state == 'loading' %}시스템 초기화 중{% else %}데이터 준비 필요{% endif %}</title>
+<title>스포링 · {% if state == 'loading' %}시스템 초기화 중{% else %}데이터 준비 필요{% endif %}</title>
 {% if retry %}<noscript><meta http-equiv="refresh" content="{{ retry_after }}"></noscript>{% endif %}
 <style>
   :root { color-scheme: light; }
@@ -58,7 +58,6 @@
 </head>
 <body>
 <main class="shell" aria-labelledby="notice-title">
-  <p class="brand">SPORT INSIGHT<span>체육복지 정책의사결정 지원 플랫폼</span></p>
   <section class="card {% if state != 'loading' %}missing{% endif %}">
   <div class="visual" aria-hidden="true">
     {% if state == 'loading' %}
@@ -90,7 +89,7 @@
     <p class="actions"><a href="/batch-test/status/">배치 관리 화면 열기 <span aria-hidden="true">→</span></a></p>
   {% endif %}
   </section>
-  <p class="footer">공공 체육복지 데이터 · SPORT INSIGHT</p>
+  <p class="footer">공공 체육복지 데이터 · 스포링</p>
 </main>
 {% if retry %}
 <script>

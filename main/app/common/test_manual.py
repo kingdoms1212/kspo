@@ -10,7 +10,7 @@ class ManualControlTests(SimpleTestCase):
 
         self.assertIn("이용 가이드", output)
         self.assertIn('data-default-section="overview"', output)
-        self.assertIn('src="/static/image/logo/logo.svg"', output)
+        self.assertIn('src="/static/image/logo/logo.png"', output)
         self.assertIn("프로그램 설계", output)
         self.assertIn("프로그램 현황", output)
         self.assertIn("시설 현황", output)

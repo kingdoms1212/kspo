@@ -1,4 +1,4 @@
-/* SPORT INSIGHT — supplied reference, shared semantic palette. */
+/* 스포링 — supplied reference, shared semantic palette. */
 :root { --sidebar-width:184px; --header-height:64px; --radius:6px; --gap:14px; }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--si-bg); color:var(--si-text); font:13px/1.5 var(--si-font-family); }
@@ -156,7 +156,42 @@ h3 { font-size:14px; line-height:1.5; color:var(--si-heading); }
 .button.ghost:hover,.button.export:hover { background:var(--si-surface-soft); border-color:var(--si-primary); }
 .button.export { font-size:11px; padding:5px 8px; min-height:30px; background:var(--si-surface-hover); color:var(--si-primary); }
 .button:disabled { color:var(--si-disabled-text); background:var(--si-disabled-bg); cursor:not-allowed; }
-input,select { width:100%; min-width:0; min-height:36px; padding:7px 10px; background:var(--si-surface); color:var(--si-text); border:1px solid var(--si-border-control); border-radius:4px; font-size:12px; }
+
+input,
+select {
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    padding: 7px 10px;
+    background-color: var(--si-surface);
+    color: var(--si-text);
+    border: 1px solid var(--si-border-control);
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+input,
+select:hover {
+  cursor: pointer;
+}
+
+select {
+    /* 브라우저 기본 화살표 제거 */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    /* SVG 화살표 적용 */
+    background-image: url("image/icon/select-arrow.svg");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px 12px;
+
+    /* 텍스트와 화살표가 겹치지 않게 설정 */
+    padding-right: 38px;
+}
+
+
 input::placeholder { color:var(--si-text-muted); }
 label { display:block; margin-bottom:6px; font-size:12px; font-weight:600; color:var(--si-text-secondary); }
 .inline-filters { display:flex; gap:8px; flex-shrink:0; }
