@@ -69,8 +69,14 @@ def preview(request):
         return JsonResponse({'errors': form.errors}, status=400)
     created = timezone.localtime()
     context = report_context(form.cleaned_data, form.selected, form.statistics, created)
-    if form.cleaned_data.get('ai_review'):
-        context['ai_review'] = review_plan(form.cleaned_data, form.selected, form.statistics, created)
+    token = request.POST.get('ai_review_token', '')
+    if token:
+        from .ai_views import review_from_token
+        from django.core.signing import BadSignature
+        try:
+            context['ai_review'] = review_from_token(token, form)
+        except (BadSignature, ValueError, KeyError, TypeError):
+            return JsonResponse({'error': '검토 후 입력이 변경되었거나 검토가 만료되었습니다. AI 검토를 다시 실행하거나 포함 선택을 해제해 주세요.'}, status=400)
     result = render(request, 'dashboard/_plan_result.html',
                     context)
     if request.headers.get('Accept') != 'application/json':

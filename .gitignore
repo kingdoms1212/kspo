@@ -19,3 +19,5 @@ data/Batch/*.batch_*
 data/Batch/*.lock
 data/Batch/*.json
 data/Batch/logs/
+
+main/.ai-cache/

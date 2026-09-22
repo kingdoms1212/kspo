@@ -45,8 +45,10 @@ class ReviewClient(Protocol):
 class GeminiClient:
     """공식 google-genai SDK로 구조화 응답을 요청합니다."""
 
-    def __init__(self, request_id='standalone'):
+    def __init__(self, request_id='standalone', instruction=None, schema=None):
         self.request_id = request_id
+        self.instruction = instruction or SYSTEM_INSTRUCTION
+        self.schema = schema
 
     def review(self, evidence: dict) -> dict:
         key = os.environ.get('GEMINI_API_KEY', '').strip()
@@ -56,7 +58,7 @@ class GeminiClient:
         if not re.fullmatch(r'gemini-[a-zA-Z0-9.-]+', model):
             raise ReviewError('invalid_model')
         contents = json.dumps(evidence, ensure_ascii=False)
-        schema = response_schema(evidence)
+        schema = self.schema or response_schema(evidence)
         logger.info('AI_REVIEW sdk_request request_id=%s sdk=%s model=%s api_version=v1beta timeout_ms=%d attempts=11 max_retries=10 afc=False mime=application/json max_output_tokens=4096 content_bytes=%d evidence_fields=%s plan_fields=%s schema=%s',
                     self.request_id, version('google-genai'), model, int(settings.GEMINI_TIMEOUT_SECONDS * 1000),
                     len(contents.encode('utf-8')), ','.join(sorted(evidence)),
@@ -72,7 +74,7 @@ class GeminiClient:
                     model=model,
                     contents=contents,
                     config=types.GenerateContentConfig(
-                        system_instruction=SYSTEM_INSTRUCTION,
+                        system_instruction=self.instruction,
                         automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                         max_output_tokens=4096,
                         response_mime_type='application/json',
@@ -88,6 +90,7 @@ class GeminiClient:
             if len(content.encode('utf-8')) > 262144:
                 raise ReviewError('oversize_response')
             return json.loads(content)
+        # [SG003] AI기능 연동 시 예외처리 보완 — 공급자·통신·응답 오류를 안전한 오류 코드로 변환합니다.
         except errors.APIError as error:
             logger.warning('AI_REVIEW sdk_error request_id=%s http_status=%s reasons=%s seconds=%.3f',
                            self.request_id, error.code, ','.join(error_diagnostic(error)), perf_counter() - started)

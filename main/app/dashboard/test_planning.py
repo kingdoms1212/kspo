@@ -9,55 +9,47 @@ from .planning import candidates, facility_token
 
 @override_settings(AI_REVIEW_MODE='dummy')
 class PlanningTests(SimpleTestCase):
-    @override_settings(AI_REVIEW_MODE='gemini')
-    def test_live_analysis_report_and_snapshot(self):
-        from app.ai_review.tests import example_response
-        data = example_response()
-        data['evaluations']['sports_demand'] = {'score': 65, 'reason': '신청 실적 기준 참고 의견입니다.', 'evidence_keys': ['sport_requests']}
-        with patch.dict('os.environ', {'GEMINI_API_KEY': 'test-only'}), patch('app.ai_review.services.GeminiClient.review', side_effect=lambda evidence: {**data, 'evaluations': {**example_response(evidence['available_criteria'])['evaluations'], **data['evaluations']}}):
-            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'), HTTP_ACCEPT='application/json').json()
-        self.assertIn('65 / 100', result['html'])
-        self.assertNotIn('인구·대상 적합성', result['html'])
-        self.assertNotIn('예산·규모 적정성', result['html'])
-        self.assertNotIn('데모 검토 결과', result['html'])
+    def test_review_is_separate_and_signed_result_is_included(self):
+        review = self.client.post('/dashboard/ai/plan', self.payload).json()
+        self.assertTrue(review['token'])
+        with patch('app.dashboard.ai_views.review_plan', side_effect=AssertionError('No new AI call')):
+            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review_token=review['token']), HTTP_ACCEPT='application/json').json()
+        self.assertIn('데모 검토 결과', result['html'])
         restored = self.client.post('/dashboard/plan/restore', {'snapshot': result['snapshot']}).json()
         self.assertEqual(restored['html'], result['html'])
 
-    def test_dummy_review_is_saved_and_restored_with_report(self):
-        result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'),
-                                  HTTP_ACCEPT='application/json').json()
-        self.assertIn('데모 검토 결과', result['html'])
-        self.assertIn('실제 Gemini를 호출하지 않은', result['html'])
-        with patch('app.dashboard.plan_views.review_plan', side_effect=AssertionError('No new review')):
-            restored = self.client.post('/dashboard/plan/restore', {'snapshot': result['snapshot']}).json()
-        self.assertEqual(restored['html'], result['html'])
+    def test_malformed_signed_review_is_rejected(self):
+        from .ai_views import SALT
+        for data in ([], {'fingerprint': 'invalid', 'review': None}):
+            token = signing.dumps(data, salt=SALT)
+            response = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review_token=token))
+            self.assertEqual(response.status_code, 400)
 
-    def test_review_opt_out_never_calls_client(self):
-        with patch('app.dashboard.plan_views.review_plan') as review:
-            result = self.client.post('/dashboard/plan/preview', self.payload)
-        review.assert_not_called()
+    def test_changed_and_tampered_review_are_rejected(self):
+        token = self.client.post('/dashboard/ai/plan', self.payload).json()['token']
+        for payload in (dict(self.payload, name='변경', ai_review_token=token), dict(self.payload, ai_review_token=token+'broken')):
+            self.assertEqual(self.client.post('/dashboard/plan/preview', payload).status_code, 400)
+
+    def test_report_without_review_never_calls_ai(self):
+        with patch('app.dashboard.ai_views.review_plan') as call:
+            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'))
+        call.assert_not_called()
         self.assertNotContains(result, 'AI 검토 의견')
 
-    def test_broken_review_keeps_basic_report(self):
+    def test_failed_review_cannot_be_included(self):
         with patch('app.ai_review.services.DummyGeminiClient.review', return_value={'summary': 'broken'}):
-            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'))
-        self.assertContains(result, '기본 계획서는 그대로 이용할 수 있습니다')
-        self.assertContains(result, '청소년 농구')
-
-    def test_dummy_review_without_facility(self):
-        with patch('app.dashboard.planning.candidates', return_value=[]):
-            result = self.client.post('/dashboard/plan/preview', dict(
-                self.payload, facilities=[], without_facility='on', ai_review='on'))
-        self.assertContains(result, '시설 미지정 상태입니다')
+            result = self.client.post('/dashboard/ai/plan', self.payload).json()
+        self.assertFalse(result['token'])
+        self.assertIn('기본 계획서는 그대로', result['html'])
 
     def test_review_output_is_escaped(self):
         from app.ai_review.client import DummyGeminiClient
         data = DummyGeminiClient().review({'plan': {'region': '서울', 'sport': '농구'}, 'facilities': []})
         data['summary'] = '<script>alert(1)</script>'
         with patch('app.ai_review.services.DummyGeminiClient.review', return_value=data):
-            result = self.client.post('/dashboard/plan/preview', dict(self.payload, ai_review='on'))
-        self.assertContains(result, '&lt;script&gt;')
-        self.assertNotContains(result, '<script>alert')
+            result = self.client.post('/dashboard/ai/plan', self.payload).json()
+        self.assertIn('&lt;script&gt;', result['html'])
+        self.assertNotIn('<script>alert', result['html'])
 
     def test_history_snapshot_restores_original_result_without_csv(self):
         response = self.client.post('/dashboard/plan/preview', self.payload, HTTP_ACCEPT='application/json')
