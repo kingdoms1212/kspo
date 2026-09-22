@@ -72,8 +72,11 @@
   padding:14px;
   border:1px solid #becde5;
   border-radius:12px;
-  background:white;
+  background-color:white;
   color:inherit;
+}
+.plan-field select {
+  padding-right:38px;
 }
 .plan-search {
   display:flex;
