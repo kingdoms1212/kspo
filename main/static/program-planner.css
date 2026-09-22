@@ -639,3 +639,20 @@ body:is([data-plan-step="1"],[data-plan-step="2"]) #program-planner { margin-top
   :is(.page-programs,.page-facilities) .search-panel { position:static;height:auto;min-height:0; }
   .plan-search-row { grid-template-columns:minmax(0,1fr);gap:12px; }
 }
+/* AI 검토 데모: 기본 보고서와 함께 저장·인쇄됩니다. */
+.plan-ai-option { padding:16px; border:1px solid var(--si-border); border-radius:10px; background:var(--si-surface-soft); }
+.plan-ai-option > label { display:flex; align-items:center; gap:8px; font-weight:700; cursor:pointer; }
+.plan-ai-option input { width:18px; height:18px; accent-color:var(--si-primary); }
+.plan-ai-option p { margin:8px 0 0; }
+.report-ai-review { margin-top:24px; padding:24px; border:1px solid var(--si-border); border-radius:12px; background:var(--si-surface); overflow-wrap:anywhere; }
+.report-ai-review h2 { color:var(--si-heading); font-size:22px; }
+.report-ai-review small { display:inline-block; margin-left:8px; font-size:12px; font-weight:500; color:var(--si-text-secondary); }
+.report-ai-notice { padding:12px 16px; border-left:3px solid var(--si-primary); background:var(--si-surface-soft); }
+.report-ai-finding { padding:12px 0; border-bottom:1px solid var(--si-border); }
+.report-ai-finding h3 { margin:0 0 6px; }
+.report-ai-review li + li { margin-top:6px; }
+@media print {
+  .report-ai-review { break-before:page; border:0; border-radius:0; padding:0; }
+  .report-ai-review h2, .report-ai-review h3 { break-after:avoid; }
+  .report-ai-finding, .report-ai-review li, .report-ai-notice { break-inside:avoid; }
+}
