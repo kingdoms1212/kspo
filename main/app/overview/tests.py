@@ -76,3 +76,15 @@ class OverviewAITests(SimpleTestCase):
         body = self.client.get('/overview').content.decode()
         for text in ('id="ov-ai"', '계획서에 포함하기', '/dashboard/ai/region', '/dashboard/ai/plan', '최대 10회 재시도', 'google-genai'):
             self.assertIn(text, body)
+
+    def test_provider_refactor_is_documented_across_sections(self):
+        from bs4 import BeautifulSoup
+        page = BeautifulSoup(self.client.get('/overview').content, 'html.parser')
+        for section, labels in {
+            'ov-tree': ['contracts.py', 'factory.py', 'region_service.py', 'providers/'],
+            'ov-libs': ['google-genai', 'python-dotenv', 'typing.Protocol'],
+            'ov-guards': ['unsupported_provider', 'sdk_unavailable'],
+            'ov-ai': ['AIRequest', 'AIResponse', 'AI_MAX_RETRIES', 'GEMINI_API_KEY'],
+        }.items():
+            for label in labels:
+                self.assertIn(label, page.find(id=section).get_text())

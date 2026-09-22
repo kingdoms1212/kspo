@@ -1,4 +1,6 @@
-# Gemini 지역·프로그램 적합성 분석
+# AI 지역·프로그램 적합성 분석
+
+공통 인터페이스와 Render/.env 이행 가이드는 [AI 공급자 설정 가이드](ai-provider-guide.md)를 참고합니다.
 
 ## 흐름과 변경 범위
 
@@ -20,7 +22,9 @@
 
 | 파일 | 역할 |
 |---|---|
-| app/ai_review/client.py | google-genai SDK 호출, 키·시간 제한·응답 크기 제한, 안전한 오류 코드 |
+| app/ai_review/providers/gemini.py | google-genai SDK 호출, 시간 제한·재시도·안전한 오류 코드 |
+| app/ai_review/contracts.py · factory.py | 공통 요청·응답·인터페이스와 공급자 선택 |
+| app/ai_review/region_service.py | 지역 요약·캐시·검증 |
 | app/ai_review/prompts.py | 영어 공통 System Instruction, 한국어 출력·근거 제한 |
 | app/ai_review/schemas.py | 공식 JSON Schema 및 서버 응답 검증·종합 점수 계산 |
 | app/ai_review/services.py | 데이터 매핑, 단일 프로세스 동시 호출 1건 제한, 실패 처리 |
@@ -42,9 +46,10 @@ Render Environment에 다음을 설정합니다.
 
 ```text
 GEMINI_API_KEY=<Google AI Studio에서 발급한 키>
-AI_REVIEW_MODE=gemini
-GEMINI_MODEL=gemini-3.1-flash-lite
-GEMINI_TIMEOUT_SECONDS=25
+AI_MODE=live
+AI_PROVIDER=gemini
+AI_MODEL=gemini-3.1-flash-lite
+AI_TIMEOUT_SECONDS=25
 AI_REVIEW_INCLUDE_TRANSIT=false
 ```
 
@@ -53,7 +58,7 @@ AI_REVIEW_INCLUDE_TRANSIT=false
 전체 처리 시간에는 CSV/교통 조회 및 렌더링도 포함되므로 동일한 총 실행 시간 보장은 아닙니다.
 프로젝트 루트 `.env`를 자동으로 로드하며 기존 환경변수가 우선합니다. `.env`는 Git 제외 대상입니다. 비밀 키를 테스트 출력·URL·로그에 기록하지 않습니다.
 
-키 누락이면 네트워크 호출 전에 종료합니다. `AI_REVIEW_MODE=dummy`에서는 키 없이 예시 결과를
+키 누락이면 네트워크 호출 전에 종료합니다. `AI_MODE=dummy`에서는 키 없이 예시 결과를
 사용하며 화면·인쇄물에 데모 표시를 유지합니다. 운영에서 실패했다고 더미로 대체하지 않습니다.
 
 ## 요청 구조
@@ -123,7 +128,8 @@ API 호출의 실제 계정 권한·할당량·응답 품질은 키 설정 후 �
 
 ```dotenv
 GEMINI_API_KEY=발급받은_API_키
-AI_REVIEW_MODE=gemini
+AI_MODE=live
+AI_PROVIDER=gemini
 ```
 
 이후 기존 방식으로 서버를 실행하면 됩니다. 키 변경 후 서버를 재시작합니다.

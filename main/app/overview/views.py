@@ -7,7 +7,7 @@
 from django.shortcuts import render
 
 # 문서가 무엇을 기준으로 쓰였는지 화면이 스스로 말한다. 본문 수치를 손볼 때 함께 바꾼다.
-CHECKED_ON = '2026-09-22'
+CHECKED_ON = '2026-09-23'
 
 
 def overview(request):

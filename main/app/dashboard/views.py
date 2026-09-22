@@ -19,7 +19,8 @@ def dashboard(request):
     sport_sort = chart_sort(request.GET.get('sport_sort', 'desc'))
     context = dashboard_data(region, district) if district else dashboard_data(region)
     trace('dashboard.data.end', request_id=getattr(request, 'csv_diag_id', '-'))
-    context['ai_review_mode'] = settings.AI_REVIEW_MODE
+    from ..ai_review.factory import get_config
+    context['ai_review_mode'] = get_config().mode
     context.setdefault('region_district_options', {})
     context['district_options'] = context.get('region_district_options', {}).get(region, [])
     chart_rows = region_chart_rows(context.get('areas', []), region_sort)

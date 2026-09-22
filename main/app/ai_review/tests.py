@@ -7,7 +7,12 @@ from google.genai import errors, types
 from django.test import SimpleTestCase, override_settings
 from django.utils import timezone
 
-from .client import GeminiClient, ReviewError
+from .providers.gemini import GeminiProvider
+from .errors import ReviewError
+from .contracts import AIRequest
+from .factory import get_config
+from .prompts import SYSTEM_INSTRUCTION
+from .schemas import response_schema
 from .schemas import CRITERIA, normalize_analysis
 from .services import build_evidence, review_plan
 
@@ -18,7 +23,7 @@ def example_response(keys=('sports_demand',)):
             'strengths': [], 'risks': ['자료 부족'], 'recommendations': ['자료 보완'], 'limitations': ['일부 평가 불가']}
 
 
-@override_settings(AI_REVIEW_MODE='gemini', GEMINI_MODEL='gemini-3.1-flash-lite', GEMINI_TIMEOUT_SECONDS=2,
+@override_settings(AI_MODE='', AI_PROVIDER='', AI_MODEL='', AI_TIMEOUT_SECONDS=None, AI_MAX_RETRIES=10, AI_REVIEW_MODE='gemini', GEMINI_MODEL='gemini-3.1-flash-lite', GEMINI_TIMEOUT_SECONDS=2,
                    AI_REVIEW_INCLUDE_TRANSIT=False)
 class AnalysisTests(SimpleTestCase):
     def setUp(self):
@@ -52,7 +57,7 @@ class AnalysisTests(SimpleTestCase):
                 normalize_analysis(data, self.evidence)
 
     def test_missing_key_does_not_call_network(self):
-        with patch.dict(os.environ, {'GEMINI_API_KEY': ''}), patch('app.ai_review.client.genai.Client') as call:
+        with patch.dict(os.environ, {'GEMINI_API_KEY': ''}), patch('app.ai_review.providers.gemini.genai.Client') as call:
             result = review_plan(self.plan, [], self.stats, timezone.now())
         call.assert_not_called()
         self.assertEqual(result['error_code'], 'missing_key')
@@ -60,7 +65,7 @@ class AnalysisTests(SimpleTestCase):
     def test_official_request_separates_instruction_and_json(self):
         response = types.GenerateContentResponse(candidates=[types.Candidate(
             finish_reason='STOP', content=types.Content(parts=[types.Part(text=json.dumps(example_response()))]))])
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-secret'}), patch('app.ai_review.client.genai.Client') as factory:
+        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-secret'}), patch('app.ai_review.providers.gemini.genai.Client') as factory:
             call = factory.return_value.__enter__.return_value.models.generate_content
             call.return_value = response
             result = review_plan(self.plan, [], self.stats, timezone.now())
@@ -83,28 +88,28 @@ class AnalysisTests(SimpleTestCase):
                     (errors.ClientError(400, {'error': {'message': 'test-secret'}}), 'http_400')]
         for error, code in failures:
             with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-secret'}), \
-                    patch('app.ai_review.client.genai.Client') as factory, \
+                    patch('app.ai_review.providers.gemini.genai.Client') as factory, \
                     self.assertLogs('app.ai_review.services', level='WARNING') as logs:
                 factory.return_value.__enter__.return_value.models.generate_content.side_effect = error
                 result = review_plan(self.plan, [], self.stats, timezone.now())
             self.assertEqual(result['error_code'], code)
             if code == 'http_503':
-                self.assertIn('Gemini 서비스가 일시적으로', result['summary'])
+                self.assertIn('AI 서비스가 일시적으로', result['summary'])
             self.assertNotIn('test-secret', ' '.join(logs.output))
 
     def test_empty_malformed_and_truncated_responses(self):
         for reason, content in [('STOP', 'not json'), ('STOP', ''), ('MAX_TOKENS', '{}')]:
             response = types.GenerateContentResponse(candidates=[types.Candidate(
                 finish_reason=reason, content=types.Content(parts=[types.Part(text=content)]))])
-            with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-secret'}), patch('app.ai_review.client.genai.Client') as factory:
+            with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-secret'}), patch('app.ai_review.providers.gemini.genai.Client') as factory:
                 factory.return_value.__enter__.return_value.models.generate_content.return_value = response
                 with self.assertRaises(ReviewError):
-                    GeminiClient().review(self.evidence)
+                    GeminiProvider(get_config()).generate(AIRequest('plan_review', SYSTEM_INSTRUCTION, self.evidence, response_schema(self.evidence), 'test'))
 
     def test_diagnostic_logs_describe_request_without_input_or_secrets(self):
         self.plan['description'] = 'private-program-text'
         error = errors.ClientError(400, {'error': {'message': 'Unknown name responseFormat private-program-text test-secret'}})
-        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-secret'}), patch('app.ai_review.client.genai.Client') as factory, self.assertLogs('app.ai_review', level='INFO') as logs:
+        with patch.dict(os.environ, {'GEMINI_API_KEY': 'test-secret'}), patch('app.ai_review.providers.gemini.genai.Client') as factory, self.assertLogs('app.ai_review', level='INFO') as logs:
             factory.return_value.__enter__.return_value.models.generate_content.side_effect = error
             result = review_plan(self.plan, [], self.stats, timezone.now())
         output = '\n'.join(logs.output)

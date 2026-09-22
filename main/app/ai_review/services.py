@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import date, datetime
 from threading import BoundedSemaphore
 from time import perf_counter
@@ -7,9 +6,11 @@ from uuid import uuid4
 
 from django.conf import settings
 
-from .client import DummyGeminiClient, GeminiClient, ReviewClient
-from .client import ReviewError
-from .schemas import normalize_analysis
+from .contracts import AIRequest
+from .factory import create_provider, get_config
+from .errors import ReviewError
+from .prompts import SYSTEM_INSTRUCTION
+from .schemas import normalize_analysis, response_schema
 
 logger = logging.getLogger(__name__)
 _review_slot = BoundedSemaphore(1)
@@ -59,59 +60,34 @@ def build_evidence(plan, selected, statistics):
     return omit_missing(evidence)
 
 
-def validate_response(data):
-    """불완전한 응답이 보고서 렌더링을 깨뜨리지 않도록 제한합니다."""
-    def text(value):
-        if not isinstance(value, str) or not value.strip() or len(value) > 2000:
-            raise ValueError('Invalid review text')
-        return value
-
-    result = {'summary': text(data['summary'])}
-    findings = data['findings']
-    if not isinstance(findings, list) or not 1 <= len(findings) <= 8:
-        raise ValueError('Invalid findings')
-    result['findings'] = []
-    for item in findings:
-        if item['status'] not in ('적합 의견', '보완 필요', '판단 자료 부족'):
-            raise ValueError('Invalid status')
-        result['findings'].append({key: text(item[key]) for key in ('title', 'status', 'comment')})
-    for key in ('suggestions', 'limitations'):
-        if not isinstance(data[key], list) or not 1 <= len(data[key]) <= 8:
-            raise ValueError('Invalid list')
-        result[key] = [text(value) for value in data[key]]
-    return result
-
-
 def review_plan(plan, selected, statistics, created):
-    mode = settings.AI_REVIEW_MODE
-    metadata = {'mode': mode, 'created': created, 'provider': 'Gemini',
-                'model': 'dummy-v1' if mode == 'dummy' else settings.GEMINI_MODEL, 'criteria_version': '3'}
+    config = get_config()
+    mode = config.mode
+    metadata = {'mode': mode, 'created': created, 'provider': config.provider,
+                'model': 'dummy-v2' if mode == 'dummy' else config.model, 'criteria_version': '3'}
     started = perf_counter()
     acquired = False
     request_id = uuid4().hex[:12]
     stage = 'configuration'
-    logger.info('AI_REVIEW start request_id=%s mode=%s model=%s key_configured=%s timeout=%s',
-                request_id, mode, metadata['model'], bool(os.environ.get('GEMINI_API_KEY', '').strip()),
-                settings.GEMINI_TIMEOUT_SECONDS)
+    logger.info('AI_REVIEW start request_id=%s mode=%s provider=%s model=%s key_configured=%s timeout=%s',
+                request_id, mode, config.provider, metadata['model'], config.key_configured,
+                config.timeout)
     try:
-        if mode not in ('dummy', 'gemini'):
-            raise ReviewError('invalid_mode')
-        if mode == 'gemini' and not os.environ.get('GEMINI_API_KEY', '').strip():
-            raise ReviewError('missing_key')
+        client = create_provider(config)
         acquired = _review_slot.acquire(blocking=False)
         if not acquired:
             raise ReviewError('busy')
-        client: ReviewClient = DummyGeminiClient() if mode == 'dummy' else GeminiClient(request_id=request_id)
         stage = 'evidence'
         evidence = build_evidence(plan, selected, statistics)
         logger.info('AI_REVIEW request request_id=%s criteria=%s facilities=%d seconds=%.3f',
                     request_id, ','.join(evidence['available_criteria']), len(selected), perf_counter() - started)
         stage = 'api'
         api_started = perf_counter()
-        response = client.review(evidence)
+        response = client.generate(AIRequest('plan_review', SYSTEM_INSTRUCTION, evidence, response_schema(evidence), request_id))
+        metadata.update(provider=response.provider, model=response.model)
         logger.info('AI_REVIEW response request_id=%s seconds=%.3f', request_id, perf_counter() - api_started)
         stage = 'validation'
-        result = validate_response(response) if mode == 'dummy' else normalize_analysis(response, evidence)
+        result = normalize_analysis(response.data, evidence)
         logger.info('AI_REVIEW completed request_id=%s mode=%s scored_count=%s seconds=%.3f',
                     request_id, mode, result.get('scored_count'), perf_counter() - started)
         return {**result, **metadata, 'status': 'completed'}
@@ -122,7 +98,7 @@ def review_plan(plan, selected, statistics, created):
                        request_id, mode, stage, code, type(error).__name__, perf_counter() - started)
         return {**metadata, 'status': 'unavailable',
                 'error_code': code,
-                'summary': ('Gemini 서비스가 일시적으로 응답할 수 없습니다. 잠시 후 다시 시도해 주세요. 기본 계획서는 그대로 이용할 수 있습니다.' if code == 'http_503' else
+                'summary': ('AI 서비스가 일시적으로 응답할 수 없습니다. 잠시 후 다시 시도해 주세요. 기본 계획서는 그대로 이용할 수 있습니다.' if code == 'http_503' else
                             'AI 분석 설정이 준비되지 않았습니다. 기본 계획서는 그대로 이용할 수 있습니다.' if code == 'missing_key' else
                             'AI 검토 결과를 가져오지 못했습니다. 기본 계획서는 그대로 이용할 수 있습니다. 잠시 후 다시 시도해 주세요.')}
     finally:

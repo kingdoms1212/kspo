@@ -284,6 +284,13 @@ CSV_DIAGNOSTICS_ENABLED = os.environ.get('CSV_DIAGNOSTICS_ENABLED', 'true').lowe
 AI_REVIEW_MODE = os.environ.get('AI_REVIEW_MODE', 'gemini')
 GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.1-flash-lite')
 GEMINI_TIMEOUT_SECONDS = min(60, max(1, float(os.environ.get('GEMINI_TIMEOUT_SECONDS', '25'))))
+# New common settings override legacy Gemini settings only when explicitly supplied.
+AI_MODE = os.environ.get('AI_MODE', '').strip().lower()
+AI_PROVIDER = os.environ.get('AI_PROVIDER', '').strip().lower()
+AI_MODEL = os.environ.get('AI_MODEL', '').strip()
+AI_TIMEOUT_SECONDS = (min(60, max(1, float(os.environ['AI_TIMEOUT_SECONDS'])))
+                      if os.environ.get('AI_TIMEOUT_SECONDS', '').strip() else None)
+AI_MAX_RETRIES = min(10, max(0, int(os.environ.get('AI_MAX_RETRIES', '10'))))
 # 대용량 교통 색인의 최초 적재가 Free 인스턴스를 지연시킬 수 있어 선택적으로 사용합니다.
 AI_REVIEW_INCLUDE_TRANSIT = os.environ.get('AI_REVIEW_INCLUDE_TRANSIT', 'false').lower() == 'true'
 LOGGING['loggers']['app.runtime.diagnostics'] = {
