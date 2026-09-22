@@ -49,7 +49,7 @@
   <button type="button" class="button primary" id="plan-confirm" disabled>다음 단계</button>
 </div>
 <dialog id="plan-result" class="plan-result" aria-labelledby="plan-result-title">
-  <div class="plan-result-head"><span class="plan-pill">검토용 계획서 · 생성 당시 자료 기준</span><button type="button" class="button ghost plan-close-icon" id="plan-close-top" aria-label="계획서 닫기">×</button></div>
+  <div class="plan-result-head"><span class="plan-pill">검토용 계획서 · 생성 당시 자료 기준</span><button type="button" class="policy-close" id="plan-close-top" aria-label="계획서 닫기"><span aria-hidden="true">×</span></button></div>
   <div id="plan-result-content"></div>
   <p id="plan-share-status" role="status"></p>
   <div class="plan-result-actions"><button type="button" class="button primary" id="plan-print">{% include 'components/icon.html' with name='print' %}프린트</button><button type="button" class="button ghost" id="plan-sms">{% include 'components/icon.html' with name='message' %}문자보내기</button><button type="button" class="button ghost" id="plan-kakao">{% include 'components/icon.html' with name='kakao' %}카카오톡 보내기</button><button type="button" class="button ghost" id="plan-close">닫기</button></div>
