@@ -2,6 +2,7 @@
 import hashlib
 import json
 import logging
+import os
 import pickle
 from datetime import datetime
 from uuid import uuid4
@@ -81,6 +82,11 @@ def region_review(request):
     acquired = False
     request_id = uuid4().hex[:12]
     stage = 'evidence'
+    # [SG003] AI기능 연동 시 예외처리 보완 — 키 값 대신 프로세스의 설정 인식 여부만 기록합니다.
+    logger.info('AI_REGION start request_id=%s mode=%s model=%s key_configured=%s on_render=%s',
+                request_id, settings.AI_REVIEW_MODE, settings.GEMINI_MODEL,
+                bool(os.environ.get('GEMINI_API_KEY', '').strip()),
+                os.environ.get('RENDER', '').lower() == 'true')
     try:
         generation = source_version(settings.DATA_FILES['usage'])
         stats = dashboard_data('서울', ','.join(districts))
