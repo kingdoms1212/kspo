@@ -193,7 +193,7 @@ select {
 
 
 input::placeholder { color:var(--si-text-muted); }
-label { display:block; margin-bottom:6px; font-size:12px; font-weight:600; color:var(--si-text-secondary); }
+label { display:block; font-size:12px; font-weight:600; color:var(--si-text-secondary); }
 .inline-filters { display:flex; gap:8px; flex-shrink:0; }
 .inline-filters select { width:145px; }
 .tag { display:inline-block; padding:3px 7px; border-radius:4px; background:var(--si-surface-soft); color:var(--si-primary-hover); font-size:10px; font-weight:600; line-height:1.5; overflow-wrap:anywhere; }

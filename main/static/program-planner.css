@@ -429,7 +429,7 @@
 .plan-facility-grid .section-title { margin-bottom:14px; }
 #plan-count { color:var(--si-primary-hover); }
 .plan-detail { padding:0;overflow:hidden; }
-.plan-detail-content { padding:22px; }
+.plan-detail > .plan-detail-content { padding:22px; }
 .plan-photo { margin:0; }
 .plan-photo img { border-radius:0;display:block;height:240px; }
 .detail-tags { display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 20px; }
@@ -624,7 +624,7 @@ body:is([data-plan-step="1"],[data-plan-step="2"]) #program-planner { margin-top
 :is(.page-programs,.page-facilities) .search-panel :is(input:not([type=checkbox]):not([type=hidden]),select) { min-height:36px;border-radius:6px; }
 :is(.page-programs,.page-facilities) .button { min-height:36px;border-radius:6px; }
 :is(.page-programs,.page-facilities) .filter-actions { gap:12px; }
-.plan-search-row { display:grid;grid-template-columns:minmax(160px,1fr) minmax(0,3fr);align-items:end;gap:16px;margin-bottom:20px; }
+.plan-search-row { display:grid;grid-template-columns:minmax(160px,1fr) minmax(0,3fr);align-items:end;gap:16px;margin-bottom:44px; }
 .plan-search-row > .plan-field { min-width:0;margin:0; }
 .plan-search-row #plan-search { display:flex;flex-direction:row;min-width:0;margin:0; }
 .plan-search-row #plan-sport,.plan-search-row #plan-query,.plan-search-row #plan-search .button { min-height:58px;box-sizing:border-box; }
