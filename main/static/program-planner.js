@@ -379,15 +379,48 @@
     el('plan-sport').focus();
   }
   el('plan-back-selection').addEventListener('click', backToSelection);
-  el('plan-form').addEventListener('submit', async event => {
-    event.preventDefault();
-    if (generating || !confirmed || (!selected.size && !withoutFacility())) return;
-    generating = true; root.inert = true; el('dashboard-body').inert = true;
-    el('plan-entry-actions').inert = true;
-    const data = new FormData(event.target);
+  let aiToken = '', aiInput = '', aiBusy = false;
+  function reviewData() {
+    const data = new FormData(el('plan-form'));
     data.set('region', scope.region); data.set('district', scope.district); data.set('sport', el('plan-sport').value);
     selected.forEach(row => data.append('facilities', row.token));
     if (!selected.size && withoutFacility()) data.set('without_facility', 'on');
+    return data;
+  }
+  function reviewKey(data) {return JSON.stringify([...data.entries()]);}
+  el('plan-form').addEventListener('input', () => {
+    aiToken = ''; el('plan-ai-include').checked = false; el('plan-ai-include').disabled = true;
+    el('plan-ai-included').textContent = '입력이 변경되어 다시 검토해야 합니다.';
+  });
+  el('plan-ai-close').addEventListener('click', () => el('plan-ai-dialog').close());
+  el('plan-ai-open').addEventListener('click', async () => {
+    if (!el('plan-form').reportValidity() || !confirmed) return;
+    const data = reviewData(), key = reviewKey(data);
+    el('plan-ai-dialog').showModal();
+    if (aiBusy || (aiToken && aiInput === key)) return;
+    aiToken = ''; el('plan-ai-include').checked = false; el('plan-ai-include').disabled = true;
+    el('plan-ai-included').textContent = '';
+    aiBusy = true; el('plan-ai-content').textContent = 'AI 검토 중입니다. 잠시만 기다려 주세요…';
+    el('plan-ai-content').setAttribute('aria-busy', 'true');
+    try {
+      const result = await (await response('/dashboard/ai/plan', {method: 'POST', body: data, headers: {'Accept': 'application/json'}})).json();
+      if (reviewKey(reviewData()) !== key) throw new Error('입력 내용이 변경되었습니다. AI 검토를 다시 실행해 주세요.');
+      el('plan-ai-content').innerHTML = result.html;
+      aiToken = result.token; aiInput = key;
+      el('plan-ai-include').disabled = !aiToken;
+    } catch (error) {el('plan-ai-content').textContent = error.message;}
+    finally {aiBusy = false; el('plan-ai-content').setAttribute('aria-busy', 'false');}
+  });
+  el('plan-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (generating || !confirmed || (!selected.size && !withoutFacility())) return;
+    if (el('plan-ai-include').checked && (!aiToken || aiInput !== reviewKey(reviewData()))) {
+      failure('검토 후 입력이 변경되었습니다. AI 검토를 다시 실행하거나 포함 선택을 해제해 주세요.'); return;
+    }
+    generating = true; root.inert = true; el('dashboard-body').inert = true;
+    el('plan-entry-actions').inert = true;
+    const data = reviewData();
+    if (el('plan-ai-include').checked && aiToken && aiInput === reviewKey(data)) data.set('ai_review_token', aiToken);
     message(data.get('ai_review') ? '지역·프로그램 AI 분석 중입니다. 잠시만 기다려 주세요…' : '입력 내용을 확인하고 계획서를 만드는 중입니다…');
     try {
       const result = await (await response(root.dataset.previewUrl, {
@@ -401,6 +434,7 @@
       if (saved) historyNote('');
       resultOpener = el('plan-start');
       el('plan-result').showModal();
+      aiToken = ''; el('plan-ai-include').checked = false;
       el('plan-form').reset(); resetSelection();
       el('plan-sport').value = ''; el('plan-query').value = ''; el('plan-selection').hidden = true;
       el('plan-start').hidden = false; stage(0); message('');

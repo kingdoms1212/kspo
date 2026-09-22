@@ -115,6 +115,7 @@ def review_plan(plan, selected, statistics, created):
         logger.info('AI_REVIEW completed request_id=%s mode=%s scored_count=%s seconds=%.3f',
                     request_id, mode, result.get('scored_count'), perf_counter() - started)
         return {**result, **metadata, 'status': 'completed'}
+    # [SG003] AI기능 연동 시 예외처리 보완 — AI 실패 시에도 기본 계획서를 이용할 수 있도록 처리합니다.
     except Exception as error:
         code = str(error) if isinstance(error, ReviewError) else 'validation_or_internal'
         logger.warning('AI_REVIEW unavailable request_id=%s mode=%s stage=%s code=%s error_type=%s seconds=%.3f',

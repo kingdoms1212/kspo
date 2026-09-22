@@ -37,12 +37,12 @@
       <label class="plan-field">수강료 기준<select name="fee_unit"><option value="월">월 기준</option><option value="회">1회 기준</option><option value="과정">전체 과정 기준</option></select></label>
       <label class="plan-field">대상<input name="target" maxlength="100" placeholder="예: 초등학교 4~6학년"></label><label class="plan-field">운영 시작일<input id="plan-date-start" name="start" type="date"></label><label class="plan-field">운영 종료일<input id="plan-date-end" name="end" type="date"></label>
       <label class="plan-field plan-wide">프로그램 설명<textarea name="description" required maxlength="2000" rows="4" placeholder="참여 대상, 운영 내용, 일정 등을 입력하세요."></textarea></label>
-      <div class="plan-wide plan-ai-option"><label><input type="checkbox" name="ai_review" aria-describedby="plan-ai-help"> AI 검토 포함 {% if ai_review_mode == 'dummy' %}<span class="chart-note">데모</span>{% endif %}</label><p id="plan-ai-help" class="chart-note">{% if ai_review_mode == 'dummy' %}예시 응답을 표시하며 외부로 데이터를 전송하지 않습니다.{% else %}선택 시 작성 내용과 관련 통계·시설 정보를 Gemini에 전달해 분석합니다. 개인정보나 비공개 정보는 입력하지 마세요. 분석 실패 시에도 기본 계획서는 생성됩니다.{% endif %}</p></div>
     </div></form>
   </div>
 </section>
 <div id="plan-entry-actions" class="plan-step-actions plan-entry-actions" hidden>
   <button class="button ghost" id="plan-back-selection" type="button">이전 단계</button>
+  <button class="button ghost" id="plan-ai-open" type="button">AI 검토</button>
   <button class="button primary" id="plan-generate" type="submit" form="plan-form">계획서 완성하기</button>
 </div>
 <div id="plan-step-actions" class="plan-step-actions" hidden>
@@ -57,3 +57,11 @@
 </dialog>
 <div id="plan-print-area" class="plan-print-area" aria-hidden="true"></div>
 <dialog id="plan-share-dialog" class="plan-result" aria-labelledby="plan-share-title"><div class="planner-heading"><h2 id="plan-share-title">공유 내용 확인</h2><button id="plan-share-close" class="button ghost" type="button">공유 닫기</button></div><div class="plan-share-body"><label id="plan-recipient-label" class="plan-field">받는 사람 연락처<input id="plan-recipient" type="tel" placeholder="010-0000-0000" autocomplete="off"></label><label class="plan-field">전달 내용<textarea id="plan-share-message" rows="9" readonly></textarea></label><p id="plan-share-help" class="chart-note"></p><button class="button primary" type="button" disabled>외부 서비스 연동 후 발송 가능</button></div></dialog>
+<dialog id="plan-ai-dialog" class="ai-dialog" aria-labelledby="plan-ai-title">
+  <header><h2 id="plan-ai-title">프로그램 AI 검토</h2></header>
+  <div class="ai-dialog-body">
+  <p class="chart-note">작성 내용과 관련 통계·시설 정보를 Gemini에 전달합니다. 재시도 시 분석에 수 분이 걸릴 수 있습니다.</p>
+  <div id="plan-ai-content" aria-live="polite"></div>
+  </div>
+  <footer><div class="ai-dialog-actions"><label><input type="checkbox" id="plan-ai-include" disabled> 계획서에 포함하기</label><button type="button" id="plan-ai-close" class="button primary">확인</button></div><span id="plan-ai-included" role="status"></span></footer>
+</dialog>

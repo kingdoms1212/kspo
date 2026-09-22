@@ -44,6 +44,8 @@ def normalize_analysis(data, evidence):
         item = evaluations[key]
         if not isinstance(item, dict) or set(item) != {'score', 'reason', 'evidence_keys'}:
             raise ValueError('invalid_evaluation')
+        # [SG003] AI기능 연동 시 예외처리 보완 — 미채점 항목도 설명 형식을 검증합니다.
+        reason = text(item['reason'])
         score, refs = item['score'], item['evidence_keys']
         if score is not None and (type(score) is not int or not 0 <= score <= 100):
             raise ValueError('invalid_score')
@@ -58,7 +60,7 @@ def normalize_analysis(data, evidence):
             continue
         result['findings'].append({'title': title, 'score': score,
             'status': '판단 자료 부족' if score is None else f'{score}점',
-            'comment': text(item['reason']), 'evidence_keys': refs})
+            'comment': reason, 'evidence_keys': refs})
     for key in ('strengths', 'risks', 'recommendations', 'limitations'):
         values = data[key]
         if not isinstance(values, list) or len(values) > 8:

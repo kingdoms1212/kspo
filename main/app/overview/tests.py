@@ -69,3 +69,10 @@ class OverviewReadinessTests(SimpleTestCase):
     def test_screen_opens_while_lists_are_missing(self):
         with patch.object(readiness, 'state', return_value=readiness.MISSING):
             self.assertEqual(self.client.get('/overview').status_code, 200)
+
+
+class OverviewAITests(SimpleTestCase):
+    def test_ai_workflows_and_limits_are_documented(self):
+        body = self.client.get('/overview').content.decode()
+        for text in ('id="ov-ai"', '계획서에 포함하기', '/dashboard/ai/region', '/dashboard/ai/plan', '최대 10회 재시도', 'google-genai'):
+            self.assertIn(text, body)
