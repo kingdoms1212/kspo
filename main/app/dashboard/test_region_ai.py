@@ -49,3 +49,12 @@ class RegionAITests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()['cached'])
         ai.assert_called_once()
+
+    def test_key_presence_is_logged_without_key_value(self):
+        for value, expected in [('', 'False'), ('private-api-key', 'True')]:
+            with patch.dict('os.environ', {'GEMINI_API_KEY': value, 'RENDER': 'true'}), patch('app.dashboard.ai_views.source_version', side_effect=OSError('data unavailable')), self.assertLogs('app.dashboard.ai_views', level='INFO') as logs:
+                self.client.post('/dashboard/ai/region')
+            output = '\n'.join(logs.output)
+            self.assertIn('key_configured=' + expected, output)
+            self.assertIn('on_render=True', output)
+            self.assertNotIn('private-api-key', output)
