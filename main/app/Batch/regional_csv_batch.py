@@ -18,7 +18,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from time import perf_counter
+from time import perf_counter, thread_time
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 # 파일을 직접 실행해도 Django 앱의 공통 지역 모듈을 찾게 한다.
@@ -320,9 +320,13 @@ def _extract_to_part(
                     matched_rows += 1
 
                 raw_output.flush()
+                sync_started = perf_counter()
                 os.fsync(raw_output.fileno())
+                sync_seconds = perf_counter() - sync_started
                 output_sha256 = output_file.hexdigest()
 
+        _write_log(output.parent, f"BATCH_DIAG 파일 동기화: {source.name} "
+                   f"fsync={sync_seconds:.3f}초 pid={os.getpid()}")
         if matched_rows == 0:
             raise ValueError(
                 f"{profile.display_name} 행을 한 건도 찾지 못했습니다: {source.name}"
@@ -514,6 +518,11 @@ def refresh_region_csvs(
 
     with _batch_lock(output_dir):
         _write_log(output_dir, f"{profile.display_name} CSV 배치를 시작합니다.")
+        _write_log(output_dir, f"BATCH_DIAG 실행 환경: pid={os.getpid()} "
+                   f"ppid={os.getppid()} mode={'forced' if force_refresh else 'normal'} "
+                   f"progress_callback={progress_callback is not None} "
+                   f"python={sys.version.split()[0]} cpu_count={os.cpu_count()} "
+                   f"source={data_dir.resolve()} output={output_dir.resolve()}")
         _notify_progress(progress_callback, 5, "원본 CSV 확인 중")
         try:
             source_version = _source_version(data_dir, specs)
@@ -544,11 +553,19 @@ def refresh_region_csvs(
             total_files = len(specs)
             for index, spec in enumerate(specs, start=1):
                 file_started_at = perf_counter()
+                file_cpu_started = thread_time()
                 final = output_dir / spec.final_filename_for(profile)
                 result = _extract_to_part(
                     data_dir / spec.filename, final, spec, profile
                 )
                 results.append(result)
+                file_wall = perf_counter() - file_started_at
+                file_cpu = thread_time() - file_cpu_started
+                _write_log(output_dir, f"BATCH_DIAG 추출 성능: {spec.filename} "
+                           f"wall={file_wall:.3f}초 thread_cpu={file_cpu:.3f}초 "
+                           f"cpu_wall_ratio={file_cpu / max(file_wall, 0.000001):.3f} "
+                           f"rows_per_second={result.source_rows / max(file_wall, 0.000001):.0f} "
+                           f"source_bytes={result.source.stat().st_size} pid={os.getpid()}")
                 _write_log(
                     output_dir,
                     f"{spec.filename} 추출 소요 시간: "
