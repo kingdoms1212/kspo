@@ -50,7 +50,7 @@ class PlanningTests(SimpleTestCase):
         page = BeautifulSoup(response.content, 'html.parser')
         overview = page.select_one('.report-overview')
         self.assertEqual(len(overview.select('.db-metric')), 4)
-        self.assertEqual([node.text for node in overview.select('.db-pie-legend strong')],
+        self.assertEqual([node.text for node in overview.select('.report-legend-table tbody th')],
                          [row['name'] for row in sports[:5]] + ['기타'])
         self.assertEqual(response.context['report_pie']['total'], sum(row['requests'] for row in sports))
         table_names = [cell.text for cell in page.select('.report-sport-table td:nth-child(4n+2)') if cell.text]
