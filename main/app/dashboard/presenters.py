@@ -38,8 +38,39 @@ def region_chart_rows(areas, order='desc'):
     return normalized_chart_rows(areas, order)
 
 
-def pie_chart_data(rows):
-    """Pie angles use actual positive counts, independently of bar normalization."""
+#: Shared column layout for every pie-chart legend table (`dashboard/_pie.html`).
+#: Region and sport tables reuse the same template, so only the label for the
+#: "name" column (지역 vs 종목) actually differs between callers; every other
+#: column is identical. Keeping the full list here — instead of hardcoding
+#: `<th>` text in the template — means a future column only needs an entry
+#: here plus one matching cell in the template, and no caller can silently
+#: drift out of sync with what the template renders.
+PIE_TABLE_COLUMNS = (
+    {'key': 'color', 'label': '색상'},
+    {'key': 'rank', 'label': '순위'},
+    {'key': 'name', 'label': None},  # label filled in per call via name_label
+    {'key': 'facilities', 'label': '시설 수'},
+    {'key': 'courses', 'label': '강좌 수'},
+    {'key': 'requests', 'label': '신청인원'},
+    {'key': 'share', 'label': '비율'},
+)
+
+
+def pie_table_columns(name_label):
+    """Column headers for a pie legend table, with the row-identity column labelled
+    for this table's actual identity (예: 지역, 종목)."""
+    return [
+        {**column, 'label': name_label} if column['key'] == 'name' else column
+        for column in PIE_TABLE_COLUMNS
+    ]
+
+
+def pie_chart_data(rows, name_label='지역'):
+    """Pie angles use actual positive counts, independently of bar normalization.
+
+    `name_label` names whatever the rows are grouped by (지역, 종목, ...) — it only
+    drives the legend table's column header, never row identity or sort order.
+    """
     rows = list(rows)
     canonical = sorted(rows, key=lambda row: (-(row.get('requests') or 0), row.get('name', ''), row.get('region', ''), row.get('district', '')))
     total = sum(max(row.get('requests') or 0, 0) for row in rows)
@@ -62,6 +93,7 @@ def pie_chart_data(rows):
                        'share': value / total * 100 if total else 0})
     by_identity = {id(row): item for row, item in zip(canonical, legend)}
     return {'rows': [by_identity[id(row)] for row in rows], 'total': total,
-            'gradient': 'conic-gradient(' + ', '.join(segments) + ')' if segments else 'none'}
+            'gradient': 'conic-gradient(' + ', '.join(segments) + ')' if segments else 'none',
+            'columns': pie_table_columns(name_label)}
 
 
