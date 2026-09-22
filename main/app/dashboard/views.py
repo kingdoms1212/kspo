@@ -28,8 +28,8 @@ def dashboard(request):
     context['requests_per_facility'] = requests_per_facility(context.get('facilities'), context.get('requests'))
     context['sport_chart_rows'] = normalized_chart_rows(context.get('sport_rows', []), sport_sort)
     context['requests_per_sport'] = requests_per_sport(context.get('sport_count'), context.get('requests'))
-    context['region_pie'] = pie_chart_data(chart_rows)
-    context['sport_pie'] = pie_chart_data(context['sport_chart_rows'])
+    context['region_pie'] = pie_chart_data(chart_rows, name_label='지역')
+    context['sport_pie'] = pie_chart_data(context['sport_chart_rows'], name_label='종목')
     shape_filter = {'district': district} if district else {}
     context.update({
         'planning_sports': list(SPORT_TYPES),

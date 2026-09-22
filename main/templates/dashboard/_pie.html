@@ -3,7 +3,7 @@
 <div class="db-pie-legend" tabindex="0" role="region" aria-label="{{ label }}">
 <table class="db-pie-table">
 <caption class="sr-only">{{ label }}</caption>
-<thead><tr><th scope="col">색상</th><th scope="col">순위</th><th scope="col">지역</th><th scope="col">시설 수</th><th scope="col">강좌 수</th><th scope="col">신청인원</th><th scope="col">비율</th></tr></thead>
+<thead><tr>{% for column in pie.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead>
 <tbody>{% for item in pie.rows %}<tr{% if item.number > 10 %} class="db-print-omit"{% endif %}>
 <td><span class="db-pie-key" aria-hidden="true" style="background:var({{ item.color }})"></span></td><td>{{ item.number }}</td>
 <th scope="row">{% if item.name %}{{ item.name }}{% else %}{{ item.district }}{% endif %}{% if item.region %}<span class="db-province">{{ item.region }}</span>{% endif %}</th>
