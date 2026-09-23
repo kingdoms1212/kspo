@@ -43,7 +43,10 @@
 {% include 'dashboard/_ai_region.html' %}
 <div id="plan-entry-actions" class="plan-step-actions plan-entry-actions" hidden>
   <button class="button ghost" id="plan-back-selection" type="button">이전 단계</button>
-  <button class="button primary" id="plan-generate" disabled type="submit" form="plan-form">계획서 완성하기</button>
+  <div class="plan-entry-actions-right">
+    <button class="button ghost" id="plan-home" type="button">처음으로</button>
+    <button class="button primary" id="plan-generate" disabled type="submit" form="plan-form">계획서 완성하기</button>
+  </div>
 </div>
 <div id="plan-step-actions" class="plan-step-actions" hidden>
   <button type="button" class="button ghost" id="plan-back-region">이전 단계</button>

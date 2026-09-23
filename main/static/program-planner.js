@@ -138,7 +138,7 @@
     document.body.dataset.planStep = index;
     el('plan-history-open').hidden = index !== 0;
     /* Step 4 marks the finished plan while the result dialog is open. The
-       wizard behind it is already reset, so its visibility is left alone. */
+       completed STEP 03 screen stays in place behind the dialog. */
     if (index < 3) {
       el('dashboard-body').hidden = index !== 0;
       root.hidden = index === 0;
@@ -381,6 +381,19 @@
     el('plan-sport').focus();
   }
   el('plan-back-selection').addEventListener('click', backToSelection);
+  function returnToStart() {
+    aiToken = ''; aiInput = ''; aiExpires = 0; clearTimeout(aiExpiryTimer);
+    el('plan-form').reset(); resetSelection();
+    el('plan-sport').value = ''; el('plan-query').value = '';
+    el('plan-selection').hidden = true; el('plan-start').hidden = false;
+    el('plan-ai-content').replaceChildren(); message(''); stage(0);
+    document.dispatchEvent(new Event('regionai:reset'));
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    window.htmx.ajax('GET', '/dashboard', {target: '#dashboard-body', swap: 'innerHTML'}).then(() => {
+      history.replaceState(null, '', '/dashboard');
+    }).catch(() => failure('처음 화면을 불러오지 못했습니다. 현재 지역 현황을 유지합니다.'));
+  }
+  el('plan-home').addEventListener('click', returnToStart);
   let aiToken = '', aiInput = '', aiBusy = false;
   function reviewData() {
     const data = new FormData(el('plan-form'));
@@ -504,16 +517,9 @@
       ]);
       el('plan-result-content').innerHTML = result.html;
       if (saved) historyNote('');
-      resultOpener = el('plan-start');
+      resultOpener = el('plan-generate');
       el('plan-result').showModal();
-      aiToken = ''; el('plan-ai-include').checked = false; el('plan-ai-skip').checked = false;
-      el('plan-form').reset(); resetSelection();
-      el('plan-sport').value = ''; el('plan-query').value = ''; el('plan-selection').hidden = true;
-      el('plan-start').hidden = false; stage(0); message('');
       stage(3);
-      window.htmx.ajax('GET', '/dashboard', {target: '#dashboard-body', swap: 'innerHTML'}).then(() => {
-        history.replaceState(null, '', '/dashboard');
-      }).catch(() => failure('계획서는 생성되었습니다. 지역 초기화 조회에 실패하여 기존 현황이 남아 있습니다.'));
     } catch (error) {failure(error.message);}
     finally {generating = false; aiPanel.inert = false; syncGenerate(); root.inert = false; el('dashboard-body').inert = false; el('plan-entry-actions').inert = false;}
   });
@@ -604,8 +610,8 @@
   el('plan-close-top').addEventListener('click', () => el('plan-result').close());
   el('plan-result').addEventListener('close', () => {
     lastPlan = null;
-    // 새로 생성한 결과만 초기 단계로 돌아간다. 최근 항목 조회는 그대로 유지한다.
-    if (document.body.dataset.planStep === '3') stage(0);
+    // 새로 생성한 계획서를 닫아도 작성 완료 화면과 입력값을 유지한다.
+    if (document.body.dataset.planStep === '3') stage(2);
     el('plan-result-content').replaceChildren(); el('plan-share-status').textContent = '';
     (resultOpener?.isConnected && !resultOpener.disabled ? resultOpener : el('plan-start')).focus();
     resultOpener = null;

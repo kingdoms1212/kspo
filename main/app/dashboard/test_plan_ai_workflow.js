@@ -4,6 +4,22 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const path = require('node:path');
 
+test('completed plan stays on STEP 03 until the explicit home action', () => {
+  const template = fs.readFileSync(path.join(__dirname, '../../templates/dashboard/_planner.html'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '../../static/program-planner.js'), 'utf8');
+  const actions = template.slice(template.indexOf('id="plan-entry-actions"'), template.indexOf('</div>\n</div>', template.indexOf('id="plan-entry-actions"')) + 6);
+  assert.ok(actions.indexOf('id="plan-back-selection"') < actions.indexOf('id="plan-home"'));
+  assert.ok(actions.indexOf('id="plan-home"') < actions.indexOf('id="plan-generate"'));
+
+  const submitSuccess = source.slice(source.indexOf("      resultOpener = el('plan-generate')"), source.indexOf('    } catch (error)', source.indexOf("      resultOpener = el('plan-generate')")));
+  assert.doesNotMatch(submitSuccess, /resetSelection|plan-form'\)\.reset|htmx\.ajax|stage\(0\)/);
+  assert.match(submitSuccess, /stage\(3\)/);
+  assert.match(source, /dataset\.planStep === '3'\) stage\(2\)/);
+  assert.match(source, /plan-home'\)\.addEventListener\('click', returnToStart\)/);
+  assert.match(source, /dispatchEvent\(new Event\('regionai:reset'\)\)/);
+  assert.match(source, /window\.scrollTo\(\{top: 0, behavior: 'smooth'\}\)/);
+});
+
 test('optional AI generation and unchanged-input review locking', async () => {
   const nodes = new Map();
   const el = id => {
