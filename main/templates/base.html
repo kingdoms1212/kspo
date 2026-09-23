@@ -50,5 +50,19 @@
   <dialog id="policy-dialog" class="policy-dialog" aria-labelledby="policy-dialog-title">
     <div id="policy-dialog-body"></div>
   </dialog>
+  <template id="policy-dialog-loading">
+    <section class="policy-loading" aria-busy="true">
+      <div class="policy-head">
+        <div class="policy-heading"><span class="policy-heading-icon" aria-hidden="true">{% include 'components/icon.html' with name='program' %}</span><div><p class="policy-eyebrow">체육정책 자료실</p><h2 id="policy-dialog-title">주요 정책 불러오기</h2></div></div>
+        <button type="button" class="policy-close" data-policy-loading-close aria-label="정책 목록 닫기"><span aria-hidden="true">×</span></button>
+      </div>
+      <div class="policy-loading-content" role="status" aria-live="polite">
+        <span class="policy-loading-spinner" aria-hidden="true"></span>
+        <strong>정보를 가져오는 중입니다.</strong>
+        <p>최신 체육정책 자료를 확인하고 있습니다. 잠시만 기다려 주세요.</p>
+        <span class="policy-loading-bar" aria-hidden="true"><i></i></span>
+      </div>
+    </section>
+  </template>
 </body>
 </html>

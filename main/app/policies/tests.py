@@ -83,6 +83,7 @@ class PolicyViewTests(SimpleTestCase):
             response = self.client.get('/dashboard')
         self.assertContains(response, 'hx-target="#policy-dialog-body"')
         self.assertContains(response, 'id="policy-dialog"')
+        self.assertContains(response, '정보를 가져오는 중입니다.')
         # The listing is only read when the dialog is opened.
         self.assertNotContains(response, '최신 정책')
 

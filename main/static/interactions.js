@@ -54,10 +54,17 @@
     }
   });
 
-  /* The policy dialog is filled by htmx and opened once the content lands, so
-   * the reader never sees an empty modal. <dialog> supplies the focus trap and
-   * Escape handling; a click on the backdrop falls outside the inner panel. */
+  /* Open the policy dialog before the external listing request completes so
+   * Render users get immediate feedback while the crawler is working. */
   var dialog = document.getElementById('policy-dialog');
+  var policyBody = document.getElementById('policy-dialog-body');
+  var policyLoading = document.getElementById('policy-dialog-loading');
+
+  function showPolicyLoading() {
+    if (!dialog || !policyBody || !policyLoading) return;
+    policyBody.replaceChildren(policyLoading.content.cloneNode(true));
+    if (!dialog.open) dialog.showModal();
+  }
 
   document.body.addEventListener('htmx:afterSwap', function (event) {
     if (dialog && event.detail.target.id === 'policy-dialog-body' && !dialog.open) {
@@ -69,11 +76,18 @@
     if (!dialog) {
       return;
     }
-    if (event.target.closest('[data-close-dialog]')) {
+    if (event.target.closest('.policy-open')) {
+      showPolicyLoading();
+    } else if (event.target.closest('[data-close-dialog],[data-policy-loading-close]')) {
       dialog.close();
     } else if (dialog && dialog.open && event.target === dialog) {
       dialog.close();
     }
+  });
+
+  document.body.addEventListener('htmx:afterRequest', function (event) {
+    if (!dialog || !policyBody || event.detail.target.id !== 'policy-dialog-body' || !event.detail.failed) return;
+    policyBody.innerHTML = '<div class="policy-empty" role="alert"><h3>정책 정보를 가져오지 못했습니다.</h3><p>잠시 후 주요 정책 보기를 다시 눌러 주세요.</p><button type="button" class="button ghost" data-close-dialog>닫기</button></div>';
   });
 
 
