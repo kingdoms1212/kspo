@@ -1,0 +1,35 @@
+<section class="panel ai-region-card ai-region-connected" data-ai-district="{{ selected_district }}" aria-label="지역현황 AI 분석">
+  <div class="ai-region-heading">
+    <div class="ai-region-copy">
+      <div class="ai-region-meta">
+        <span class="ai-region-emblem" aria-hidden="true">✦</span>
+        <span class="ai-region-badge">지역현황 AI 분석</span>
+        <span data-ai-region-status role="status">분석 전</span>
+      </div>
+      <h2 data-ai-region-title>선택 지역의 기회, AI와 함께 찾아보세요</h2>
+      <p>서울 {% if selected_district %}{{ selected_district }}{% else %}전체{% endif %}의 시설·강좌·신청 실적을 바탕으로 주요 특징을 정리합니다.</p>
+      <ul class="ai-region-capabilities" aria-label="AI 분석 내용">
+        <li>{% include 'components/icon.html' with name='program' %}지역 특징 요약</li>
+        <li>{% include 'components/icon.html' with name='chart' %}종목별 비교</li>
+        <li>{% include 'components/icon.html' with name='search' %}기획 참고사항</li>
+      </ul>
+    </div>
+    <div class="ai-region-network">
+      <svg aria-hidden="true" class="ai-region-links" viewBox="0 0 360 176" fill="none" focusable="false">
+        <g stroke="currentColor" stroke-width="1.5"><path d="M144 28 C210 28 204 88 290 88"/><path d="M144 88 H290"/><path d="M144 148 C210 148 204 88 290 88"/></g>
+        <g fill="currentColor"><circle cx="216" cy="54" r="3"/><circle cx="239" cy="88" r="3"/><circle cx="216" cy="122" r="3"/><circle cx="258" cy="20" r="3"/><circle cx="346" cy="70" r="4"/><circle cx="322" cy="151" r="2"/></g>
+      </svg>
+      <div class="ai-region-sources" aria-hidden="true">
+        <span>{% include 'components/icon.html' with name='building' %}시설 데이터</span>
+        <span>{% include 'components/icon.html' with name='people' %}강좌 데이터</span>
+        <span>{% include 'components/icon.html' with name='program' %}신청 데이터</span>
+      </div>
+      <button type="button" data-ai-region class="ai-region-hub" aria-labelledby="region-overview-hub-label">
+        <span class="ai-region-hub-face"><i aria-hidden="true">✦</i><strong id="region-overview-hub-label" data-ai-region-label>AI로 분석하기</strong></span>
+      </button>
+      <div class="ai-region-hub-caption"><span data-ai-region-hint>선택 지역의 특징과 기획 힌트</span><small data-ai-region-elapsed hidden></small></div>
+    </div>
+  </div>
+  {% csrf_token %}
+  <div data-ai-region-result aria-live="polite"></div>
+</section>
