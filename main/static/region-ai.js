@@ -10,7 +10,20 @@ async function analyze(button) {
   const status = card.querySelector('[data-ai-region-status]');
   const label = card.querySelector('[data-ai-region-label]');
   const title = card.querySelector('[data-ai-region-title]');
-  status.textContent = '분석 중'; label.textContent = '분석 중…';
+  const hint = card.querySelector('[data-ai-region-hint]');
+  const elapsed = card.querySelector('[data-ai-region-elapsed]');
+  const started = performance.now();
+  let succeeded = false;
+  card.dataset.aiState = 'loading';
+  button.setAttribute('aria-busy', 'true');
+  hint.textContent = '지역 데이터를 해석하고 있어요';
+  elapsed.hidden = false;
+  elapsed.textContent = '0초 경과';
+  const timer = setInterval(() => {
+    if (!card.isConnected) { clearInterval(timer); return; }
+    elapsed.textContent = `${Math.floor((performance.now() - started) / 1000)}초 경과`;
+  }, 1000);
+  status.textContent = '분석 중'; label.textContent = '분석 중';
   title.textContent = '지역 데이터를 분석하고 있습니다';
   button.disabled = true; result.textContent = 'AI 현황 해석 중입니다. 재시도 시 수 분이 걸릴 수 있습니다.';
   result.setAttribute('aria-busy', 'true');
@@ -37,23 +50,26 @@ async function analyze(button) {
     result.append(columns);
     const note = document.createElement('p'); note.className = 'chart-note';
     note.textContent = '분석 근거: 시설 · 강좌 · 신청 실적. AI가 작성한 참고 의견이며, 신청 실적은 지역 전체 수요나 고유 이용자 수가 아닙니다.'; result.append(note);
+    succeeded = true;
   } catch (error) {
     if (!card.isConnected) return;
     result.textContent = error.message; status.textContent = '분석 실패';
     title.textContent = '분석을 완료하지 못했습니다';
   }
   finally {
-    button.disabled = false; label.textContent = '다시 분석하기'; result.setAttribute('aria-busy', 'false');
+    clearInterval(timer);
+    elapsed.hidden = true;
+    card.dataset.aiState = succeeded ? 'complete' : 'error';
+    hint.textContent = succeeded ? '분석 결과를 아래에서 확인하세요' : '잠시 후 다시 시도해 주세요';
+    button.disabled = false;
+    button.setAttribute('aria-busy', 'false');
+    label.textContent = succeeded ? '다시 분석하기' : '다시 시도하기';
+    result.setAttribute('aria-busy', 'false');
     running = false;
     const next = pending; pending = null;
     if (next && next.isConnected) analyze(next);
   }
 }
 document.addEventListener('click', event => analyze(event.target.closest('[data-ai-region]')));
-// Only a successful region form swap triggers analysis; sorting and wizard resets do not.
-document.addEventListener('htmx:afterSwap', event => {
-  const detail = event.detail;
-  if (detail.target?.id !== 'dashboard-body' || detail.requestConfig?.elt?.id !== 'dashboard-filters') return;
-  analyze(document.querySelector('[data-ai-region]'));
-});
+// Analysis runs only when the user activates the AI button.
 })();
