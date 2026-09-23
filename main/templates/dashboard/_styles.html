@@ -158,12 +158,12 @@
   .dashboard-screen .db-overview-grid .db-region-workspace .db-district-picker{width:var(--district-control-width);gap:6px;grid-template-columns:repeat(5,minmax(0,1fr))}
   .dashboard-screen .db-overview-grid .db-region-workspace .db-district-picker button{min-height:28px;padding:4px 1px;font-size:11px;line-height:18px}
   .dashboard-screen form.db-layout .db-overview-grid .db-metrics-panel{background:var(--si-surface);border:1px solid var(--si-border);border-radius:16px;padding:12px;gap:0;align-self:stretch;grid-template-rows:repeat(4,minmax(0,1fr))}
-  .dashboard-screen .db-overview-grid .db-metrics-panel .db-metric{grid-template-columns:35px minmax(0,1fr);gap:4px 8px;padding:18px 4px;border:0;border-radius:0;background:transparent;min-width:0}
+  .dashboard-screen .db-overview-grid .db-metrics-panel .db-metric{grid-template-columns:20px minmax(0,1fr);gap:4px 6px;padding:18px 4px;border:0;border-radius:0;background:transparent;min-width:0}
   .dashboard-screen .db-overview-grid .db-metrics-panel .db-metric+.db-metric{border-top:1px solid var(--si-border)}
-  .dashboard-screen .db-overview-grid .db-metrics-panel .metric-icon{width:30px;height:30px}
-  .dashboard-screen .db-overview-grid .db-metrics-panel .metric-icon .icon{width:21px;height:21px}
+  .dashboard-screen .db-overview-grid .db-metrics-panel .metric-icon{grid-row:1;width:20px;height:20px;border-radius:0;background:transparent;color:var(--si-primary)}
+  .dashboard-screen .db-overview-grid .db-metrics-panel .metric-icon .icon{width:20px;height:20px;color:var(--si-primary)}
   .dashboard-screen .db-overview-grid .db-metrics-panel .db-metric-label{font-size:11px;gap:4px}
-  .dashboard-screen .db-overview-grid .db-metrics-panel .db-metric>strong{font-size:21px;margin-top:4px;white-space:nowrap;letter-spacing:-.04em}
+  .dashboard-screen .db-overview-grid .db-metrics-panel .db-metric>strong{grid-column:1 / -1;font-size:21px;margin-top:4px;white-space:nowrap;letter-spacing:-.04em}
   @media(max-width:1250px){.dashboard-screen .db-overview-grid{--district-control-width:95%}}
   @media(max-width:1000px){.dashboard-screen form.db-layout .db-overview-grid .db-metrics-panel{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-screen .db-overview-grid .db-metrics-panel .db-metric:nth-child(2){border-top:0}}
   @media(max-width:520px){.dashboard-screen form.db-layout .db-overview-grid .db-metrics-panel{grid-template-columns:1fr}.dashboard-screen .db-overview-grid .db-metrics-panel .db-metric:nth-child(2){border-top:1px solid var(--si-border)}.dashboard-screen .db-overview-grid .db-region-workspace .db-district-picker{grid-template-columns:repeat(3,minmax(0,1fr))}}

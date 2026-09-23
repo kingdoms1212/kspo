@@ -1,6 +1,32 @@
 (() => {
 let running = false;
 let pending = null;
+let completed = null;
+function renderResult(card, payload, stale = false) {
+  const result = card.querySelector('[data-ai-region-result]');
+  const status = card.querySelector('[data-ai-region-status]');
+  const label = card.querySelector('[data-ai-region-label]');
+  const title = card.querySelector('[data-ai-region-title]');
+  const button = card.querySelector('[data-ai-region]');
+  result.replaceChildren();
+  status.textContent = stale ? '지역 변경 · 재분석 필요' : (payload.cached ? '저장된 분석' : '분석 완료');
+  title.textContent = stale ? `이전 조회 지역(${completed.district || '전체'})의 AI 분석 결과입니다` : '선택 지역의 AI 분석 결과입니다';
+  label.textContent = stale ? 'AI로 다시 분석하기' : 'AI 다시 분석하기';
+  const paragraph = document.createElement('p'); paragraph.className = 'ai-region-summary'; paragraph.textContent = payload.result.summary; result.append(paragraph);
+  const columns = document.createElement('div'); columns.className = 'ai-region-columns';
+  for (const [key, headingText] of [['features', '눈여겨볼 특징'], ['considerations', '기획 시 확인할 점']]) {
+    const heading = document.createElement('h3'); heading.textContent = headingText;
+    const list = document.createElement('ul');
+    payload.result[key].forEach(text => {const item = document.createElement('li'); item.textContent = text; list.append(item);});
+    const section = document.createElement('section'); section.append(heading, list); columns.append(section);
+  }
+  result.append(columns);
+  const note = document.createElement('p'); note.className = 'chart-note';
+  note.textContent = '분석 근거: 시설 · 강좌 · 신청 실적. AI가 작성한 참고 의견이며, 신청 실적은 지역 전체 수요나 고유 이용자 수가 아닙니다.'; result.append(note);
+  card.dataset.aiState = stale ? 'stale' : 'complete';
+  button.disabled = !stale;
+  button.setAttribute('aria-busy', 'false');
+}
 async function analyze(button) {
   if (!button || !button.isConnected || button.disabled) return;
   // Queue only the latest region while a previous request finishes.
@@ -36,20 +62,8 @@ async function analyze(button) {
     if (!response.ok) throw new Error(payload.error || '분석을 가져오지 못했습니다.');
     if (!card.isConnected) return;
     if (!payload.result || typeof payload.result.summary !== 'string' || !Array.isArray(payload.result.features) || !Array.isArray(payload.result.considerations)) throw new Error('분석 응답 형식이 올바르지 않습니다. 다시 시도해 주세요.');
-    result.replaceChildren();
-    status.textContent = payload.cached ? '저장된 분석' : '분석 완료';
-    title.textContent = '선택 지역의 AI 분석 결과입니다';
-    const paragraph = document.createElement('p'); paragraph.className = 'ai-region-summary'; paragraph.textContent = payload.result.summary; result.append(paragraph);
-    const columns = document.createElement('div'); columns.className = 'ai-region-columns';
-    for (const [key, title] of [['features', '눈여겨볼 특징'], ['considerations', '기획 시 확인할 점']]) {
-      const heading = document.createElement('h3'); heading.textContent = title;
-      const list = document.createElement('ul');
-      payload.result[key].forEach(text => {const item = document.createElement('li'); item.textContent = text; list.append(item);});
-      const section = document.createElement('section'); section.append(heading, list); columns.append(section);
-    }
-    result.append(columns);
-    const note = document.createElement('p'); note.className = 'chart-note';
-    note.textContent = '분석 근거: 시설 · 강좌 · 신청 실적. AI가 작성한 참고 의견이며, 신청 실적은 지역 전체 수요나 고유 이용자 수가 아닙니다.'; result.append(note);
+    completed = {district: card.dataset.aiDistrict, payload};
+    renderResult(card, payload);
     succeeded = true;
   } catch (error) {
     if (!card.isConnected) return;
@@ -61,9 +75,9 @@ async function analyze(button) {
     if (elapsed) elapsed.hidden = true;
     card.dataset.aiState = succeeded ? 'complete' : 'error';
     if (hint) hint.textContent = succeeded ? '분석 결과를 아래에서 확인하세요' : '잠시 후 다시 시도해 주세요';
-    button.disabled = false;
+    button.disabled = succeeded;
     button.setAttribute('aria-busy', 'false');
-    label.textContent = succeeded ? '다시 분석하기' : '다시 시도하기';
+    label.textContent = succeeded ? 'AI 다시 분석하기' : '다시 시도하기';
     result.setAttribute('aria-busy', 'false');
     running = false;
     const next = pending; pending = null;
@@ -71,5 +85,16 @@ async function analyze(button) {
   }
 }
 document.addEventListener('click', event => analyze(event.target.closest('[data-ai-region]')));
+document.addEventListener('regionai:reset', () => {
+  completed = null;
+  pending = null;
+});
+document.addEventListener('htmx:afterSwap', event => {
+  if (!completed || event.detail.target?.id !== 'dashboard-body') return;
+  const button = document.querySelector('[data-ai-region]');
+  if (!button) return;
+  const card = button.closest('[data-ai-district]');
+  renderResult(card, completed.payload, card.dataset.aiDistrict !== completed.district);
+});
 // Analysis runs only when the user activates the AI button.
 })();
