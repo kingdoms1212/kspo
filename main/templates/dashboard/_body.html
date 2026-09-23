@@ -34,13 +34,7 @@
 <article class="db-metric"><div class="metric-icon">{% include 'components/icon.html' with name='chart' %}</div><div class="db-metric-label">종목 수 {% include 'dashboard/_info.html' with label='종목 수 집계 기준' text='선택한 지역에 기록된 서로 다른 종목의 수입니다. 같은 종목은 한 번만 집계하고 종목명이 없는 기록은 제외합니다.' %}</div><strong>{{ sport_count|default:0 }} <em>개</em></strong></article>
 </div>
 </div>
-<section class="panel ai-region-card" data-ai-district="{{ selected_district }}">
-  <div class="ai-region-heading"><div class="ai-region-copy"><div class="ai-region-meta"><span class="ai-region-badge"><span aria-hidden="true">✦</span> 지역현황 AI 분석</span><span data-ai-region-status>분석 전</span></div><h2 data-ai-region-title>선택 지역에서 기획의 실마리를 찾아보세요</h2>
-  <p>서울 {% if selected_district %}{{ selected_district }}{% else %}전체{% endif %}의 시설·강좌·신청 실적을 바탕으로 주요 특징을 정리합니다.</p>
-  </div><button type="button" class="button ai-region-run" data-ai-region><span aria-hidden="true">✦</span><span data-ai-region-label>AI로 분석하기</span></button></div>
-  {% csrf_token %}
-  <div data-ai-region-result aria-live="polite"></div>
-</section>
+{% include 'dashboard/_ai_region.html' %}
 <div class="db-charts">
 <section class="panel db-chart-panel">
 <div class="db-section-title db-chart-heading"><h2>선택구역 신청인원</h2>{% include 'dashboard/_info.html' with label='시군구 그래프 기준' text='선택 지역의 선택구역 신청인원 합계입니다. 막대는 (값−최소값)÷(최대값−최소값)으로 정규화한 상대 위치입니다. 최소값에는 시작점 표시를 남깁니다. 모두 같으면 같은 길이로, 모두 0이면 시작점으로 표시합니다. 누락값은 정렬 마지막에 미제공으로 표시합니다. 오른쪽 숫자는 실제 인원입니다.' %}<a class="db-sort-toggle" hx-swap="innerHTML show:none focus-scroll:false" data-focus-key="dashboard-region-sort" href="{{ region_sort_url }}" hx-get="{{ region_sort_url }}" hx-params="none" aria-label="선택구역 신청인원: 현재 {% if region_sort == 'asc' %}적은 순{% else %}많은 순{% endif %}, {% if region_sort == 'asc' %}많은 순{% else %}적은 순{% endif %}으로 정렬" title="정렬 방향 전환"><span aria-hidden="true">{% if region_sort == 'asc' %}↑{% else %}↓{% endif %}</span></a></div>

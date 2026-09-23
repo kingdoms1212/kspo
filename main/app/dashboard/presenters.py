@@ -26,12 +26,19 @@ def normalized_chart_rows(rows, order='desc'):
         else:
             width = round((value - minimum) / (maximum - minimum) * 100, 6)
         result.append({**row, 'bar_percent': width})
-    direction = 1 if chart_sort(order) == 'asc' else -1
-    return sorted(result, key=lambda row: (
+    ranked = sorted(result, key=lambda row: (
         row.get('requests') is None,
-        direction * (row.get('requests') or 0),
+        -(row.get('requests') or 0),
+        -(row.get('facilities') or 0),
+        -(row.get('courses') or 0),
         row.get('name', ''), row.get('region', ''), row.get('district', ''),
     ))
+    if chart_sort(order) == 'asc':
+        # Reverse the complete ranking, including ties; missing counts stay last.
+        known = [row for row in ranked if row.get('requests') is not None]
+        missing = [row for row in ranked if row.get('requests') is None]
+        return list(reversed(known)) + missing
+    return ranked
 
 
 def region_chart_rows(areas, order='desc'):
@@ -72,7 +79,13 @@ def pie_chart_data(rows, name_label='지역'):
     drives the legend table's column header, never row identity or sort order.
     """
     rows = list(rows)
-    canonical = sorted(rows, key=lambda row: (-(row.get('requests') or 0), row.get('name', ''), row.get('region', ''), row.get('district', '')))
+    # Rank ties by facilities, then courses; names keep complete ties stable.
+    canonical = sorted(rows, key=lambda row: (
+        -(row.get('requests') or 0),
+        -(row.get('facilities') or 0),
+        -(row.get('courses') or 0),
+        row.get('name', ''), row.get('region', ''), row.get('district', ''),
+    ))
     total = sum(max(row.get('requests') or 0, 0) for row in rows)
     palette = ('--si-map-5', '--si-map-3', '--si-chart-primary', '--si-map-2', '--si-navy')
     segments, legend = [], []
