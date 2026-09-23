@@ -179,4 +179,16 @@
   .dashboard-screen .db-overview-grid .db-metrics-panel .db-metric{align-content:center}
   @media(max-width:1000px){.dashboard-screen form.db-layout .db-overview-grid .db-metrics-panel{grid-template-rows:auto}}
   @media(max-width:700px){.dashboard-screen .db-overview-grid .db-region-map-column{grid-row:auto}.dashboard-screen .db-overview-grid .db-selected-column .db-map-actions .button{min-width:0}}
+  /* Overview layout: charts on the left, policy summary on the right. */
+  .dashboard-screen form.db-layout .db-analysis-grid>.db-charts{min-width:0;gap:18px;align-items:stretch}
+  .dashboard-screen form.db-layout .db-analysis-grid>.db-policy{grid-column:auto;grid-row:auto;display:flex;flex-direction:column;align-self:stretch;padding:16px 12px;border-radius:16px}
+  .dashboard-screen .db-analysis-grid .db-policy>.db-section-title{flex-wrap:wrap;gap:6px}
+  .dashboard-screen .db-analysis-grid .db-policy-grid{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(4,minmax(0,1fr));gap:0;flex:1}
+  .dashboard-screen .db-analysis-grid .db-policy-grid>div{display:flex;flex-direction:column;justify-content:center;padding:18px 4px;border:0;border-radius:0;background:transparent}
+  .dashboard-screen .db-analysis-grid .db-policy-grid>div+div{border-top:1px solid var(--si-border)}
+  .dashboard-screen .db-analysis-grid .db-policy-grid strong{font-size:21px;overflow-wrap:anywhere}
+  @media(max-width:1250px){.dashboard-screen form.db-layout .db-analysis-grid>.db-charts{grid-template-columns:minmax(0,1fr)}}
+  @media(max-width:1000px){.dashboard-screen form.db-layout .db-analysis-grid>.db-charts{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-screen .db-analysis-grid .db-policy-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto;gap:0 16px}.dashboard-screen .db-analysis-grid .db-policy-grid>div:nth-child(2){border-top:0}}
+  @media(max-width:700px){.dashboard-screen form.db-layout .db-analysis-grid>.db-charts{grid-template-columns:minmax(0,1fr)}}
+  @media(max-width:520px){.dashboard-screen .db-analysis-grid .db-policy-grid{grid-template-columns:minmax(0,1fr)}.dashboard-screen .db-analysis-grid .db-policy-grid>div:nth-child(2){border-top:1px solid var(--si-border)}}
 </style>

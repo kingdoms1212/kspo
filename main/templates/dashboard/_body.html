@@ -36,6 +36,7 @@
 </div>
 
 {% include 'dashboard/_region_overview_ai.html' %}
+<div class="db-overview-grid db-analysis-grid">
 <div class="db-charts">
 <section class="panel db-chart-panel">
 <div class="db-section-title db-chart-heading"><h2>선택구역 신청인원</h2>{% include 'dashboard/_info.html' with label='시군구 그래프 기준' text='선택 지역의 선택구역 신청인원 합계입니다. 막대는 (값−최소값)÷(최대값−최소값)으로 정규화한 상대 위치입니다. 최소값에는 시작점 표시를 남깁니다. 모두 같으면 같은 길이로, 모두 0이면 시작점으로 표시합니다. 누락값은 정렬 마지막에 미제공으로 표시합니다. 오른쪽 숫자는 실제 인원입니다.' %}<a class="db-sort-toggle" hx-swap="innerHTML show:none focus-scroll:false" data-focus-key="dashboard-region-sort" href="{{ region_sort_url }}" hx-get="{{ region_sort_url }}" hx-params="none" aria-label="선택구역 신청인원: 현재 {% if region_sort == 'asc' %}적은 순{% else %}많은 순{% endif %}, {% if region_sort == 'asc' %}많은 순{% else %}적은 순{% endif %}으로 정렬" title="정렬 방향 전환"><span aria-hidden="true">{% if region_sort == 'asc' %}↑{% else %}↓{% endif %}</span></a></div>
@@ -56,5 +57,6 @@
 <div><span class="db-policy-label">{% include 'components/icon.html' with name='chart' %}종목당 신청인원</span><strong>{% if requests_per_sport is not None %}{{ requests_per_sport|floatformat:1 }} <em>명</em>{% else %}미제공{% endif %}</strong></div>
 </div>
 </section>
+</div>
 <div class="db-plan-action"><button type="button" class="button primary" id="plan-start" {% if not selected_region %}disabled{% endif %}>다음 단계</button></div>
 </form>

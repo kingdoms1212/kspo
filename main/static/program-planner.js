@@ -394,40 +394,69 @@
   const aiPanel = el('plan-ai-panel');
   const aiNode = selector => aiPanel.querySelector(selector);
   function validAI() {return Boolean(aiToken && aiInput === reviewKey(reviewData()) && Date.now() < aiExpires);}
-  function syncGenerate() {el('plan-generate').disabled = generating || aiBusy || !confirmed || !validAI();}
-  function invalidateAI() {
+  function skipAI() {return el('plan-ai-skip').checked;}
+  function syncGenerate() {
+    const reviewed = validAI();
+    el('plan-ai-skip-row').hidden = reviewed;
+    if (reviewed) el('plan-ai-skip').checked = false;
+    el('plan-generate').disabled = generating || aiBusy || !confirmed || (!skipAI() && !reviewed);
+    el('plan-ai-open').disabled = generating || aiBusy || reviewed;
+    el('plan-ai-include').disabled = skipAI() || !reviewed;
+  }
+  el('plan-ai-skip').addEventListener('change', () => {
+    if (skipAI()) el('plan-ai-include').checked = false;
+    syncGenerate();
+  });
+  function invalidateAI(preserveResult = false) {
     aiRevision++; aiToken = ''; aiInput = ''; aiExpires = 0;
     clearTimeout(aiExpiryTimer);
     el('plan-ai-include').checked = false; el('plan-ai-include').disabled = true;
     el('plan-ai-include-row').hidden = true;
+    el('plan-ai-skip-row').hidden = false;
     el('plan-generate').disabled = true;
-    el('plan-ai-included').textContent = '입력한 내용으로 AI 분석을 완료하면 계획서를 완성할 수 있습니다.';
+    el('plan-ai-open').disabled = aiBusy || generating;
+    el('plan-ai-included').textContent = 'AI 분석을 완료하거나 ‘AI 분석 없이 계획서 생성’을 선택해 주세요.';
     if (!aiBusy) {
+      if (preserveResult && el('plan-ai-content').innerHTML.trim()) {
+        aiPanel.dataset.aiState = 'stale';
+        aiNode('[data-ai-region-status]').textContent = '입력 변경 · 재분석 필요';
+        aiNode('[data-ai-region-label]').textContent = '다시 분석하기';
+        aiNode('[data-ai-region-title]').textContent = '변경 전 입력의 AI 분석 결과입니다';
+        el('plan-ai-included').textContent = '이전 결과는 참고용입니다. 변경된 내용으로 다시 분석하거나 AI 분석 없이 생성해 주세요.';
+        return;
+      }
       el('plan-ai-content').replaceChildren(); aiPanel.dataset.aiState = 'idle';
       aiNode('[data-ai-region-status]').textContent = '분석 전';
       aiNode('[data-ai-region-label]').textContent = 'AI로 분석하기';
       aiNode('[data-ai-region-title]').textContent = '작성한 계획을 AI와 함께 검토해 보세요';
-      aiNode('[data-ai-region-hint]').textContent = '입력한 계획의 강점과 보완점';
     }
   }
-  el('plan-form').addEventListener('input', invalidateAI);
-  el('plan-form').addEventListener('change', invalidateAI);
+  function inputChanged() {
+    // Keep the signed result when input/change events do not change the evidence.
+    if (validAI()) return;
+    invalidateAI(true); syncGenerate();
+  }
+  el('plan-form').addEventListener('input', inputChanged);
+  el('plan-form').addEventListener('change', inputChanged);
   el('plan-ai-open').addEventListener('click', async () => {
-    if (aiBusy || generating || !confirmed || !el('plan-form').reportValidity()) return;
+    if (aiBusy || generating || validAI() || !confirmed || !el('plan-form').reportValidity()) return;
     invalidateAI();
     const data = reviewData(), key = reviewKey(data), revision = aiRevision;
     const button = el('plan-ai-open'), content = el('plan-ai-content');
     const elapsed = aiNode('[data-ai-region-elapsed]');
+    // [SG003] Captions and elapsed time are optional UI elements.
+    const hint = aiNode('[data-ai-region-hint]');
     const started = performance.now();
     aiBusy = true; button.disabled = true; button.setAttribute('aria-busy', 'true');
     aiPanel.dataset.aiState = 'loading'; syncGenerate();
     aiNode('[data-ai-region-status]').textContent = '분석 중';
     aiNode('[data-ai-region-label]').textContent = '분석 중';
     aiNode('[data-ai-region-title]').textContent = '지역·시설·프로그램 정보를 분석하고 있습니다';
-    aiNode('[data-ai-region-hint]').textContent = '작성한 계획을 검토하고 있어요';
+    if (hint) hint.textContent = '작성한 계획을 검토하고 있어요';
     content.textContent = 'AI 분석 중입니다. 잠시만 기다려 주세요.';
-    content.setAttribute('aria-busy', 'true'); elapsed.hidden = false; elapsed.textContent = '0초 경과';
-    const timer = setInterval(() => {elapsed.textContent = `${Math.floor((performance.now() - started) / 1000)}초 경과`;}, 1000);
+    content.setAttribute('aria-busy', 'true');
+    if (elapsed) { elapsed.hidden = false; elapsed.textContent = '0초 경과'; }
+    const timer = elapsed ? setInterval(() => {elapsed.textContent = `${Math.floor((performance.now() - started) / 1000)}초 경과`;}, 1000) : null;
     try {
       const result = await (await response('/dashboard/ai/plan', {method: 'POST', body: data, headers: {'Accept': 'application/json'}})).json();
       if (revision !== aiRevision || reviewKey(reviewData()) !== key) throw new Error('입력이 변경되었습니다. 현재 내용으로 AI 분석을 다시 실행해 주세요.');
@@ -435,20 +464,20 @@
       content.innerHTML = result.html;
       if (typeof result.token !== 'string' || !result.token) throw new Error(content.textContent.trim() || '분석을 완료하지 못했습니다. 다시 시도해 주세요.');
       aiToken = result.token; aiInput = key; aiExpires = Date.now() + 55 * 60 * 1000;
-      aiExpiryTimer = setTimeout(invalidateAI, 55 * 60 * 1000);
+      aiExpiryTimer = setTimeout(() => {invalidateAI(); syncGenerate();}, 55 * 60 * 1000);
       aiPanel.dataset.aiState = 'complete';
       aiNode('[data-ai-region-status]').textContent = '분석 완료';
       aiNode('[data-ai-region-title]').textContent = '작성한 계획의 AI 분석 결과입니다';
-      aiNode('[data-ai-region-hint]').textContent = '강점과 보완점을 확인하세요';
+      if (hint) hint.textContent = '강점과 보완점을 확인하세요';
       el('plan-ai-include-row').hidden = false; el('plan-ai-include').disabled = false;
-      el('plan-ai-included').textContent = '보고서 포함 여부를 선택한 뒤 계획서를 완성해 주세요.';
+      el('plan-ai-included').textContent = '동일한 입력의 분석 결과를 유지합니다. 내용을 변경하면 다시 분석할 수 있습니다.';
     } catch (error) {
       content.textContent = error.message; aiPanel.dataset.aiState = 'error';
       aiNode('[data-ai-region-status]').textContent = '분석 실패';
       aiNode('[data-ai-region-title]').textContent = '분석을 완료하지 못했습니다';
-      aiNode('[data-ai-region-hint]').textContent = '입력을 확인하고 다시 시도해 주세요';
+      if (hint) hint.textContent = '입력을 확인하고 다시 시도해 주세요';
     } finally {
-      clearInterval(timer); elapsed.hidden = true; aiBusy = false;
+      clearInterval(timer); if (elapsed) elapsed.hidden = true; aiBusy = false;
       button.disabled = false; button.setAttribute('aria-busy', 'false'); content.setAttribute('aria-busy', 'false');
       aiNode('[data-ai-region-label]').textContent = aiToken ? '다시 분석하기' : '다시 시도하기';
       syncGenerate();
@@ -457,13 +486,13 @@
   el('plan-form').addEventListener('submit', async event => {
     event.preventDefault();
     if (generating || !confirmed || (!selected.size && !withoutFacility())) return;
-    if (aiBusy || !validAI()) {
+    if (aiBusy || (!skipAI() && !validAI())) {
       syncGenerate(); failure('현재 입력 내용의 AI 분석을 먼저 완료해 주세요.'); return;
     }
     generating = true; syncGenerate(); aiPanel.inert = true; root.inert = true; el('dashboard-body').inert = true;
     el('plan-entry-actions').inert = true;
     const data = reviewData();
-    if (el('plan-ai-include').checked && aiToken && aiInput === reviewKey(data)) data.set('ai_review_token', aiToken);
+    if (!skipAI() && el('plan-ai-include').checked && aiToken && aiInput === reviewKey(data)) data.set('ai_review_token', aiToken);
     message(data.get('ai_review') ? '지역·프로그램 AI 분석 중입니다. 잠시만 기다려 주세요…' : '입력 내용을 확인하고 계획서를 만드는 중입니다…');
     try {
       const result = await (await response(root.dataset.previewUrl, {
@@ -477,7 +506,7 @@
       if (saved) historyNote('');
       resultOpener = el('plan-start');
       el('plan-result').showModal();
-      aiToken = ''; el('plan-ai-include').checked = false;
+      aiToken = ''; el('plan-ai-include').checked = false; el('plan-ai-skip').checked = false;
       el('plan-form').reset(); resetSelection();
       el('plan-sport').value = ''; el('plan-query').value = ''; el('plan-selection').hidden = true;
       el('plan-start').hidden = false; stage(0); message('');
