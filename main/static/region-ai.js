@@ -1,7 +1,17 @@
-document.addEventListener('click', async event => {
-  const button = event.target.closest('[data-ai-region]');
-  if (!button || button.disabled) return;
+(() => {
+let running = false;
+let pending = null;
+async function analyze(button) {
+  if (!button || !button.isConnected || button.disabled) return;
+  // Queue only the latest region while a previous request finishes.
+  if (running) { pending = button; return; }
+  running = true;
   const card = button.closest('[data-ai-district]'), result = card.querySelector('[data-ai-region-result]');
+  const status = card.querySelector('[data-ai-region-status]');
+  const label = card.querySelector('[data-ai-region-label]');
+  const title = card.querySelector('[data-ai-region-title]');
+  status.textContent = '분석 중'; label.textContent = '분석 중…';
+  title.textContent = '지역 데이터를 분석하고 있습니다';
   button.disabled = true; result.textContent = 'AI 현황 해석 중입니다. 재시도 시 수 분이 걸릴 수 있습니다.';
   result.setAttribute('aria-busy', 'true');
   const data = new FormData(); data.set('district', card.dataset.aiDistrict);
@@ -14,15 +24,36 @@ document.addEventListener('click', async event => {
     if (!card.isConnected) return;
     if (!payload.result || typeof payload.result.summary !== 'string' || !Array.isArray(payload.result.features) || !Array.isArray(payload.result.considerations)) throw new Error('분석 응답 형식이 올바르지 않습니다. 다시 시도해 주세요.');
     result.replaceChildren();
-    const paragraph = document.createElement('p'); paragraph.textContent = payload.result.summary; result.append(paragraph);
+    status.textContent = payload.cached ? '저장된 분석' : '분석 완료';
+    title.textContent = '선택 지역의 AI 분석 결과입니다';
+    const paragraph = document.createElement('p'); paragraph.className = 'ai-region-summary'; paragraph.textContent = payload.result.summary; result.append(paragraph);
+    const columns = document.createElement('div'); columns.className = 'ai-region-columns';
     for (const [key, title] of [['features', '눈여겨볼 특징'], ['considerations', '기획 시 확인할 점']]) {
       const heading = document.createElement('h3'); heading.textContent = title;
       const list = document.createElement('ul');
       payload.result[key].forEach(text => {const item = document.createElement('li'); item.textContent = text; list.append(item);});
-      result.append(heading, list);
+      const section = document.createElement('section'); section.append(heading, list); columns.append(section);
     }
+    result.append(columns);
     const note = document.createElement('p'); note.className = 'chart-note';
-    note.textContent = '신청 실적은 지역 전체 수요나 고유 이용자 수가 아닙니다.' + (payload.cached ? ' 저장된 분석을 불러왔습니다.' : ''); result.append(note);
-  } catch (error) {result.textContent = error.message;}
-  finally {button.disabled = false; result.setAttribute('aria-busy', 'false');}
+    note.textContent = '분석 근거: 시설 · 강좌 · 신청 실적. AI가 작성한 참고 의견이며, 신청 실적은 지역 전체 수요나 고유 이용자 수가 아닙니다.'; result.append(note);
+  } catch (error) {
+    if (!card.isConnected) return;
+    result.textContent = error.message; status.textContent = '분석 실패';
+    title.textContent = '분석을 완료하지 못했습니다';
+  }
+  finally {
+    button.disabled = false; label.textContent = '다시 분석하기'; result.setAttribute('aria-busy', 'false');
+    running = false;
+    const next = pending; pending = null;
+    if (next && next.isConnected) analyze(next);
+  }
+}
+document.addEventListener('click', event => analyze(event.target.closest('[data-ai-region]')));
+// Only a successful region form swap triggers analysis; sorting and wizard resets do not.
+document.addEventListener('htmx:afterSwap', event => {
+  const detail = event.detail;
+  if (detail.target?.id !== 'dashboard-body' || detail.requestConfig?.elt?.id !== 'dashboard-filters') return;
+  analyze(document.querySelector('[data-ai-region]'));
 });
+})();
