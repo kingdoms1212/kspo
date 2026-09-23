@@ -10,7 +10,7 @@ function node() {
     addEventListener(name, handler) { this.handlers[name] = handler; },
     append(...children) { this.children.push(...children); },
     replaceChildren(...children) { this.children = children; },
-    setAttribute() {}, focus() {}, scrollIntoView() {}, querySelectorAll() { return []; },
+    setAttribute() {}, focus() {}, scrollIntoView() {}, querySelectorAll() { return []; }, querySelector(selector) { return el(selector); },
   };
 }
 const nodes = new Map();
@@ -27,7 +27,7 @@ const templateIds = new Set(fs.readdirSync(templateDirectory)
     .matchAll(/\bid="([^"]+)"/g), match => match[1])));
 const document = {
   body: node(), getElementById(id) { return templateIds.has(id) ? el(id) : null; },
-  createElement: node, querySelectorAll() { return []; },
+  createElement: node, querySelectorAll() { return []; }, querySelector(selector) { return el(selector); },
   addEventListener(name, handler) { handlers[name] = handler; },
 };
 el('plan-scope').dataset = {region: '서울', district: '중구'};
@@ -35,7 +35,7 @@ el('dashboard-region').value = '서울';
 el('dashboard-district').value = '중구';
 el('program-planner').dataset.listUrl = '/dashboard/plan/facilities';
 vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../static/program-planner.js'), 'utf8'), {
-  document, window: {dispatchEvent() {}, addEventListener() {}}, Event: class {}, URLSearchParams, setTimeout,
+  document, window: {dispatchEvent() {}, addEventListener() {}}, Event: class {}, URLSearchParams, setTimeout, clearTimeout,
   fetch(url) {
     requests.push(new URL(url, 'http://localhost'));
     return Promise.resolve({ok: true, json: async () => ({rows: [], count: 0, eligible_count: 0, page: 1, pages: 1})});

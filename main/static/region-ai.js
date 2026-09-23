@@ -16,13 +16,13 @@ async function analyze(button) {
   let succeeded = false;
   card.dataset.aiState = 'loading';
   button.setAttribute('aria-busy', 'true');
-  hint.textContent = '지역 데이터를 해석하고 있어요';
-  elapsed.hidden = false;
-  elapsed.textContent = '0초 경과';
-  const timer = setInterval(() => {
+  // [SG003] Optional presentation elements may be absent after UI changes.
+  if (hint) hint.textContent = '지역 데이터를 해석하고 있어요';
+  if (elapsed) { elapsed.hidden = false; elapsed.textContent = '0초 경과'; }
+  const timer = elapsed ? setInterval(() => {
     if (!card.isConnected) { clearInterval(timer); return; }
     elapsed.textContent = `${Math.floor((performance.now() - started) / 1000)}초 경과`;
-  }, 1000);
+  }, 1000) : null;
   status.textContent = '분석 중'; label.textContent = '분석 중';
   title.textContent = '지역 데이터를 분석하고 있습니다';
   button.disabled = true; result.textContent = 'AI 현황 해석 중입니다. 재시도 시 수 분이 걸릴 수 있습니다.';
@@ -58,9 +58,9 @@ async function analyze(button) {
   }
   finally {
     clearInterval(timer);
-    elapsed.hidden = true;
+    if (elapsed) elapsed.hidden = true;
     card.dataset.aiState = succeeded ? 'complete' : 'error';
-    hint.textContent = succeeded ? '분석 결과를 아래에서 확인하세요' : '잠시 후 다시 시도해 주세요';
+    if (hint) hint.textContent = succeeded ? '분석 결과를 아래에서 확인하세요' : '잠시 후 다시 시도해 주세요';
     button.disabled = false;
     button.setAttribute('aria-busy', 'false');
     label.textContent = succeeded ? '다시 분석하기' : '다시 시도하기';

@@ -27,11 +27,11 @@
       <button type="button" id="plan-ai-open" class="ai-region-hub" aria-labelledby="ai-region-hub-label">
         <span class="ai-region-hub-face"><i aria-hidden="true">✦</i><strong id="ai-region-hub-label" data-ai-region-label>AI로 분석하기</strong></span>
       </button>
-      <div class="ai-region-hub-caption"><span data-ai-region-hint>입력한 계획의 강점과 보완점</span><small data-ai-region-elapsed hidden></small></div>
     </div>
   </div>
   {% csrf_token %}
   <div id="plan-ai-content" data-ai-region-result aria-live="polite"></div>
+  <label id="plan-ai-skip-row" class="plan-ai-include-row"><input type="checkbox" id="plan-ai-skip"> AI 분석 없이 계획서 생성</label>
   <label id="plan-ai-include-row" class="plan-ai-include-row" hidden><input type="checkbox" id="plan-ai-include" disabled> 해당 내용을 보고서에 포함합니다</label>
-  <p id="plan-ai-included" role="status">STEP 1~3을 입력하고 AI 분석을 완료하면 계획서를 완성할 수 있습니다.</p>
+  <p id="plan-ai-included" role="status">AI 분석을 완료하거나 ‘AI 분석 없이 계획서 생성’을 선택해 주세요.</p>
 </section>
