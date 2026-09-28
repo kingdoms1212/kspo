@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 test('completed plan stays on STEP 03 until the explicit home action', () => {
-  const template = fs.readFileSync(path.join(__dirname, '../../templates/dashboard/_planner.html'), 'utf8');
+  const template = fs.readFileSync(path.join(__dirname, '../../templates/dashboard/_planner.html'), 'utf8').replace(/\r\n/g, '\n');
   const source = fs.readFileSync(path.join(__dirname, '../../static/program-planner.js'), 'utf8');
   const actions = template.slice(template.indexOf('id="plan-entry-actions"'), template.indexOf('</div>\n</div>', template.indexOf('id="plan-entry-actions"')) + 6);
   assert.ok(actions.indexOf('id="plan-back-selection"') < actions.indexOf('id="plan-home"'));
@@ -30,7 +30,8 @@ test('optional AI generation and unchanged-input review locking', async () => {
   };
   let name = '기존 프로그램', calls = 0;
   class FormData {
-    constructor(){this.values = new Map([['name',name]]);}
+    constructor(){this.values = new Map([['name',name], ['fee', '30,000']]);}
+    get(k){return this.values.get(k);}
     set(k,v){this.values.set(k,v);} append(k,v){this.values.set(k,v);}
     entries(){return this.values.entries();}
   }
@@ -39,7 +40,7 @@ test('optional AI generation and unchanged-input review locking', async () => {
   const context = {el, FormData, scope:{region:'서울',district:'강남구'}, selected:new Map(),
     withoutFacility:()=>true, confirmed:true, generating:false, performance:{now:()=>0},
     setTimeout:()=>1, clearTimeout(){}, setInterval:()=>1, clearInterval(){},
-    response:async()=>{calls++; return {json:async()=>({html:'분석 결과',token:'signed-token'})};}};
+    response:async(url, options)=>{assert.equal(options.body.get('fee'), '30000'); calls++; return {json:async()=>({html:'분석 결과',token:'signed-token'})};}};
   vm.createContext(context);
   vm.runInContext(block+';globalThis.sync=syncGenerate;',context);
   context.sync();
