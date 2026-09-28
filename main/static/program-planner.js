@@ -397,6 +397,7 @@
   let aiToken = '', aiInput = '', aiBusy = false;
   function reviewData() {
     const data = new FormData(el('plan-form'));
+    data.set('fee', String(data.get('fee') || '').replace(/,/g, ''));
     data.set('region', scope.region); data.set('district', scope.district); data.set('sport', el('plan-sport').value);
     selected.forEach(row => data.append('facilities', row.token));
     if (!selected.size && withoutFacility()) data.set('without_facility', 'on');
@@ -449,6 +450,23 @@
     if (validAI()) return;
     invalidateAI(true); syncGenerate();
   }
+  const feeInput = el('plan-fee');
+  function formatFee() {
+    const raw = feeInput.value.replace(/,/g, '');
+    const valid = feeInput.value === '' || (/^\d+$/.test(raw) && Number(raw) <= 100000000);
+    feeInput.setCustomValidity(valid ? '' : '수강료는 0원부터 100,000,000원까지 정수로 입력해 주세요.');
+    if (!valid || !raw) return;
+    const digitsBeforeCaret = feeInput.value.slice(0, feeInput.selectionStart).replace(/,/g, '').length;
+    feeInput.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    let caret = 0, digits = 0;
+    while (caret < feeInput.value.length && digits < digitsBeforeCaret) {
+      if (feeInput.value[caret] !== ',') digits++;
+      caret++;
+    }
+    feeInput.setSelectionRange(caret, caret);
+  }
+  feeInput.addEventListener('input', formatFee);
+  el('plan-form').addEventListener('reset', () => feeInput.setCustomValidity(''));
   el('plan-form').addEventListener('input', inputChanged);
   el('plan-form').addEventListener('change', inputChanged);
   el('plan-ai-open').addEventListener('click', async () => {
