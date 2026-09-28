@@ -683,7 +683,4 @@ AI_REVIEW_INCLUDE_TRANSIT=false
 
 - [라이브러리 선언](main/requirements.txt) · [Render 배포 안내](docs/RENDER-DEPLOYMENT.md)
 
-- [참고 README](https://github.com/encore-ai-campus/aio-02-p1-team4): 소개·기능·화면·기술 구성의 표현 방식을 참고했습니다. 해당 서비스의 팀원·기술·성과를 Hi스포링 정보로 옮기지 않았습니다.
-
-
 <!-- README와 docs/readme-assets를 함께 저장소에 반영해야 캡처 이미지가 표시됩니다. Mermaid 도식은 GitHub README에서 렌더링됩니다. -->
