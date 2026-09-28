@@ -33,7 +33,7 @@
     <div class="plan-info-heading"><h2>프로그램 정보 입력</h2></div><form id="plan-form">{% csrf_token %}<div class="plan-fields">
       <label class="plan-field plan-wide">프로그램명<input name="name" required maxlength="100" placeholder="예: 우리 동네 청소년 농구 교실"></label>
       <label class="plan-field">시설별 모집인원 (명)<input name="capacity" type="number" required min="1" max="100000" step="1" inputmode="numeric"></label>
-      <label class="plan-field">1인 수강료 (원)<input name="fee" type="number" required min="0" max="100000000" step="1" inputmode="numeric" placeholder="무료는 0"></label>
+      <label class="plan-field">1인 수강료 (원)<input id="plan-fee" name="fee" type="text" required inputmode="numeric" pattern="[0-9,]+" placeholder="무료는 0"></label>
       <label class="plan-field">수강료 기준<select name="fee_unit"><option value="월">월 기준</option><option value="회">1회 기준</option><option value="과정">전체 과정 기준</option></select></label>
       <label class="plan-field">대상<input name="target" maxlength="100" placeholder="예: 초등학교 4~6학년"></label><label class="plan-field">운영 시작일<input id="plan-date-start" name="start" type="date"></label><label class="plan-field">운영 종료일<input id="plan-date-end" name="end" type="date"></label>
       <label class="plan-field plan-wide">프로그램 설명<textarea name="description" required maxlength="2000" rows="4" placeholder="참여 대상, 운영 내용, 일정 등을 입력하세요."></textarea></label>
