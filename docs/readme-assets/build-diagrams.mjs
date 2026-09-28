@@ -22,16 +22,16 @@ box(640,550,520,260,'05  계획서 완성',['현재 입력·선택 시설·검�
 box(48,550,520,260,'06  인쇄·최근 목록',['이미지 준비 후 계획서 인쇄','생성 당시 결과를 브라우저 5건 보관','최근 항목 복원 시 서명 확인','처음으로: 입력·AI 화면 초기화'],C.purple);
 arrow('M1492 435V538',C.orange);arrow('M1232 680H1172',C.green);arrow('M640 680H580',C.purple);
 foot('사용자 결정 유지','AI 의견은 참고 자료입니다. 최종 프로그램 기획과 운영 판단은 담당자가 수행합니다.');await save('program-design-flow');
-begin('스포링 · AI 공급자 교체 구조','공통 요청·응답 계약을 유지하고 공급자별 SDK와 오류 처리를 어댑터로 분리');
-box(48,185,520,270,'01  업무 서비스·AIRequest',['지역 분석 / 프로그램 검토','분석 지침·집계 근거·입력 계획 구성','응답 스키마와 요청 ID 전달','원본 CSV 전체 업로드·학습 없음'],C.green);
-box(640,185,520,270,'02  팩토리·공통 인터페이스',['모드·공급자·모델 설정 확인','factory.create_provider()','AIProvider.generate(request)','선택한 공급자의 SDK만 로딩'],C.green);
-box(1232,185,520,270,'03  현재 구현된 공급자',['GeminiProvider: google-genai 호출','DummyProvider: 외부 호출 없는 예시','공급자 오류를 공통 오류 코드로 변환','재시도는 공급자 어댑터에서 처리'],C.orange);
-arrow('M568 320H630',C.green);arrow('M1160 320H1222',C.orange);
-box(1232,565,520,245,'04  AIResponse·공통 검증',['data / provider / model 반환','JSON 구조·근거 키·점수 검증','검증된 결과만 업무 서비스에 전달'],C.green);
-box(640,565,520,245,'05  결과 반영·보관',['지역 분석: 공급자별 파일 캐시','프로그램 검토: 입력 연결 서명 토큰','완성 계획서: 생성 당시 결과 유지'],C.purple);
-box(48,565,520,245,'확장 지점 · GPT / Claude',['전용 어댑터 구현 + 팩토리 등록 필요','공통 요청·응답·오류 규약 준수','미구현 공급자 설정만으로 호출 불가'],C.orange);
-arrow('M1492 455V553',C.green);arrow('M1232 680H1172',C.purple);
-foot('공급자 확장 범위','Gemini·더미를 구현했습니다. 장애 시 다른 공급자로 자동 전환하지 않습니다.');await save('ai-provider-structure');
+begin('스포링 · AI 연동 구조','사용자 분석 요청 → 근거 구성 → Gemini 호출 → 검증된 의견을 화면과 계획서에 반영');
+box(48,185,520,270,'01  사용자 분석 요청',['지역 현황: AI로 분석하기','STEP 03: 프로그램 AI 검토','분석 중 로딩·중복 클릭 제한','조회만으로 AI를 호출하지 않음'],C.blue);
+box(640,185,520,270,'02  서버의 분석 근거 구성',['지역 집계·종목 분포·자료 기간','프로그램 검토: 선택 시설·입력 계획','분석 지침·JSON 응답 스키마 준비','유효한 지역 캐시가 있으면 재사용'],C.green);
+box(1232,185,520,270,'03  Gemini API 호출',['서버에서 google-genai SDK 사용','API 키는 서버 환경변수로 관리','지침·근거·스키마를 요청으로 전달','일시적 오류만 제한적으로 재시도'],C.orange);
+arrow('M568 320H630',C.blue);arrow('M1160 320H1222',C.orange);
+box(1232,565,520,245,'04  응답 검증·결과 계산',['JSON 구조·근거 키·점수 검사','프로그램 종합 점수·등급 계산','검증 실패 시 분석 실패 안내'],C.green);
+box(640,565,520,245,'05  검증 결과 보관',['지역 요약: 파일 캐시 24시간','프로그램 검토: 서명 토큰 1시간','입력·선택 시설과 결과 일치 검사'],C.purple);
+box(48,565,520,245,'06  화면·계획서 반영',['지역 해석·프로그램 검토 결과 표시','선택한 유효 검토만 계획서에 포함','생성·인쇄·복원 시 AI 재호출 없음'],C.blue);
+arrow('M1492 455V553',C.green);arrow('M1232 680H1172',C.purple);arrow('M640 680H580',C.blue);
+foot('분석 범위','집계·선택 정보로 참고 의견을 제공합니다. 원본 CSV 전체 업로드나 사전 학습은 하지 않습니다.');await save('ai-integration');
 begin('스포링 · CSV 정제와 사전 적재','매일 00:00 한국 시간(Asia/Seoul) 예약 · 원본 변경 확인 · 검증 완료 후 메모리 갱신');
 box(48,185,520,265,'01  원본 CSV 4종',['프로그램 / 이용현황 / 시설 / 교통','data/ 원본 파일과 필수 열 확인','예약·수동·기동 경로에서 배치 실행','변경이 없으면 재정제 생략 가능'],C.purple);
 box(640,185,520,265,'02  지역 정제·준비본',['실행 잠금으로 중복 배치 제한','서울 추출·지역 코드 품질 검사','잘못된 행 제외·사유별 건수 기록','.part 파일 작성 후 flush·fsync'],C.purple);
@@ -42,12 +42,4 @@ box(640,565,520,245,'05  runtime 적재·갱신',['워커 초기화 뒤 최초 �
 box(48,565,520,245,'06  메모리 스냅샷 조회',['적재 완료된 스냅샷으로 교체','정상 캐시가 있으면 갱신 중 조회 유지','재적재 실패 시 기존 정상 캐시 유지'],C.blue);
 arrow('M1492 450V553',C.purple);arrow('M1232 680H1172',C.green);arrow('M640 680H580',C.blue);
 foot('운영 전제','서버 중지 중 예약 실행은 보장하지 않습니다. 최초 적재 실패 시 유지할 기존 캐시는 없습니다.');await save('csv-pipeline');
-const readme=new URL('../../README.md',dir);let md=await fs.readFile(readme,'utf8');
-for(const [title,name] of [['프로그램 설계 흐름','program-design-flow'],['AI 공급자 교체 구조','ai-provider-structure'],['CSV 정제·사전 적재','csv-pipeline']]){
- const start=md.indexOf('### '+title);const code=md.indexOf('```mermaid',start);const end=md.indexOf('```',code+3)+3;
- if(start<0||code<0||end<3)throw new Error('Missing '+title);
- md=md.slice(0,code)+`![${title}](docs/readme-assets/${name}.png)\n\n[이미지 크게 보기](docs/readme-assets/${name}.png) · [SVG 원본](docs/readme-assets/${name}.svg)`+md.slice(end);
-}
-await fs.writeFile(readme,md);console.log('Generated 3 PNG/SVG diagrams and updated README');
-
-
+console.log('Generated diagram SVG files');
