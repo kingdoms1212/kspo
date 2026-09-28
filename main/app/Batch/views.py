@@ -20,7 +20,7 @@ from .manual_runner import (
     read_manual_batch_status,
     start_manual_batch,
 )
-from .regional_csv_batch import LOG_FILE, MANIFEST_FILE
+from .regional_csv_batch import DEFAULT_DATA_DIR, SOURCE_SPECS, LOG_FILE, MANIFEST_FILE
 
 
 STATUS_LABELS = {
@@ -128,6 +128,19 @@ def _read_log_tail(output_dir: Path, limit: int = 120) -> str:
         return f"로그를 읽을 수 없습니다: {error}"
 
 
+def _source_file_issues() -> dict:
+    """배치와 같은 원본 목록을 확인한다. 서비스용 CSV 존재 여부와 구분한다."""
+    missing = []
+    unavailable = []
+    for spec in SOURCE_SPECS:
+        try:
+            if not (DEFAULT_DATA_DIR / spec.filename).is_file():
+                missing.append(spec.filename)
+        except OSError:
+            unavailable.append(spec.filename)
+    return {"missing": missing, "unavailable": unavailable}
+
+
 def _status_context(notice: str = "") -> dict:
     status = dict(read_manual_batch_status())
     for key in ("requested_at", "started_at", "finished_at"):
@@ -144,6 +157,7 @@ def _status_context(notice: str = "") -> dict:
         "batch_status_label": STATUS_LABELS.get(current, current),
         "batch_running": current in {"queued", "running"},
         "batch_notice": notice,
+        "source_file_issues": _source_file_issues(),
         "manifest_summary": _read_manifest_summary(output_dir),
         "log_text": _read_log_tail(output_dir),
         # 적재가 안 될 때 원인을 보는 곳이므로 이 화면은 게이트에서 제외한다.
@@ -161,7 +175,7 @@ def batch_test_status(request: HttpRequest) -> HttpResponse:
 @never_cache
 @require_POST
 def batch_test_run(request: HttpRequest) -> HttpResponse:
-    """일요일 예약 배치와 같은 운영 데이터 최신화를 즉시 시작한다."""
+    """예약 배치와 같은 운영 데이터 최신화를 즉시 시작한다."""
     try:
         start_manual_batch()
     except BatchAlreadyRunning as error:

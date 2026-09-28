@@ -44,7 +44,7 @@ card(48,170,'화면 · 사용자 인터페이스','#148BDD',[
 card(640,170,'서버 · 업무 처리','#0FA580',[
  ('python','Python 3.13.15','집계·검증·업무 로직'),('django','Django 6.1.1','요청·템플릿·폼·서명'),(None,'python-dotenv 1.2.3','.env 로딩·환경변수 설정')],'View / Service / CSV Repository 책임 분리')
 card(1232,170,'데이터 · 정제와 출력','#8562D9',[
- (None,'APScheduler 3.11.3','매일 00:00 한국 시간 배치'),(None,'BeautifulSoup 4.15.0','외부 정책 HTML 파싱'),(None,'openpyxl 3.1.5','조회 결과 Excel 내보내기')],'CSV 정제·검증 후 서비스 파일과 캐시 갱신')
+ (None,'APScheduler 3.11.3','매월 1일 01:00 (KST) 배치'),(None,'BeautifulSoup 4.15.0','외부 정책 HTML 파싱'),(None,'openpyxl 3.1.5','조회 결과 Excel 내보내기')],'CSV 정제·검증 후 서비스 파일과 캐시 갱신')
 card(48,590,'시각화 · 보관','#148BDD',[
  ('apacheecharts','ECharts 5.6.0 / GeoJSON','지역 지도와 데이터 시각화'),(None,'CSV / 메모리 / 파일 캐시','업무 조회 데이터·지역 AI 요약'),(None,'localStorage / print','최근 계획서 5건·브라우저 인쇄')],'스포츠 업무 데이터는 CSV 중심으로 관리')
 card(640,590,'AI · 분석 연동','#DB8121',[

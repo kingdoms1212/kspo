@@ -1,10 +1,11 @@
 from pathlib import Path
 import re
+import sys
 import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw, ImageFont
 
 base = Path(__file__).parent
-for name in ('program-design-flow', 'ai-integration', 'csv-pipeline'):
+for name in (sys.argv[1:] or ('program-design-flow', 'ai-integration', 'csv-pipeline')):
     root = ET.parse(base / (name + '.svg')).getroot()
     img = Image.new('RGB', (1800, 1000), '#F5F8FC')
     draw = ImageDraw.Draw(img)

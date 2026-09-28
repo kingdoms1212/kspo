@@ -8,7 +8,7 @@ from django.test import RequestFactory, SimpleTestCase, override_settings
 from django.urls import reverse
 
 from .manual_runner import BatchAlreadyRunning, STATUS_FILE
-from .regional_csv_batch import LOG_FILE, MANIFEST_FILE
+from .regional_csv_batch import LOG_FILE, MANIFEST_FILE, SOURCE_SPECS
 
 
 class BatchTestViewTests(SimpleTestCase):
@@ -19,6 +19,48 @@ class BatchTestViewTests(SimpleTestCase):
         self.settings = override_settings(DATA_DIR=self.output_dir)
         self.settings.enable()
         self.addCleanup(self.settings.disable)
+        self.source_dir = self.output_dir / "source"
+        self.source_dir.mkdir()
+        for spec in SOURCE_SPECS:
+            (self.source_dir / spec.filename).touch()
+        source_patch = patch("app.Batch.views.DEFAULT_DATA_DIR", self.source_dir)
+        source_patch.start()
+        self.addCleanup(source_patch.stop)
+
+    def test_missing_sources_are_listed_and_warning_clears_after_restore(self):
+        missing_specs = SOURCE_SPECS[:2]
+        for spec in missing_specs:
+            (self.source_dir / spec.filename).unlink()
+        # 원본 누락 안내 조회는 이미 발행된 서비스 데이터를 건드리지 않는다.
+        manifest = self.output_dir / MANIFEST_FILE
+        manifest.write_text('{"generation": "existing"}', encoding="utf-8")
+        original = manifest.read_bytes()
+
+        response = self.client.get(reverse("batch-test-status"))
+
+        self.assertContains(response, "원본 CSV 파일이 없어 데이터 최신화를 진행할 수 없습니다.")
+        for spec in missing_specs:
+            self.assertContains(response, f"<li>{spec.filename}</li>")
+        self.assertNotContains(response, str(self.source_dir))
+        self.assertContains(response, "복구한 후 다시 실행")
+        self.assertEqual(manifest.read_bytes(), original)
+
+        for spec in missing_specs:
+            (self.source_dir / spec.filename).touch()
+        response = self.client.get(reverse("batch-test-status"))
+        self.assertNotContains(response, "원본 CSV 누락 안내")
+
+    @patch("app.Batch.views.start_manual_batch", return_value="job-1")
+    def test_run_response_shows_missing_sources(self, start_manual_batch):
+        for spec in SOURCE_SPECS:
+            (self.source_dir / spec.filename).unlink()
+
+        response = self.client.post(reverse("batch-test-run"))
+
+        self.assertEqual(response.status_code, 202)
+        for spec in SOURCE_SPECS:
+            self.assertContains(response, f"<li>{spec.filename}</li>", status_code=202)
+        start_manual_batch.assert_called_once_with()
 
     def test_status_displays_manifest_and_latest_log(self):
         (self.output_dir / MANIFEST_FILE).write_text(

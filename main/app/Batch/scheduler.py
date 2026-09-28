@@ -36,7 +36,8 @@ def start_scheduler():
         schedule = settings.BATCH_SCHEDULE
         scheduler = BackgroundScheduler(timezone=settings.TIME_ZONE)
         trigger = CronTrigger(
-            day_of_week=schedule["day_of_week"],
+            day=schedule.get("day", "*"),
+            day_of_week=schedule.get("day_of_week", "*"),
             hour=schedule["hour"],
             minute=schedule["minute"],
             timezone=settings.TIME_ZONE,
@@ -53,8 +54,9 @@ def start_scheduler():
         scheduler.start()
         _scheduler = scheduler
         logger.info(
-            "지역 CSV 배치 예약을 시작했습니다: %s %02d:%02d (%s)",
-            "매일" if schedule["day_of_week"] == "*" else schedule["day_of_week"],
+            "지역 CSV 배치 예약을 시작했습니다: 일자=%s 요일=%s %02d:%02d (%s)",
+            schedule.get("day", "*"),
+            schedule.get("day_of_week", "*"),
             schedule["hour"],
             schedule["minute"],
             settings.TIME_ZONE,
