@@ -93,8 +93,6 @@ AI는 참고 의견을 제공하며 최종 기획과 운영 결정은 담당자�
 
 [기술 스택 이미지 크게 보기](docs/readme-assets/tech-stack.png)
 
-화면·서버·데이터·AI·배포 영역을 시스템 아키텍처와 같은 색상으로 구분했습니다. 로고는 [Simple Icons](https://github.com/simple-icons/simple-icons)의 공개 자산을 사용했으며, 전용 로고를 확보하지 못한 라이브러리와 표준 API는 이름으로 표시했습니다. [로고 라이선스](docs/readme-assets/logos/LICENSE.md)
-
 #### 기술 스택 상세
 
 | 영역 | 기술 / 선언 버전 | 역할 |
@@ -110,7 +108,9 @@ AI는 참고 의견을 제공하며 최종 기획과 운영 결정은 담당자�
 | 배포 | Render / Gunicorn 23 계열 / WhiteNoise 6.12.0 | 웹 서비스·정적 파일 제공 |
 | 저장 | CSV·프로세스 메모리·파일 캐시·localStorage | 조회 데이터·지역 AI 결과·최근 계획서 |
 
-버전은 설정·의존성 선언 기준입니다. Django 기본 SQLite 테이블과 스포츠 업무 데이터 저장은 구분합니다.
+화면·서버·데이터·AI·배포 영역을 시스템 아키텍처와 같은 색상으로 구분했습니다. 
+로고는 [Simple Icons](https://github.com/simple-icons/simple-icons)의 공개 자산을 사용했으며, 전용 로고를 확보하지 못한 라이브러리와 표준 API는 이름으로 표시했습니다. 
+[로고 라이선스](docs/readme-assets/logos/LICENSE.md)
 
 ### 시스템 아키텍처
 
