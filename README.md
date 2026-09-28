@@ -264,27 +264,9 @@ kspo/
 
 ### 프로그램 설계 흐름
 
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'sans-serif', 'fontSize': '16px', 'lineColor': '#526A87', 'primaryTextColor': '#19324F', 'background': '#F5F8FC'}}}%%
-flowchart LR
-    A[STEP 01 지역 선택·조회] --> B[선택적 지역 AI 분석]
-    A --> C[STEP 02 종목·시설 선택]
-    B --> C
-    C --> D[STEP 03 프로그램 정보 입력]
-    D --> E{AI 분석 사용}
-    E -->|사용| F[AI 검토·포함 여부 선택]
-    E -->|미사용| G[AI 없이 생성하기 선택]
-    F --> H[계획서 완성]
-    G --> H
-    H --> I[인쇄·최근 5건 보관]
-    classDef front fill:#EAF5FF,stroke:#148BDD,color:#19324F,stroke-width:2px
-    classDef backend fill:#E9F8F3,stroke:#0FA580,color:#19324F,stroke-width:2px
-    classDef data fill:#F2EDFF,stroke:#8562D9,color:#19324F,stroke-width:2px
-    classDef ai fill:#FFF2E4,stroke:#DB8121,color:#19324F,stroke-width:2px
-    class A,C,D,I front
-    class H backend
-    class B,E,F,G ai
-```
+![프로그램 설계 흐름](docs/readme-assets/program-design-flow.png)
+
+[이미지 크게 보기](docs/readme-assets/program-design-flow.png) · [SVG 원본](docs/readme-assets/program-design-flow.svg)
 
 1. **지역 선택:** 지도·행정구역에서 지역을 조회하고 이용 시설·강좌·신청 실적·종목 분포를 확인합니다.
 2. **종목·시설 선택:** 정상운영 후보의 상세·교통 정보를 확인하고 최대 20곳을 선택합니다. 실제 후보가 없을 때만 동의 후 시설 미정으로 진행합니다.
@@ -312,26 +294,9 @@ flowchart LR
 
 ### AI 공급자 교체 구조
 
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'sans-serif', 'fontSize': '16px', 'lineColor': '#526A87', 'primaryTextColor': '#19324F', 'background': '#F5F8FC'}}}%%
-flowchart LR
-    Task[지역·프로그램 업무 서비스] --> Req[AIRequest]
-    Req --> Factory[공급자 팩토리]
-    Factory --> Provider[AIProvider.generate]
-    Provider --> Gemini[Gemini]
-    Provider --> Dummy[Dummy]
-    Gemini --> Resp[AIResponse]
-    Dummy --> Resp
-    Resp --> Check[공통 응답 검증]
-    Check --> Store[캐시·검토 토큰·계획서]
-    classDef front fill:#EAF5FF,stroke:#148BDD,color:#19324F,stroke-width:2px
-    classDef backend fill:#E9F8F3,stroke:#0FA580,color:#19324F,stroke-width:2px
-    classDef data fill:#F2EDFF,stroke:#8562D9,color:#19324F,stroke-width:2px
-    classDef ai fill:#FFF2E4,stroke:#DB8121,color:#19324F,stroke-width:2px
-    class Task,Factory,Check backend
-    class Req,Provider,Gemini,Dummy,Resp ai
-    class Store data
-```
+![AI 공급자 교체 구조](docs/readme-assets/ai-provider-structure.png)
+
+[이미지 크게 보기](docs/readme-assets/ai-provider-structure.png) · [SVG 원본](docs/readme-assets/ai-provider-structure.svg)
 
 현재 Gemini와 더미 공급자를 구현했습니다. GPT·Claude는 공급자 어댑터 구현과 팩토리 등록 후 사용할 수 있습니다. 설정값 변경만으로 미구현 공급자가 작동하거나 장애 시 다른 공급자로 자동 전환되지는 않습니다.
 
@@ -339,22 +304,9 @@ flowchart LR
 
 **정기 실행: 매일 00:00, 한국 시간(Asia/Seoul).** 서버 프로세스 안의 APScheduler가 실행합니다. 서버가 중지된 동안의 예약 실행을 보장하지 않으며, 원본 변경이 없으면 재정제를 생략할 수 있습니다.
 
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'fontFamily': 'sans-serif', 'fontSize': '16px', 'lineColor': '#526A87', 'primaryTextColor': '#19324F', 'background': '#F5F8FC'}}}%%
-flowchart LR
-    A[원본 CSV 4종] --> B[필수 열·지역 코드 검사]
-    B --> C[서울 추출·part 준비본 작성]
-    C --> D[대상 범위·0건 검사]
-    D --> E[파일별 교체]
-    E --> F[manifest 발행]
-    F --> G[세대 감지·재적재]
-    G --> H[완료된 메모리 스냅샷 교체]
-    classDef front fill:#EAF5FF,stroke:#148BDD,color:#19324F,stroke-width:2px
-    classDef backend fill:#E9F8F3,stroke:#0FA580,color:#19324F,stroke-width:2px
-    classDef data fill:#F2EDFF,stroke:#8562D9,color:#19324F,stroke-width:2px
-    classDef ai fill:#FFF2E4,stroke:#DB8121,color:#19324F,stroke-width:2px
-    class A,B,C,D,E,F,G,H data
-```
+![CSV 정제·사전 적재](docs/readme-assets/csv-pipeline.png)
+
+[이미지 크게 보기](docs/readme-assets/csv-pipeline.png) · [SVG 원본](docs/readme-assets/csv-pipeline.svg)
 
 - 실행 잠금으로 배치 중복 실행을 제한합니다.
 - 지역 코드가 잘못된 행 등을 제외하고 사유를 기록합니다. 대상 행이 0건이면 게시를 거부합니다.
