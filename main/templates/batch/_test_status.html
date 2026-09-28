@@ -1,5 +1,21 @@
 <div class="batch-test-status" data-batch-running="{{ batch_running|yesno:'true,false' }}" data-batch-progress="{{ batch_status.progress_percent }}">
   {% if batch_notice %}<p class="batch-test-notice">{{ batch_notice }}</p>{% endif %}
+  {% if source_file_issues.missing %}
+  <section class="batch-test-error" role="alert" aria-label="원본 CSV 누락 안내">
+    <strong>원본 CSV 파일이 없어 데이터 최신화를 진행할 수 없습니다.</strong>
+    <span>현재 누락된 원본 파일:</span>
+    <ul>{% for filename in source_file_issues.missing %}<li>{{ filename }}</li>{% endfor %}</ul>
+    <span>서버의 data 폴더에 원본 파일을 복구한 후 다시 실행해 주세요.</span>
+    <span>원본 누락으로 실패한 배치는 기존 서비스 CSV를 변경하지 않습니다. 기존 서비스 데이터가 있으면 계속 이용할 수 있습니다.</span>
+  </section>
+  {% endif %}
+  {% if source_file_issues.unavailable %}
+  <section class="batch-test-error" role="alert" aria-label="원본 CSV 확인 오류">
+    <strong>원본 CSV 파일의 존재 여부를 확인하지 못했습니다.</strong>
+    <ul>{% for filename in source_file_issues.unavailable %}<li>{{ filename }}</li>{% endfor %}</ul>
+    <span>서버의 파일 접근 권한과 저장소 상태를 확인해 주세요.</span>
+  </section>
+  {% endif %}
   <dl class="batch-test-summary">
     <div><dt>상태</dt><dd class="status-{{ batch_status.status }}">{{ batch_status_label }}{% if batch_status.progress_message %}, {{ batch_status.progress_message }}{% endif %}</dd></div>
     <div><dt>요청 시간</dt><dd>{{ batch_status.requested_at|default:'-' }}</dd></div>
@@ -20,7 +36,7 @@
     <div class="batch-change-table-wrap" tabindex="0">
       <table class="batch-change-table">
         <caption class="sr-only">목록별 적재 상태</caption>
-        <thead><tr><th scope="col">목록</th><th scope="col">파일</th><th scope="col">원본 존재</th><th scope="col">메모리 적재</th></tr></thead>
+        <thead><tr><th scope="col">목록</th><th scope="col">파일</th><th scope="col">서비스 CSV 존재</th><th scope="col">메모리 적재</th></tr></thead>
         <tbody>
           {% for item in readiness.targets %}<tr><th scope="row">{{ item.label }}</th><td><small>{{ item.filename }}</small></td><td>{{ item.present|yesno:"있음,없음" }}</td><td>{{ item.loaded|yesno:"완료,대기" }}</td></tr>{% endfor %}
         </tbody>
