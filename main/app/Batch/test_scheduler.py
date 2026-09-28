@@ -1,12 +1,29 @@
 from unittest import TestCase
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from unittest.mock import MagicMock, patch
 
 from django.test import override_settings
+from django.conf import settings
+from apscheduler.triggers.cron import CronTrigger
 
 from . import scheduler as scheduler_module
 
 
 class RegionBatchSchedulerTests(TestCase):
+    def test_default_schedule_fires_every_day_at_korean_midnight(self):
+        self.assertEqual(settings.TIME_ZONE, "Asia/Seoul")
+        trigger = CronTrigger(**settings.BATCH_SCHEDULE, timezone=settings.TIME_ZONE)
+        zone = ZoneInfo("Asia/Seoul")
+        now = datetime(2026, 9, 28, 12, tzinfo=zone)
+        previous = None
+        for offset in range(7):
+            expected = datetime(2026, 9, 29, tzinfo=zone) + timedelta(days=offset)
+            actual = trigger.get_next_fire_time(previous, now)
+            self.assertEqual(actual, expected)
+            previous = actual
+            now = actual + timedelta(seconds=1)
+
     def tearDown(self):
         scheduler_module._scheduler = None
 

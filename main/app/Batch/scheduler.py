@@ -53,10 +53,11 @@ def start_scheduler():
         scheduler.start()
         _scheduler = scheduler
         logger.info(
-            "지역 CSV 배치 예약을 시작했습니다: %s %02d:%02d",
-            schedule["day_of_week"],
+            "지역 CSV 배치 예약을 시작했습니다: %s %02d:%02d (%s)",
+            "매일" if schedule["day_of_week"] == "*" else schedule["day_of_week"],
             schedule["hour"],
             schedule["minute"],
+            settings.TIME_ZONE,
         )
         return scheduler
 

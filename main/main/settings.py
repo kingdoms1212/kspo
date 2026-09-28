@@ -204,10 +204,10 @@ FACILITY_REGION_FILTER_MODE = os.environ.get(
 ).strip().lower()
 
 # APScheduler의 실행 요일과 시각은 이 설정만 바꿔 조정한다.
-# 요일은 mon, tue, wed, thu, fri, sat, sun 중 하나를 사용한다.
+# '*'는 매일이며, 예약 시간대는 TIME_ZONE(Asia/Seoul)을 따른다.
 # 시간은 24시간 형식이며, 21시 33분은 hour를 21, minute을 33으로 설정한다.
 BATCH_SCHEDULE = {
-    'day_of_week': 'sun',
+    'day_of_week': '*',
     'hour': 0,
     'minute': 0,
 }
