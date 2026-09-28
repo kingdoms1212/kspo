@@ -38,7 +38,7 @@
 
 9. [한 줄 회고](#retrospective)
 
-- [현재 제약사항 및 향후 개선사항](#improvements)
+10. [현재 제약사항 및 향후 개선사항](#improvements)
 
 - [부록 · 실행 및 참고 자료](#appendix)
 
