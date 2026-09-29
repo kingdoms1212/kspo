@@ -139,9 +139,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -230,8 +230,6 @@ POLICY_SOURCE = {
     'max_bytes': 2_000_000,
     'user_agent': 'SPORT-INSIGHT/1.0 (public policy listing reader)',
 }
-LANGUAGE_CODE = 'ko-kr'
-TIME_ZONE = 'Asia/Seoul'
 
 
 # Email
