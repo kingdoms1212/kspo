@@ -95,14 +95,14 @@ config\Scripts\python.exe main\manage.py makemigrations --check --dry-run
 ## 지역 CSV 배치와 자동 캐시 갱신
 
 웹서비스 시작 시 `app/Batch/regional_csv_batch.py`를 실행하고, 서버가 실행
-중이면 APScheduler가 매주 일요일 00시에 같은 배치를 실행한다. 기본 지역은
+중이면 APScheduler가 매월 1일 01:00(Asia/Seoul)에 같은 배치를 실행한다. 기본 지역은
 서울이며, 배치는 지역 CSV 네 개를 교체한 뒤 `batch_manifest.json`의 세대를
 갱신한다. 각 웹 프로세스는 작은 manifest 변경만 확인하고, 세대가 바뀐 경우
 자신의 프로그램·이용현황·시설·교통 캐시를 자동으로 다시 만든다.
 새 파일은 `.part` 준비본에서 전수 검증한 후 최종 파일로 교체하며,
 직전 파일을 `*_temp.csv`로 별도 보관하지 않는다.
 
-배치 범위는 `main/settings.py`의 `BATCH_REGION_KEY`, 실행 요일과 시각은
+배치 범위는 `main/settings.py`의 `BATCH_REGION_KEY`, 실행 일자와 시각은
 `BATCH_SCHEDULE`에서 변경한다. 현재 지원 프로필은 `seoul`, `national`이다.
 프로그램, 시설, 교통 화면의 입력 파일은 같은 파일의 `DATA_FILES`에서 관리한다.
 대시보드의 서울 전용 조회 로직은 이번 지역 배치 모듈화 범위에서 변경하지 않았다.

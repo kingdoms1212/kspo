@@ -86,7 +86,7 @@ def _load_usage_snapshot():
     }
 
 
-# 일요일 배치 세대가 바뀌면 이 프로세스의 집계를 다시 만든다.
+# 배치 실행으로 CSV 세대가 바뀌면 이 프로세스의 집계를 다시 만든다.
 _usage_cache = VersionedCsvCache(USAGE_FILE, _load_usage_snapshot)
 
 
