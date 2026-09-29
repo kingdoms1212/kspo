@@ -141,7 +141,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Seoul'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
@@ -203,8 +203,8 @@ FACILITY_REGION_FILTER_MODE = os.environ.get(
     'FACILITY_REGION_FILTER_MODE', 'fixed'
 ).strip().lower()
 
-# APScheduler의 실행 일자와 시각은 이 설정만 바꿔 조정한다.
-# day=1은 매월 1일이며, 예약 시간대는 TIME_ZONE(Asia/Seoul)을 따른다.
+# APScheduler의 매월 실행 일자와 시각은 이 설정만 바꿔 조정한다.
+# 매월 1일에 실행하며, 예약 시간대는 TIME_ZONE(Asia/Seoul)을 따른다.
 # 시간은 24시간 형식이며, 21시 33분은 hour를 21, minute을 33으로 설정한다.
 BATCH_SCHEDULE = {
     'day': 1,
@@ -231,6 +231,7 @@ POLICY_SOURCE = {
     'user_agent': 'SPORT-INSIGHT/1.0 (public policy listing reader)',
 }
 LANGUAGE_CODE = 'ko-kr'
+TIME_ZONE = 'Asia/Seoul'
 
 
 # Email

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 let p='README.md'; let t=await fs.readFile(p,'utf8');
-t=t.replace('예약 배치의 일요일 00시는 서버 설정 UTC 기준입니다.','현재 예약 배치는 **매일 00:00 한국 시간(Asia/Seoul)**입니다. 첨부 이미지의 일요일 예약 표기는 변경 전 설정입니다.');
+t=t.replace('예약 배치의 일요일 00시는 서버 설정 UTC 기준입니다.','현재 예약 배치는 **매월 1일 01:00 한국 시간(Asia/Seoul)**입니다. 첨부 이미지의 일요일 예약 표기는 변경 전 설정입니다.');
 t=t.replace('**[수기 입력: 확정된 ERD와 엔터티·PK·FK·관계 설명]**',`### CSV 파일 구성과 역할
 
 현재 업무 데이터는 관계형 테이블 대신 CSV 파일로 관리합니다. 아래 표는 원본과 서울 서비스 파일의 대응 관계이며, DB의 PK·FK 제약을 의미하지 않습니다.
@@ -24,7 +24,7 @@ t=t.replace('**[수기 입력: 확정된 ERD와 엔터티·PK·FK·관계 설명
 | CSV와 manifest | generation·파일 크기·수정시각·SHA-256 | 게시 세대·파일 변경 검증용 메타데이터 |
 
 **[수기 입력: 별도 DB 설계 시 확정 ERD와 엔터티·PK·FK·관계 설명]**`);
-t=t.replace('### CSV 정제·사전 적재\n','### CSV 정제·사전 적재\n\n**정기 실행: 매일 00:00, 한국 시간(Asia/Seoul).** 서버 프로세스 안의 APScheduler가 실행합니다. 서버가 중지된 동안의 예약 실행을 보장하지 않으며, 원본 변경이 없으면 재정제를 생략할 수 있습니다.\n');
+t=t.replace('### CSV 정제·사전 적재\n','### CSV 정제·사전 적재\n\n**정기 실행: 매월 1일 01:00, 한국 시간(Asia/Seoul).** 서버 프로세스 안의 APScheduler가 실행합니다. 서버가 중지된 동안의 예약 실행을 보장하지 않으며, 원본 변경이 없으면 재정제를 생략할 수 있습니다.\n');
 await fs.writeFile(p,t);
-p='main/templates/overview/index.html'; t=await fs.readFile(p,'utf8'); t=t.replaceAll('일요일 00:00 UTC','매일 00:00 한국 시간(Asia/Seoul)').replaceAll('예약은 일요일 00:00이며 <code>settings.TIME_ZONE=UTC</code>','예약은 매일 00:00이며 <code>settings.TIME_ZONE=Asia/Seoul</code>'); await fs.writeFile(p,t);
-p='docs/RENDER-DEPLOYMENT.md'; t=await fs.readFile(p,'utf8'); t=t.replace('주간 배치는 기존 설정대로 일요일 00:00(Asia/Seoul)에 실행한다.','정기 배치는 매일 00:00(Asia/Seoul, 한국 시간)에 실행한다. 프로세스 내 예약이므로 서비스가 중지된 동안의 실행은 보장하지 않는다.'); await fs.writeFile(p,t);
+p='main/templates/overview/index.html'; t=await fs.readFile(p,'utf8'); t=t.replaceAll('일요일 00:00 UTC','매월 1일 01:00 한국 시간(Asia/Seoul)').replaceAll('예약은 일요일 00:00이며 <code>settings.TIME_ZONE=UTC</code>','예약은 매월 1일 01:00이며 <code>settings.TIME_ZONE=Asia/Seoul</code>'); await fs.writeFile(p,t);
+p='docs/RENDER-DEPLOYMENT.md'; t=await fs.readFile(p,'utf8'); t=t.replace('주간 배치는 기존 설정대로 일요일 00:00(Asia/Seoul)에 실행한다.','정기 배치는 매월 1일 01:00(Asia/Seoul, 한국 시간)에 실행한다. 프로세스 내 예약이므로 서비스가 중지된 동안의 실행은 보장하지 않는다.'); await fs.writeFile(p,t);
