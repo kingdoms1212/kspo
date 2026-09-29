@@ -76,7 +76,10 @@
       resultOpener = el('plan-history-open');
       el('plan-history').close();
       // 과거 결과 조회는 새 설계 흐름의 단계를 변경하지 않는다.
-      el('plan-result').showModal(); historyNote('');
+      el('plan-result').showModal();
+      // Reset the scrollable report after the dialog is visible and focused.
+      el('plan-result-content').scrollTop = 0;
+      historyNote('');
     } catch (error) {historyNote(error.message);}
     finally {restoring = false; root.inert = false; el('dashboard-body').inert = false; renderHistory();}
   }
