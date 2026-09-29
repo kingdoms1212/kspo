@@ -11,13 +11,13 @@ from . import scheduler as scheduler_module
 
 
 class RegionBatchSchedulerTests(TestCase):
-    def test_default_schedule_fires_monthly_on_first_at_one_korean_time(self):
+    def test_default_schedule_fires_monthly_at_one_am_korean_time(self):
         self.assertEqual(settings.TIME_ZONE, "Asia/Seoul")
         trigger = CronTrigger(**settings.BATCH_SCHEDULE, timezone=settings.TIME_ZONE)
         zone = ZoneInfo("Asia/Seoul")
         now = datetime(2026, 9, 28, 12, tzinfo=zone)
         previous = None
-        for year, month in ((2026, 10), (2026, 11), (2026, 12), (2027, 1), (2027, 2), (2027, 3)):
+        for year, month in [(2026, 10), (2026, 11), (2026, 12), (2027, 1), (2027, 2), (2027, 3)]:
             expected = datetime(year, month, 1, 1, tzinfo=zone)
             actual = trigger.get_next_fire_time(previous, now)
             self.assertEqual(actual, expected)
@@ -30,7 +30,7 @@ class RegionBatchSchedulerTests(TestCase):
     @override_settings(
         TIME_ZONE="Asia/Seoul",
         BATCH_REGION_KEY="seoul",
-        BATCH_SCHEDULE={"day": 1, "hour": 1, "minute": 0},
+        BATCH_SCHEDULE={"day": 15, "hour": 2, "minute": 30},
     )
     @patch.object(scheduler_module, "CronTrigger")
     @patch.object(scheduler_module, "BackgroundScheduler")
@@ -43,7 +43,7 @@ class RegionBatchSchedulerTests(TestCase):
         result = scheduler_module.start_scheduler()
 
         trigger_class.assert_called_once_with(
-            day=1, day_of_week="*", hour=1, minute=0, timezone="Asia/Seoul"
+            day=15, hour=2, minute=30, timezone="Asia/Seoul"
         )
         instance.add_job.assert_called_once_with(
             scheduler_module._run_region_batch,

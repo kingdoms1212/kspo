@@ -1,4 +1,4 @@
-"""One worker owns the in-process weekly scheduler and CSV caches."""
+"""One worker owns the in-process monthly scheduler and CSV caches."""
 import os
 from pathlib import Path
 
