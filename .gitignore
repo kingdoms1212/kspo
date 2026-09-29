@@ -21,3 +21,4 @@ data/Batch/*.json
 data/Batch/logs/
 
 main/.ai-cache/
+output/
