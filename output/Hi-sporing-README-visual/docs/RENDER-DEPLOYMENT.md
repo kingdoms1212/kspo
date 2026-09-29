@@ -40,7 +40,7 @@
 
 시작 스크립트가 Django 기본 테이블을 migrate한 뒤 Gunicorn으로 프로세스를 교체한다.
 Gunicorn은 `0.0.0.0:$PORT`에서 worker 1개, thread 4개로 실행하며 worker 초기화 후 APScheduler를 시작한다.
-정기 배치는 매일 00:00(Asia/Seoul, 한국 시간)에 실행한다. 프로세스 내 예약이므로 서비스가 중지된 동안의 실행은 보장하지 않는다. `BATCH_SCHEDULER_ENABLED=false`로 끌 수 있다.
+정기 배치는 매월 1일 01:00(Asia/Seoul, 한국 시간)에 실행한다. 프로세스 내 예약이므로 서비스가 중지된 동안의 실행은 보장하지 않는다. `BATCH_SCHEDULER_ENABLED=false`로 끌 수 있다.
 빌드에서 CSV를 준비하므로 서버 시작 때마다 대용량 압축 해제를 반복하지 않는다.
 
 이 구성은 서비스 인스턴스 1개를 전제로 한다. 여러 worker/인스턴스로 확장하려면 스케줄러와 데이터 저장소를 별도 서비스로 분리해야 한다.
