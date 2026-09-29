@@ -42,7 +42,7 @@ main/urls.py                /healthz/ 를 준비 상태에 연동하고 /readyz/
 ## 판정은 최초 적재만 본다
 
 배치가 새 세대를 발행해 다시 읽는 동안에도 캐시는 옛 목록을 그대로 서비스한다
-(`get()`의 `background_refresh` 경로). 갱신 중을 미준비로 보면 **매주 일요일 00시에
+(`get()`의 `background_refresh` 경로). 갱신 중을 미준비로 보면 **매월 1일 01:00(Asia/Seoul) 배치 후
 멀쩡한 자료를 두고 사이트 전체가 안내 화면이 된다.** 그래서 게이트는
 `VersionedCsvCache.is_loaded`, 즉 최초 적재 여부만 본다.
 
