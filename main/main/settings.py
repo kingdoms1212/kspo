@@ -141,7 +141,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -231,7 +231,6 @@ POLICY_SOURCE = {
     'user_agent': 'SPORT-INSIGHT/1.0 (public policy listing reader)',
 }
 LANGUAGE_CODE = 'ko-kr'
-TIME_ZONE = 'Asia/Seoul'
 
 
 # Email
