@@ -1,3 +1,4 @@
+{# 홍석환 [HSH001] 지역 현황 대시보드 — 백엔드 통계·프론트 시각화 #}
 <div id="plan-scope" data-region="{{ selected_region }}" data-district="{{ selected_district }}" hidden></div>
 {% if htmx_fragment %}<div class="heading-copy program-heading-copy" id="dashboard-heading" hx-swap-oob="true"><h1>프로그램 설계</h1>{% include 'components/heading_help.html' with id='dashboard-heading' label='시설 이용현황 안내' text='스포츠강좌이용권 이용현황 자료에서 시설·강좌·신청인원을 확인합니다.' %}</div>{% endif %}
 <p class="sr-only" role="status">{% if selected_region %}{{ selected_region }}{% if selected_district %} {{ selected_district }}{% endif %}{% else %}전국{% endif %} 조회 완료. 시설 {{ facilities|default_if_none:'미제공' }}개, 강좌 {{ courses|default_if_none:'미제공' }}건. 시군구 {% if region_sort == 'asc' %}적은{% else %}많은{% endif %} 순, 종목 {% if sport_sort == 'asc' %}적은{% else %}많은{% endif %} 순.</p>

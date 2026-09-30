@@ -1,3 +1,4 @@
+# 설호현 [SHH003] 서울 CSV 정제 — 데이터 추출·코드 검증
 """원본 CSV 네 개를 설정된 지역의 서비스 CSV로 갱신한다.
 
 새 데이터는 먼저 ``.part`` 파일로 완성한다. 모든 파일의 생성과 검증이
@@ -348,6 +349,7 @@ def _extract_to_part(
         raise
 
 
+# 설호현 [SHH004] 서비스 CSV 발행 — 데이터 세대 관리·백엔드 변경 감지
 def _source_version(data_dir: Path, specs: tuple[SourceSpec, ...]) -> dict:
     """빠른 변경 감지를 위해 배포 버전과 원본 파일 정보를 수집한다."""
     render_commit = os.environ.get("RENDER_GIT_COMMIT", "").strip()

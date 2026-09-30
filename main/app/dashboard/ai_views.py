@@ -15,6 +15,7 @@ from .planning import PlanForm
 
 SALT = 'plan-ai-review-v1'
 
+# 서정길 [SJG005] 프로그램 AI 검토 — 백엔드 평가·검토 결과 검증
 def fingerprint(form):
     data = {k: v for k, v in form.cleaned_data.items() if k != 'ai_review'}
     data['selected_ids'] = sorted(row.id for row in form.selected)
@@ -51,6 +52,7 @@ def plan_review(request):
         token = signing.dumps({'fingerprint': fingerprint(form), 'review': value}, salt=SALT, compress=True)
     return JsonResponse({'html': html, 'token': token})
 
+# 서정길 [SJG004] 지역 현황 AI 분석 — 백엔드 요청·응답 처리
 @never_cache
 @require_POST
 def region_review(request):

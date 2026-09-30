@@ -1,3 +1,4 @@
+// 홍석환 [HSH003] 지역 현황 AI 분석 — 프론트 화면·이벤트 구현
 (() => {
 let running = false;
 let pending = null;

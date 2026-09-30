@@ -1,3 +1,4 @@
+# 설호현 [SHH004] 서비스 CSV 발행 — 데이터 세대 관리·백엔드 변경 감지
 """설정에 따라 지역 데이터의 반영 대상을 선택한다."""
 from __future__ import annotations
 

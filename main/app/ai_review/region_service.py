@@ -1,3 +1,4 @@
+# 서정길 [SJG004] 지역 현황 AI 분석 — 백엔드 요청·응답 처리
 """Region analysis and generation-keyed cache, independent of HTTP views."""
 import hashlib
 import json

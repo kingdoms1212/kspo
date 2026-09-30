@@ -1,3 +1,4 @@
+# 서정길 [SJG002] 프로그램 설계·계획서 생성 — 백엔드 입력 검증·응답 처리
 """Transient program plans. No database, session or filesystem persistence."""
 from django import forms
 from django.core import signing

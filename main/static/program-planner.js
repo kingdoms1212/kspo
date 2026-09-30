@@ -8,6 +8,7 @@
   const selected = new Map();
   let scope = {}, page = 1, pages = 1, rows = [], listVersion = 0, detailVersion = 0;
   let confirmed = false, generating = false, lastPlan = null, listLoading = false;
+  // 서정길 [SJG006] 최근 생성 목록 — 프론트 보관·백엔드 복원 처리
   const historyKey = 'sport-insight.plan-history.v1';
   let historyRows = [], restoring = false, resultOpener = null;
   function historyNote(text) { el('plan-history-status').textContent = text; }
@@ -137,6 +138,7 @@
     panel.setAttribute('aria-busy', 'true');
     delete panel.dataset.facility;
   }
+  // 홍석환 [HSH002] 프로그램 설계 단계 — 프론트 화면·이동 UI
   function stage(index) {
     document.body.dataset.planStep = index;
     el('plan-history-open').hidden = index !== 0;
@@ -397,6 +399,7 @@
     }).catch(() => failure('처음 화면을 불러오지 못했습니다. 현재 지역 현황을 유지합니다.'));
   }
   el('plan-home').addEventListener('click', returnToStart);
+  // 홍석환 [HSH004] 프로그램 AI 검토 — 프론트 화면·이벤트 구현
   let aiToken = '', aiInput = '', aiBusy = false;
   function reviewData() {
     const data = new FormData(el('plan-form'));
@@ -577,6 +580,7 @@
     }
   });
   let printDetails = [];
+  // 홍석환 [HSH005] 계획서·인쇄 — 프론트 결과 레이아웃
   function preparePrint() {
     if (printArea && printArea.childElementCount) return;
     printDetails = Array.from(el('plan-result-content').querySelectorAll('details:not([open])'));

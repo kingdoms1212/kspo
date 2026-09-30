@@ -1,3 +1,4 @@
+# 서정길 [SJG002] 프로그램 설계·계획서 생성 — 백엔드 입력 검증·응답 처리
 """검증된 설계 입력과 통계를 보고서 표시 데이터로 구성한다."""
 from ..dashboard.presenters import pie_chart_data, region_chart_rows
 

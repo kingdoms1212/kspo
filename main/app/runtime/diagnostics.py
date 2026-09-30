@@ -1,3 +1,4 @@
+# 서정길 [SJG011] 운영 설정 — 배포·진단 및 월간 배치 일정
 """임시 기동 진단. 요청 본문·쿼리·쿠키는 기록하지 않는다."""
 import logging
 from time import perf_counter

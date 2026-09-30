@@ -1,3 +1,4 @@
+# 설호현 [SHH004] 서비스 CSV 발행 — 데이터 세대 관리·백엔드 변경 감지
 """배치 세대를 확인해 CSV 메모리 캐시를 자동으로 갱신한다."""
 import json
 import logging

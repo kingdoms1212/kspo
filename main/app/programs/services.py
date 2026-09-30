@@ -1,3 +1,4 @@
+# 설호현 [SHH001] 프로그램 현황 — 백엔드 검색·프론트 필터 화면
 """Program search, sorting and summaries shared by page and export."""
 from collections import Counter
 

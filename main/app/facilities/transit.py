@@ -1,3 +1,4 @@
+# 서정길 [SJG007] 시설 상세·인접 교통 — 백엔드 데이터 연결·예외처리
 """Nearby public transport for a facility.
 
 Source: the adjacent-transport register, one row per facility and stop pair.

@@ -1,3 +1,4 @@
+# 서정길 [SJG005] 프로그램 AI 검토 — 백엔드 평가·검토 결과 검증
 import logging
 from datetime import date, datetime
 from threading import BoundedSemaphore

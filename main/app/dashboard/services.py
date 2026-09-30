@@ -1,3 +1,4 @@
+# 홍석환 [HSH001] 지역 현황 대시보드 — 백엔드 통계·프론트 시각화
 """Dashboard aggregates and presentation data."""
 from collections import Counter
 

@@ -1,3 +1,4 @@
+# 서정길 [SJG003] AI 공통 연동 — 백엔드 공급자 호출·응답 검증
 """Configuration and lazy provider selection. SDK imports stay inside adapters."""
 import os
 from importlib import import_module

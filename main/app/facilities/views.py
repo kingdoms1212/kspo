@@ -14,6 +14,7 @@ from .services import (facility_flags, facility_industries, facility_owners,
 SEARCH_KEYS = ('region', 'district', 'industry', 'flag', 'state', 'owner', 'query')
 
 
+# 설호현 [SHH002] 시설 현황·지역 범위 — 백엔드 지역 조건·프론트 조회 화면
 def _search_params(request):
     """Use one query contract for both the page and its export.
 
@@ -70,6 +71,7 @@ def facilities(request):
     return render_screen(request, 'facilities/index.html', 'facilities/_workspace.html', context)
 
 
+# 서정길 [SJG009] 엑셀 다운로드 — 백엔드 파일 생성
 def export_facilities(request):
     _, _, rows, _, _ = _selection(request)
     refusal = over_export_limit(len(rows))

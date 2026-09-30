@@ -1,3 +1,4 @@
+# 설호현 [SHH006] 정기 배치 — 백엔드 예약 실행 기반
 """Django 개발 서버가 실행 중일 때 지역 CSV 배치를 예약한다."""
 import atexit
 import logging

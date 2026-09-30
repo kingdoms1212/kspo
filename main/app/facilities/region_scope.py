@@ -1,3 +1,4 @@
+# 설호현 [SHH002] 시설 현황·지역 범위 — 백엔드 지역 조건·프론트 조회 화면
 """시설 현황의 지역 선택 범위를 관리한다."""
 from dataclasses import dataclass
 

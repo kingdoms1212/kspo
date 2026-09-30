@@ -17,6 +17,7 @@ SEARCH_KEYS = ('region', 'district', 'facility_type', 'sport', 'target', 'weekda
 
 # Keep the existing controller patch point while importing the service module.
 
+# 설호현 [SHH001] 프로그램 현황 — 백엔드 검색·프론트 필터 화면
 def _search_params(request):
     """Use one query contract for both the page and its export."""
     params = {key: request.GET.get(key, '') for key in SEARCH_KEYS}
@@ -77,6 +78,7 @@ def programs(request):
     }
     return render_screen(request, 'programs/index.html', 'programs/_results.html', context)
 
+# 서정길 [SJG009] 엑셀 다운로드 — 백엔드 파일 생성
 def export_programs(request):
     params = _search_params(request)
     # The export applies the same budget range the page did.

@@ -1,3 +1,4 @@
+# 서정길 [SJG006] 최근 생성 목록 — 프론트 보관·백엔드 복원 처리
 """브라우저에 보관하는 설계서 결과의 서명·검증 규약. HTTP/CSV에 의존하지 않는다."""
 from django.core import signing
 

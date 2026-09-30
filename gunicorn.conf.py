@@ -1,3 +1,4 @@
+# 서정길 [SJG011] 운영 설정 — 배포·진단 및 월간 배치 일정
 """One worker owns the in-process monthly scheduler and CSV caches."""
 import os
 from pathlib import Path

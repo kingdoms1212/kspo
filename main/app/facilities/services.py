@@ -1,3 +1,4 @@
+# 서정길 [SJG007] 시설 상세·인접 교통 — 백엔드 데이터 연결·예외처리
 """Facility search and transport linking shared by page and export."""
 import threading
 

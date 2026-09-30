@@ -1,3 +1,4 @@
+# 홍석환 [HSH006] 초기 데이터 목록·탐색 — 데이터 분석 기반
 """Inventory supplied CSVs without logging records or personal fields."""
 import csv
 import hashlib

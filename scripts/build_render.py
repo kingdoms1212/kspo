@@ -1,3 +1,4 @@
+# 서정길 [SJG011] 운영 설정 — 배포·진단 및 월간 배치 일정
 """Render build command; execute from any working directory."""
 from pathlib import Path
 import subprocess

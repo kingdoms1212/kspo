@@ -1,3 +1,4 @@
+# 서정길 [SJG003] AI 공통 연동 — 백엔드 공급자 호출·응답 검증
 CRITERIA = {
     'population_fit': '인구·대상 적합성', 'sports_demand': '종목 수요',
     'facility_supply': '시설 공급', 'facility_fit': '시설 적합성',

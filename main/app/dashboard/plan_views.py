@@ -16,6 +16,7 @@ from ..planning.snapshots import (
 )
 
 
+# 서정길 [SJG006] 최근 생성 목록 — 프론트 보관·백엔드 복원 처리
 @never_cache
 @require_POST
 def restore(request):
@@ -27,6 +28,7 @@ def restore(request):
     return JsonResponse(snapshot)
 
 
+# 서정길 [SJG002] 프로그램 설계·계획서 생성 — 백엔드 입력 검증·응답 처리
 @never_cache
 @require_GET
 def facility_list(request):

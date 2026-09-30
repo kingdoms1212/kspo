@@ -1,3 +1,4 @@
+# 서정길 [SJG009] 엑셀 다운로드 — 백엔드 파일 생성
 """Shared Excel workbook response; feature modules own export columns."""
 from io import BytesIO
 

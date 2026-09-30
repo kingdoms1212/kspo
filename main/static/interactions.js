@@ -54,6 +54,7 @@
     }
   });
 
+  // 서정길 [SJG008] 주요 정책 보기 — 백엔드 수집·캐시 및 프론트 다이얼로그
   /* Open the policy dialog before the external listing request completes so
    * Render users get immediate feedback while the crawler is working. */
   var dialog = document.getElementById('policy-dialog');
