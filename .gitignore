@@ -5,6 +5,7 @@ __pycache__/
 *.pyd
 .venv-render/
 .render-check/
+.presentation-validation/
 main/staticfiles/
 .env
 data/*.csv
